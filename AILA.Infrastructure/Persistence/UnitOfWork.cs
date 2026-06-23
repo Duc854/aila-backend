@@ -1,6 +1,9 @@
 ﻿using AILA.Application.Common.Interfaces;
+using AILA.Application.Common.Interfaces.Repositories;
+using AILA.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore.Storage;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,11 +15,31 @@ namespace AILA.Infrastructure.Persistence
     {
         private readonly ApplicationDbContext _context;
         private IDbContextTransaction? _currentTransaction;
+        private Hashtable? _repositories;
         private bool _disposed;
 
+        public ICourseRepository Courses { get; private set; }
+        public ILearningProgressRepository LearningProgresses { get; private set; }
         public UnitOfWork(ApplicationDbContext context)
         {
             _context = context;
+            Courses = new CourseRepository(_context);
+            LearningProgresses = new LearningProgressRepository(_context);
+        }
+
+        public IGenericRepository<T> Repository<T>() where T : class
+        {
+            _repositories ??= new Hashtable();
+            var type = typeof(T).Name;
+
+            if (!_repositories.ContainsKey(type))
+            {
+                var repositoryType = typeof(GenericRepository<>);
+                var repositoryInstance = Activator.CreateInstance(repositoryType.MakeGenericType(typeof(T)), _context);
+                _repositories.Add(type, repositoryInstance);
+            }
+
+            return (IGenericRepository<T>)_repositories[type]!;
         }
 
         public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
