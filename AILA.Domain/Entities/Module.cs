@@ -18,6 +18,10 @@ namespace AILA.Domain.Entities
         // Navigation Property
         public virtual Course Course { get; private set; }
 
+        // --- CẤU HÌNH QUAN HỆ 1-NHIỀU VỚI MATERIAL ---
+        private readonly List<Material> _materials = new();
+        public virtual IReadOnlyCollection<Material> Materials => _materials.AsReadOnly();
+
         // Constructor phục vụ EF Core
         private Module() { }
 

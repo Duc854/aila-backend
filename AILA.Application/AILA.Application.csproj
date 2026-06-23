@@ -15,8 +15,6 @@
   <ItemGroup>
     <Folder Include="Common\Behaviours\" />
     <Folder Include="Common\Mappings\" />
-    <Folder Include="Common\Dtos\" />
-    <Folder Include="Features\" />
   </ItemGroup>
 
   <ItemGroup>
