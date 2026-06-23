@@ -10,5 +10,5 @@ using System.Threading.Tasks;
 
 namespace AILA.Application.Features.Courses.Queries
 {
-    public record GetCourseContentQuery(Guid CourseId, Guid LearnerId) : IRequest<CourseContentDto?>;
+    public record GetCourseLearningViewQuery(Guid CourseId, Guid LearnerId) : IRequest<CourseLearningViewDto?>;
 }

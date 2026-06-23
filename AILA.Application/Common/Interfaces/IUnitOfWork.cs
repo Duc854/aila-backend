@@ -12,6 +12,7 @@ namespace AILA.Application.Common.Interfaces
     {
 
         ICourseRepository Courses { get; }
+        ILearningProgressRepository LearningProgresses { get; }
         IGenericRepository<T> Repository<T>() where T : class;
 
         /// <summary>

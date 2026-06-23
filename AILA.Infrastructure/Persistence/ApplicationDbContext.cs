@@ -37,7 +37,30 @@ namespace AILA.Infrastructure.Persistence
                 entity.HasIndex(e => e.Email).IsUnique();
                 entity.Property(e => e.Role).HasConversion<string>().HasMaxLength(50);
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                // Cấu hình quan hệ 1-1 với Learner
+                entity.HasOne(u => u.Learner)
+                      .WithOne(l => l.User)
+                      .HasForeignKey<Learner>(l => l.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                // Cấu hình quan hệ 1-1 với Expert
+                entity.HasOne(u => u.Expert)
+                      .WithOne(e => e.User)
+                      .HasForeignKey<Expert>(e => e.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                // Cấu hình mối quan hệ 1-N tường minh với UserTokens qua Backing Field
+                entity.HasMany(u => u.UserTokens)
+                      .WithOne(ut => ut.User)
+                      .HasForeignKey(ut => ut.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                // Ép EF Core đọc/ghi thông qua trường private field thay vì thuộc tính công khai
+                var navigationTokens = entity.Metadata.FindNavigation(nameof(User.UserTokens));
+                navigationTokens?.SetPropertyAccessMode(PropertyAccessMode.Field);
             });
+
 
             // --- 2. CONFIG RELATION 1-1 (LEARNER & EXPERT) ---
             modelBuilder.Entity<Learner>(entity =>
@@ -73,7 +96,7 @@ namespace AILA.Infrastructure.Persistence
                 entity.Property(e => e.UserAgent).HasMaxLength(500);
 
                 entity.HasOne(ut => ut.User)
-                      .WithMany()
+                      .WithMany(u => u.UserTokens)
                       .HasForeignKey(ut => ut.UserId)
                       .OnDelete(DeleteBehavior.Cascade);
             });
@@ -153,6 +176,10 @@ namespace AILA.Infrastructure.Persistence
                           j => j.HasOne<Tag>().WithMany().HasForeignKey("tag_id"),
                           j => j.HasOne<Course>().WithMany().HasForeignKey("course_id")
                       );
+
+                // THÊM DÒNG NÀY: Ép EF Core map thẳng vào private field _courseTags
+                var navigationTags = entity.Metadata.FindNavigation(nameof(Course.CourseTags));
+                navigationTags?.SetPropertyAccessMode(PropertyAccessMode.Field);
             });
 
             // --- 7. CONFIG MODULE (GỘP TOÀN BỘ CẤU HÌNH VÀO ĐÂY) ---

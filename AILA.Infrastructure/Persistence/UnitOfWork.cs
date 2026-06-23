@@ -19,11 +19,12 @@ namespace AILA.Infrastructure.Persistence
         private bool _disposed;
 
         public ICourseRepository Courses { get; private set; }
-
+        public ILearningProgressRepository LearningProgresses { get; private set; }
         public UnitOfWork(ApplicationDbContext context)
         {
             _context = context;
             Courses = new CourseRepository(_context);
+            LearningProgresses = new LearningProgressRepository(_context);
         }
 
         public IGenericRepository<T> Repository<T>() where T : class
