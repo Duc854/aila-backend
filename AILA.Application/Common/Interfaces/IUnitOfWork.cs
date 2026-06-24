@@ -1,13 +1,20 @@
-﻿using System;
+﻿using AILA.Application.Common.Interfaces.Repositories;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+
 namespace AILA.Application.Common.Interfaces
 {
     public interface IUnitOfWork : IDisposable
     {
+
+        ICourseRepository Courses { get; }
+        ILearningProgressRepository LearningProgresses { get; }
+        IGenericRepository<T> Repository<T>() where T : class;
+
         /// <summary>
         /// Lưu toàn bộ thay đổi dữ liệu của phiên làm việc vào Database dưới dạng một Transaction
         /// </summary>

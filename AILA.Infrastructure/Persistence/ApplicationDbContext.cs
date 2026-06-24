@@ -2,9 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AILA.Infrastructure.Persistence
 {
@@ -40,7 +37,30 @@ namespace AILA.Infrastructure.Persistence
                 entity.HasIndex(e => e.Email).IsUnique();
                 entity.Property(e => e.Role).HasConversion<string>().HasMaxLength(50);
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                // Cấu hình quan hệ 1-1 với Learner
+                entity.HasOne(u => u.Learner)
+                      .WithOne(l => l.User)
+                      .HasForeignKey<Learner>(l => l.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                // Cấu hình quan hệ 1-1 với Expert
+                entity.HasOne(u => u.Expert)
+                      .WithOne(e => e.User)
+                      .HasForeignKey<Expert>(e => e.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                // Cấu hình mối quan hệ 1-N tường minh với UserTokens qua Backing Field
+                entity.HasMany(u => u.UserTokens)
+                      .WithOne(ut => ut.User)
+                      .HasForeignKey(ut => ut.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                // Ép EF Core đọc/ghi thông qua trường private field thay vì thuộc tính công khai
+                var navigationTokens = entity.Metadata.FindNavigation(nameof(User.UserTokens));
+                navigationTokens?.SetPropertyAccessMode(PropertyAccessMode.Field);
             });
+
 
             // --- 2. CONFIG RELATION 1-1 (LEARNER & EXPERT) ---
             modelBuilder.Entity<Learner>(entity =>
@@ -49,7 +69,6 @@ namespace AILA.Infrastructure.Persistence
                 entity.Property(e => e.LearnerType).HasConversion<string>().HasMaxLength(50);
                 entity.Property(e => e.KnowledgeLevel).HasConversion<string>().HasMaxLength(50);
 
-                // 1-1 với User
                 entity.HasOne(l => l.User)
                       .WithOne(u => u.Learner)
                       .HasForeignKey<Learner>(l => l.UserId)
@@ -61,7 +80,6 @@ namespace AILA.Infrastructure.Persistence
                 entity.HasKey(e => e.UserId);
                 entity.Property(e => e.Specialty).HasMaxLength(200);
 
-                // 1-1 với User
                 entity.HasOne(e => e.User)
                       .WithOne(u => u.Expert)
                       .HasForeignKey<Expert>(e => e.UserId)
@@ -74,11 +92,11 @@ namespace AILA.Infrastructure.Persistence
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.RefreshToken).IsRequired().HasMaxLength(500);
                 entity.HasIndex(e => e.RefreshToken).IsUnique();
-                entity.Property(e => e.IpAddress).IsRequired().HasMaxLength(45); // ĐÃ BỎ UNIQUE THEO GÓP Ý
+                entity.Property(e => e.IpAddress).IsRequired().HasMaxLength(45);
                 entity.Property(e => e.UserAgent).HasMaxLength(500);
 
                 entity.HasOne(ut => ut.User)
-                      .WithMany()
+                      .WithMany(u => u.UserTokens)
                       .HasForeignKey(ut => ut.UserId)
                       .OnDelete(DeleteBehavior.Cascade);
             });
@@ -113,14 +131,23 @@ namespace AILA.Infrastructure.Persistence
                       .OnDelete(DeleteBehavior.Cascade);
             });
 
-            // --- 5. CONFIG COURSE & MANY-TO-MANY TAGS ---
-            modelBuilder.Entity<Course>(entity =>
+            // --- 5. CONFIG TAGS ---
+            modelBuilder.Entity<Tag>(entity =>
             {
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.Name).IsRequired().HasMaxLength(255);
-                entity.Property(e => e.ThumbnailUrl).HasMaxLength(512);
-                entity.Property(e => e.Level).HasConversion<string>().HasMaxLength(50);
-                entity.Property(e => e.DurationHours).HasPrecision(5, 2);
+                entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Code).IsRequired().HasMaxLength(100);
+                entity.HasIndex(e => e.Code).IsUnique();
+            });
+
+            // --- 6. CONFIG COURSE (GỘP TOÀN BỘ CẤU HÌNH VÀO ĐÂY) ---
+            modelBuilder.Entity<Course>(entity =>
+            {
+                entity.HasKey(c => c.Id);
+                entity.Property(c => c.Name).IsRequired().HasMaxLength(255);
+                entity.Property(c => c.ThumbnailUrl).HasMaxLength(512);
+                entity.Property(c => c.Level).HasConversion<string>().HasMaxLength(50);
+                entity.Property(c => c.DurationHours).HasPrecision(5, 2);
 
                 entity.HasOne(c => c.Category)
                       .WithMany()
@@ -132,7 +159,16 @@ namespace AILA.Infrastructure.Persistence
                       .HasForeignKey(c => c.ExpertId)
                       .OnDelete(DeleteBehavior.Restrict);
 
-                // Cấu hình bảng trung gian Many-to-Many giữa Course và Tag tự động
+                // Mối quan hệ 1-N xuôi sang Module thông qua Backing Field _modules
+                entity.HasMany(c => c.Modules)
+                      .WithOne(m => m.Course)
+                      .HasForeignKey(m => m.CourseId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                var navigationModules = entity.Metadata.FindNavigation(nameof(Course.Modules));
+                navigationModules?.SetPropertyAccessMode(PropertyAccessMode.Field);
+
+                // Mối quan hệ Many-to-Many với Tag
                 entity.HasMany(c => c.CourseTags)
                       .WithMany()
                       .UsingEntity<Dictionary<string, object>>(
@@ -140,41 +176,37 @@ namespace AILA.Infrastructure.Persistence
                           j => j.HasOne<Tag>().WithMany().HasForeignKey("tag_id"),
                           j => j.HasOne<Course>().WithMany().HasForeignKey("course_id")
                       );
+
+                // THÊM DÒNG NÀY: Ép EF Core map thẳng vào private field _courseTags
+                var navigationTags = entity.Metadata.FindNavigation(nameof(Course.CourseTags));
+                navigationTags?.SetPropertyAccessMode(PropertyAccessMode.Field);
             });
 
-            modelBuilder.Entity<Tag>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
-                entity.Property(e => e.Code).IsRequired().HasMaxLength(100);
-                entity.HasIndex(e => e.Code).IsUnique();
-            });
-
-            // --- 6. CONFIG COURE CONTENT STRUCTURE (MODULE & MATERIAL) ---
+            // --- 7. CONFIG MODULE (GỘP TOÀN BỘ CẤU HÌNH VÀO ĐÂY) ---
             modelBuilder.Entity<Module>(entity =>
             {
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Title).IsRequired().HasMaxLength(255);
+                entity.HasKey(m => m.Id);
+                entity.Property(m => m.Title).IsRequired().HasMaxLength(255);
 
-                entity.HasOne(m => m.Course)
-                      .WithMany()
-                      .HasForeignKey(m => m.CourseId)
+                // Mối quan hệ 1-N xuôi sang Material thông qua Backing Field _materials
+                entity.HasMany(m => m.Materials)
+                      .WithOne(mat => mat.Module)
+                      .HasForeignKey(mat => mat.ModuleId)
                       .OnDelete(DeleteBehavior.Cascade);
+
+                var navigationMaterials = entity.Metadata.FindNavigation(nameof(Module.Materials));
+                navigationMaterials?.SetPropertyAccessMode(PropertyAccessMode.Field);
             });
 
+            // --- 8. CONFIG MATERIAL ---
             modelBuilder.Entity<Material>(entity =>
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Title).IsRequired().HasMaxLength(255);
                 entity.Property(e => e.MaterialType).HasConversion<string>().HasMaxLength(50);
-
-                entity.HasOne(m => m.Module)
-                      .WithMany()
-                      .HasForeignKey(m => m.ModuleId)
-                      .OnDelete(DeleteBehavior.Cascade);
             });
 
-            // --- 7. CONFIG 1-1 DETAIL MATERIALS (VIDEO EMBED & DOCUMENT) ---
+            // --- 9. CONFIG 1-1 DETAIL MATERIALS (VIDEO EMBED & DOCUMENT) ---
             modelBuilder.Entity<VideoMaterial>(entity =>
             {
                 entity.HasKey(e => e.MaterialId);
@@ -199,7 +231,7 @@ namespace AILA.Infrastructure.Persistence
                       .OnDelete(DeleteBehavior.Cascade);
             });
 
-            // --- 8. CONFIG ENROLLMENTS & PROGRESS ---
+            // --- 10. CONFIG ENROLLMENTS & PROGRESS ---
             modelBuilder.Entity<Enrollment>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -219,7 +251,6 @@ namespace AILA.Infrastructure.Persistence
 
             modelBuilder.Entity<LearningProgress>(entity =>
             {
-                // Khóa chính phức hợp kết hợp từ 2 ID
                 entity.HasKey(e => new { e.EnrollmentId, e.MaterialId });
 
                 entity.HasOne(lp => lp.Enrollment)

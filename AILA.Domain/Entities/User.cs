@@ -22,6 +22,10 @@ namespace AILA.Domain.Entities
         public virtual Learner? Learner { get; private set; }
         public virtual Expert? Expert { get; private set; }
 
+        // --- CẤU HÌNH QUAN HỆ 1-NHIỀU VỚI USERTOKEN (BỔ SUNG TẠI ĐÂY) ---
+        private readonly List<UserToken> _userTokens = new();
+        public virtual IReadOnlyCollection<UserToken> UserTokens => _userTokens.AsReadOnly();
+
         // Constructor rỗng bắt buộc cho EF Core khi mapping dữ liệu từ DB lên
         private User() { }
 

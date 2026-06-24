@@ -26,6 +26,9 @@ namespace AILA.Domain.Entities
         // Quản lý quan hệ Many-to-Many với Tag (Sử dụng Backing Field bảo vệ Collection)
         private readonly List<Tag> _courseTags = new();
         public virtual IReadOnlyCollection<Tag> CourseTags => _courseTags.AsReadOnly();
+        // --- CẤU HÌNH QUAN HỆ 1-NHIỀU VỚI MODULE
+        private readonly List<Module> _modules = new();
+        public virtual IReadOnlyCollection<Module> Modules => _modules.AsReadOnly();
 
         // Constructor phục vụ EF Core
         private Course() { }
