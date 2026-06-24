@@ -19,5 +19,8 @@ namespace AILA.Application.Common.Interfaces.Repositories
             GetCurrentMaterialIdAsync(
                 Guid courseId,
                 Guid userId);
+
+        Task<LearningProgress?> GetByCompositeKeyAsync(Guid enrollmentId, Guid materialId, CancellationToken cancellationToken = default);
+        Task AddAsync(LearningProgress progress, CancellationToken cancellationToken = default);
     }
 }

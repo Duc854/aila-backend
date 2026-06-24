@@ -26,5 +26,12 @@ namespace AILA.Infrastructure.Persistence.Repositories
                 .Include(m => m.DocumentDetails)
                 .FirstOrDefaultAsync(m => m.Id == materialId && m.Module.CourseId == courseId, cancellationToken);
         }
+
+        public async Task<bool> IsMaterialInCourseAsync(Guid materialId, Guid courseId, CancellationToken cancellationToken = default)
+        {
+            // Kiểm tra thông qua bảng Module trung gian (Material -> Module -> Course)
+            return await _context.Materials
+                .AnyAsync(m => m.Id == materialId && m.Module.CourseId == courseId, cancellationToken);
+        }
     }
 }

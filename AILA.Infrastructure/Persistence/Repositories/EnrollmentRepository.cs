@@ -15,5 +15,16 @@ namespace AILA.Infrastructure.Persistence.Repositories
             return await _context.Enrollments
                 .FirstOrDefaultAsync(e => e.LearnerId == learnerId && e.CourseId == courseId);
         }
+
+        public async Task<Enrollment?> GetByCourseAndLearnerAsync(Guid courseId, Guid learnerId, CancellationToken cancellationToken = default)
+        {
+            return await _context.Enrollments
+                .FirstOrDefaultAsync(e => e.CourseId == courseId && e.LearnerId == learnerId, cancellationToken);
+        }
+
+        public void Update(Enrollment enrollment)
+        {
+            _context.Enrollments.Update(enrollment);
+        }
     }
 }

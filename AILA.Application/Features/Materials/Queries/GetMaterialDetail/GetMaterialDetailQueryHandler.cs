@@ -22,7 +22,7 @@ namespace AILA.Application.Features.Materials.Queries.GetMaterialDetail
 
         public async Task<ResponseDto<MaterialDetailDto>> Handle(GetMaterialDetailQuery request, CancellationToken cancellationToken)
         {
-            var material = await _unitOfWork.Materials.GetMaterialDetailAsync(request.CourseId, request.MaterialId, cancellationToken);
+            var material = await _unitOfWork.Materials.GetMaterialDetailAsync(request.CourseId, request.MaterialId);
 
             if (material == null)
             {

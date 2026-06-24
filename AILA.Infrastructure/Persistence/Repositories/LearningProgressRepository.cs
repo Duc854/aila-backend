@@ -52,5 +52,17 @@ namespace AILA.Infrastructure.Persistence.Repositories
                 .Select(x => x.MaterialId)
                 .FirstOrDefaultAsync();
         }
+
+        public async Task<LearningProgress?> GetByCompositeKeyAsync(Guid enrollmentId, Guid materialId, CancellationToken cancellationToken = default)
+        {
+            // Tìm kiếm dựa trên Composite Key { EnrollmentId, MaterialId }
+            return await _context.LearningProgresses
+                .FirstOrDefaultAsync(p => p.EnrollmentId == enrollmentId && p.MaterialId == materialId, cancellationToken);
+        }
+
+        public async Task AddAsync(LearningProgress progress, CancellationToken cancellationToken = default)
+        {
+            await _context.LearningProgresses.AddAsync(progress, cancellationToken);
+        }
     }
 }

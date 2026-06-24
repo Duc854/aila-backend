@@ -1,5 +1,6 @@
 ﻿using AILA.Api.Extensions;
 using AILA.Application.Common.Dtos;
+using AILA.Application.Features.Materials.Commands.MarkMaterialAsCompleted;
 using AILA.Application.Features.Materials.Queries.GetMaterialDetail;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -51,6 +52,36 @@ namespace AILA.Api.Controllers
             }
 
             // 4. Trả về thông tin chi tiết học liệu dạng 200 OK bọc trong ResponseDto
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// API Đánh dấu hoàn thành một học liệu (Video/Document/Quiz) cho Learner
+        /// </summary>
+        /// <param name="courseId">Id của khóa học lấy từ Route</param>
+        /// <param name="materialId">Id của học liệu lấy từ Route</param>
+        /// <returns>ResponseDto dạng bool biểu thị trạng thái xử lý</returns>
+        [HttpPost("{materialId}/complete")]
+        [Authorize(Roles = "Learner")]
+        public async Task<IActionResult> MarkAsComplete([FromRoute] Guid courseId, [FromRoute] Guid materialId)
+        {
+            // Lấy thông tin định danh sạch sẽ từ JWT Token thông qua HttpContextExtension của bạn.
+            // Nhờ cấu hình chặn lỗi 401/403 tự động toàn cục trước đó, tại đây 'identity' chắc chắn không bao giờ null.
+            var identity = HttpContext.GetUserIdentity()!;
+
+            // Đóng gói dữ liệu vào bản tin Command
+            var command = new MarkMaterialAsCompletedCommand(courseId, materialId, identity.UserId);
+
+            // Gửi sang tầng Application xử lý nghiệp vụ, truyền kèm cả CancellationToken hệ thống
+            var result = await _mediator.Send(command, HttpContext.RequestAborted);
+
+            // Nếu thất bại về mặt logic nghiệp vụ (Ví dụ: Học viên chưa đăng ký khóa học, hoặc truyền sai ID học liệu)
+            if (!result.Success)
+            {
+                return BadRequest(result);
+            }
+
+            // Trả về dữ liệu thành công kèm wrapper chuẩn: { "success": true, "data": true }
             return Ok(result);
         }
     }

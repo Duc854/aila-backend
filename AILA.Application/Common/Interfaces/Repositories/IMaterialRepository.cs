@@ -13,5 +13,6 @@ namespace AILA.Application.Common.Interfaces.Repositories
         /// Lấy thông tin chi tiết của một Material bao gồm cả thông tin Module, Video hoặc Document đi kèm
         /// </summary>
         Task<Material?> GetMaterialDetailAsync(Guid courseId, Guid materialId, CancellationToken cancellationToken = default);
+        Task<bool> IsMaterialInCourseAsync(Guid materialId, Guid courseId, CancellationToken cancellationToken = default);
     }
 }
