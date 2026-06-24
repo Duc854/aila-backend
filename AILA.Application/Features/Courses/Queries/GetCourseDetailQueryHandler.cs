@@ -36,10 +36,21 @@ namespace AILA.Application.Features.Courses.Queries
                         .OrderBy(mat => mat.OrderIndex)
                         .Select(mat => new MaterialDetailDto
                         {
-                            Id = mat.Id,
-                            Title = mat.Title,
-                            Type = mat.MaterialType.ToString(),
-                            OrderIndex = mat.OrderIndex
+                            Id           = mat.Id,
+                            ModuleId     = mat.ModuleId,
+                            Title        = mat.Title,
+                            MaterialType = mat.MaterialType.ToString(),
+                            OrderIndex   = mat.OrderIndex,
+                            VideoDetails = mat.VideoDetails == null ? null : new VideoMaterialDto
+                            {
+                                VideoUrl     = mat.VideoDetails.VideoUrl,
+                                ThumbnailUrl = mat.VideoDetails.ThumbnailUrl,
+                                CaptionsUrl  = mat.VideoDetails.CaptionsUrl
+                            },
+                            DocumentDetails = mat.DocumentDetails == null ? null : new DocumentMaterialDto
+                            {
+                                DocumentUrl = mat.DocumentDetails.DocumentUrl
+                            }
                         }).ToList()
                 }).ToList();
 

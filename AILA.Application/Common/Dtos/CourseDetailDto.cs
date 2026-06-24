@@ -26,12 +26,4 @@ namespace AILA.Application.Common.Dtos
         public bool IsPublished { get; set; }
         public List<MaterialDetailDto> Materials { get; set; } = [];
     }
-
-    public class MaterialDetailDto
-    {
-        public Guid Id { get; set; }
-        public string Title { get; set; } = string.Empty;
-        public string Type { get; set; } = string.Empty;
-        public int OrderIndex { get; set; }
-    }
 }

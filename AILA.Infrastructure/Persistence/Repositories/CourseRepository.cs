@@ -105,6 +105,10 @@ namespace AILA.Infrastructure.Persistence.Repositories
                 .Include(c => c.CourseTags)
                 .Include(c => c.Modules)
                     .ThenInclude(m => m.Materials)
+                        .ThenInclude(mat => mat.VideoDetails)
+                .Include(c => c.Modules)
+                    .ThenInclude(m => m.Materials)
+                        .ThenInclude(mat => mat.DocumentDetails)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(c => c.Id == courseId);
         }
