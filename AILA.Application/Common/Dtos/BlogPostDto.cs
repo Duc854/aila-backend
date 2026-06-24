@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AILA.Application.Common.Dtos
 {
-    public class BlogDto(
+    public class BlogPostDto(
             Guid Id,
             string Title,
             string Slug,
