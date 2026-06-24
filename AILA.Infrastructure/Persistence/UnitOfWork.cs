@@ -24,6 +24,7 @@ namespace AILA.Infrastructure.Persistence
         public INotificationRepository     Notifications      { get; private set; }
 
         public IMaterialRepository Materials { get; private set; }
+        public IBlogPostRepository BlogPosts { get; private set; }
         public UnitOfWork(ApplicationDbContext context)
         {
             _context = context;
@@ -32,6 +33,7 @@ namespace AILA.Infrastructure.Persistence
             Users              = new UserRepository(_context);
             Notifications      = new NotificationRepository(_context);
             Materials = new MaterialRepository(_context);
+            BlogPosts = new BlogPostRepository(_context);
         }
 
         public IGenericRepository<T> Repository<T>() where T : class

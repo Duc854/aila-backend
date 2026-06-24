@@ -15,6 +15,7 @@ namespace AILA.Application.Common.Interfaces
         IUserRepository             Users                 { get; }
         INotificationRepository     Notifications         { get; }
         IMaterialRepository Materials { get; }
+        IBlogPostRepository BlogPosts { get; }
         IGenericRepository<T> Repository<T>() where T : class;
 
         /// <summary>
