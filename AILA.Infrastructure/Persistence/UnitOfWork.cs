@@ -1,4 +1,4 @@
-﻿using AILA.Application.Common.Interfaces;
+using AILA.Application.Common.Interfaces;
 using AILA.Application.Common.Interfaces.Repositories;
 using AILA.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -18,20 +18,28 @@ namespace AILA.Infrastructure.Persistence
         private Hashtable? _repositories;
         private bool _disposed;
 
-        public ICourseRepository Courses { get; private set; }
-        public ILearningProgressRepository LearningProgresses { get; private set; }
-        public ITagRepository Tags { get; private set; }
-        public ICategoryRepository Categories { get; private set; }
-        public IEnrollmentRepository Enrollments { get; private set; }
+        public ICourseRepository            Courses            { get; private set; }
+        public ILearningProgressRepository  LearningProgresses { get; private set; }
+        public ITagRepository               Tags               { get; private set; }
+        public ICategoryRepository          Categories         { get; private set; }
+        public IEnrollmentRepository        Enrollments        { get; private set; }
+        public IUserRepository              Users              { get; private set; }
+        public INotificationRepository      Notifications      { get; private set; }
+        public IMaterialRepository          Materials          { get; private set; }
+        public IBlogPostRepository          BlogPosts          { get; private set; }
 
         public UnitOfWork(ApplicationDbContext context)
         {
             _context = context;
-            Courses = new CourseRepository(_context);
+            Courses            = new CourseRepository(_context);
             LearningProgresses = new LearningProgressRepository(_context);
-            Tags = new TagRepository(_context);
-            Categories = new CategoryRepository(_context);
-            Enrollments = new EnrollmentRepository(_context);
+            Tags               = new TagRepository(_context);
+            Categories         = new CategoryRepository(_context);
+            Enrollments        = new EnrollmentRepository(_context);
+            Users              = new UserRepository(_context);
+            Notifications      = new NotificationRepository(_context);
+            Materials          = new MaterialRepository(_context);
+            BlogPosts          = new BlogPostRepository(_context);
         }
 
         public IGenericRepository<T> Repository<T>() where T : class
@@ -41,8 +49,9 @@ namespace AILA.Infrastructure.Persistence
 
             if (!_repositories.ContainsKey(type))
             {
-                var repositoryType = typeof(GenericRepository<>);
-                var repositoryInstance = Activator.CreateInstance(repositoryType.MakeGenericType(typeof(T)), _context);
+                var repositoryType     = typeof(GenericRepository<>);
+                var repositoryInstance = Activator.CreateInstance(
+                    repositoryType.MakeGenericType(typeof(T)), _context);
                 _repositories.Add(type, repositoryInstance);
             }
 

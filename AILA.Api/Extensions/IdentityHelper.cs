@@ -4,7 +4,7 @@ using System.IdentityModel.Tokens.Jwt;
 
 namespace AILA.Api.Extensions
 {
-    public static class HttpContextExtensions
+    public static class IdentityHelper
     {
         public static UserIdentity? GetUserIdentity(this HttpContext httpContext)
         {

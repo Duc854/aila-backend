@@ -1,6 +1,8 @@
 ﻿using AILA.Api.Extensions;
 using AILA.Application.Features.Courses.Commands;
 using AILA.Application.Features.Courses.Queries;
+using AILA.Application.Features.Courses.Queries.GetCourseLearningView;
+using GetCourseLearningViewQuery = AILA.Application.Features.Courses.Queries.GetCourseLearningView.GetCourseLearningViewQuery;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -77,20 +79,29 @@ namespace AILA.Api.Controllers
         [Authorize(Roles = "Learner")]
         public async Task<IActionResult> GetLearningView(Guid courseId)
         {
+            var identity = HttpContext.GetUserIdentity();
+            if (identity == null)
             {
-                var identity = HttpContext.GetUserIdentity();
-                if (identity == null) return Unauthorized(new { message = "Xác thực người dùng thất bại hoặc mã token không hợp lệ." });
-
-                var query = new GetCourseLearningViewQuery(courseId, identity.UserId);
-                var result = await _mediator.Send(query);
-
-                if (result == null)
-                {
-                    return NotFound(new { message = "Không tìm thấy khóa học hoặc bạn chưa đăng ký tham gia khóa học này." });
-                }
-
-                return Ok(result);
+                // Đồng bộ phản hồi Unauthorized qua bản tin FailResult
+                return Unauthorized(ResponseDto<object>.FailResult(
+                    "UNAUTHORIZED",
+                    "Xác thực người dùng thất bại hoặc mã token không hợp lệ."
+                ));
             }
+
+            var query = new GetCourseLearningViewQuery(courseId, identity.UserId);
+            var result = await _mediator.Send(query);
+
+            // Kiểm tra trạng thái Success từ Wrapper do Handler trả về
+            if (!result.Success)
+            {
+                // Nếu Handler trả về thất bại (ví dụ: Không tìm thấy khóa học), map trực tiếp sang NotFound với result nguyên bản
+                return NotFound(result);
+            }
+
+            // Trả về kết quả thành công chứa ResponseDto chuẩn hóa
+            return Ok(result);
         }
     }
 }
+
