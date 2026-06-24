@@ -1,0 +1,17 @@
+﻿using AILA.Domain.Entities;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace AILA.Application.Common.Interfaces.Repositories
+{
+    public interface IMaterialRepository : IGenericRepository<Material>
+    {
+        /// <summary>
+        /// Lấy thông tin chi tiết của một Material bao gồm cả thông tin Module, Video hoặc Document đi kèm
+        /// </summary>
+        Task<Material?> GetMaterialDetailAsync(Guid courseId, Guid materialId, CancellationToken cancellationToken = default);
+    }
+}
