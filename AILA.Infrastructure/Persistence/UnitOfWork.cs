@@ -20,29 +20,26 @@ namespace AILA.Infrastructure.Persistence
 
         public ICourseRepository Courses { get; private set; }
         public ILearningProgressRepository LearningProgresses { get; private set; }
-<<<<<<< Updated upstream
-=======
+
         public IMaterialRepository Materials { get; private set; }
         public IBlogPostRepository BlogPosts { get; private set; }
         public ILearnerRepository Learners { get; private set; }
         public IExpertRepository Experts { get; private set; }
         public ITagRepository Tags { get; private set; }
->>>>>>> Stashed changes
+
         public UnitOfWork(ApplicationDbContext context)
         {
             _context = context;
             Courses = new CourseRepository(_context);
             LearningProgresses = new LearningProgressRepository(_context);
-<<<<<<< Updated upstream
-=======
+
             Materials = new MaterialRepository(_context);
             BlogPosts = new BlogPostRepository(_context);
             Learners = new LearnerRepository(_context);
             Experts = new ExpertRepository(_context);
             Tags = new TagRepository(_context);
->>>>>>> Stashed changes
-        }
 
+        }
         public IGenericRepository<T> Repository<T>() where T : class
         {
             _repositories ??= new Hashtable();
