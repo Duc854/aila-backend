@@ -35,15 +35,6 @@ namespace AILA.Api.Configurations
                     RoleClaimType = ClaimTypes.Role,
                     ClockSkew = TimeSpan.Zero
                 };
-                options.Events = new JwtBearerEvents
-                {
-                    OnAuthenticationFailed = context =>
-                    {
-                        // In thẳng nguyên nhân lỗi ra màn hình Console log của API
-                        Console.WriteLine("Authentication failed: " + context.Exception.Message);
-                        return Task.CompletedTask;
-                    }
-                };
             });
 
             return services;
