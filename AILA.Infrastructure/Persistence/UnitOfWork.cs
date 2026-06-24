@@ -27,10 +27,12 @@ namespace AILA.Infrastructure.Persistence
         public INotificationRepository      Notifications      { get; private set; }
         public IMaterialRepository          Materials          { get; private set; }
         public IBlogPostRepository          BlogPosts          { get; private set; }
+        public ILearnerRepository           Learners           { get; private set; }
+        public IExpertRepository            Experts            { get; private set; }
 
         public UnitOfWork(ApplicationDbContext context)
         {
-            _context = context;
+            _context           = context;
             Courses            = new CourseRepository(_context);
             LearningProgresses = new LearningProgressRepository(_context);
             Tags               = new TagRepository(_context);
@@ -40,8 +42,9 @@ namespace AILA.Infrastructure.Persistence
             Notifications      = new NotificationRepository(_context);
             Materials          = new MaterialRepository(_context);
             BlogPosts          = new BlogPostRepository(_context);
+            Learners           = new LearnerRepository(_context);
+            Experts            = new ExpertRepository(_context);
         }
-
         public IGenericRepository<T> Repository<T>() where T : class
         {
             _repositories ??= new Hashtable();

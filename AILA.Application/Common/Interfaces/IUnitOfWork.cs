@@ -19,6 +19,8 @@ namespace AILA.Application.Common.Interfaces
         INotificationRepository     Notifications      { get; }
         IMaterialRepository         Materials          { get; }
         IBlogPostRepository         BlogPosts          { get; }
+        ILearnerRepository          Learners           { get; }
+        IExpertRepository           Experts            { get; }
         IGenericRepository<T> Repository<T>() where T : class;
 
         /// <summary>

@@ -4,19 +4,20 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AILA.Infrastructure.Persistence.Repositories
 {
-    public class TagRepository : GenericRepository<Tag>, ITagRepository
+    // Dùng primary constructor theo style của người khác
+    public class TagRepository(ApplicationDbContext context)
+        : GenericRepository<Tag>(context), ITagRepository
     {
-        public TagRepository(ApplicationDbContext context) : base(context)
-        {
-        }
-
         public async Task<List<Tag>> GetPublishedTagsAsync()
-        {
-            return await _context.Tags
+            => await _context.Tags
                 .Where(t => t.IsPublished)
                 .OrderBy(t => t.Name)
                 .AsNoTracking()
                 .ToListAsync();
-        }
+
+        public async Task<List<Tag>> GetByIdsAsync(IEnumerable<Guid> tagIds, CancellationToken ct = default)
+            => await _context.Tags
+                .Where(t => tagIds.Contains(t.Id))
+                .ToListAsync(ct);
     }
 }

@@ -73,6 +73,14 @@ namespace AILA.Infrastructure.Persistence
                       .WithOne(u => u.Learner)
                       .HasForeignKey<Learner>(l => l.UserId)
                       .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasMany(l => l.LearningGoals)
+                      .WithOne()
+                      .HasForeignKey("LearnerUserId")
+                      .IsRequired(false);
+
+                var navigationGoals = entity.Metadata.FindNavigation(nameof(Learner.LearningGoals));
+                navigationGoals?.SetPropertyAccessMode(PropertyAccessMode.Field);
             });
 
             modelBuilder.Entity<Expert>(entity =>
