@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/Core/">
+    <Project Path="AILA.Application/AILA.Application.csproj" />
+    <Project Path="AILA.Domain/AILA.Domain.csproj" />
+    <Project Path="Shared/Shared.csproj" Id="579dcdcb-88b9-4417-965d-0a251eb508a7" />
+  </Folder>
+  <Folder Name="/Infrastructure/">
+    <Project Path="AILA.Infrastructure/AILA.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/Presentation/">
+    <Project Path="AILA.Api/AILA.Api.csproj" />
+  </Folder>
+</Solution>
