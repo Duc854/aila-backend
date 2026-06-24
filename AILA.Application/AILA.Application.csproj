@@ -14,11 +14,11 @@
 
   <ItemGroup>
     <Folder Include="Common\Behaviours\" />
-    <Folder Include="Common\Mappings\" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\AILA.Domain\AILA.Domain.csproj" />
+    <ProjectReference Include="..\Shared\Shared.csproj" />
   </ItemGroup>
 
 </Project>

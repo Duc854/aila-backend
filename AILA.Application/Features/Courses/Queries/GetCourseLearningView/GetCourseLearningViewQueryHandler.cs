@@ -3,18 +3,19 @@ using AILA.Application.Common.Interfaces;
 using AILA.Application.Common.Interfaces.Repositories;
 using AILA.Domain.Entities;
 using MediatR;
+using Shared.Wrappers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AILA.Application.Features.Courses.Queries
+namespace AILA.Application.Features.Courses.Queries.GetCourseLearningView
 {
     public class GetCourseLearningViewQueryHandler :
-        IRequestHandler<
-            GetCourseLearningViewQuery,
-            CourseLearningViewDto>
+            IRequestHandler<
+                GetCourseLearningViewQuery,
+                ResponseDto<CourseLearningViewDto>> // CẬP NHẬT: Thêm Wrapper vào kiểu trả về của Request
     {
         private readonly IUnitOfWork _uow;
 
@@ -24,7 +25,7 @@ namespace AILA.Application.Features.Courses.Queries
             _uow = uow;
         }
 
-        public async Task<CourseLearningViewDto> Handle(
+        public async Task<ResponseDto<CourseLearningViewDto>> Handle(
             GetCourseLearningViewQuery request,
             CancellationToken cancellationToken)
         {
@@ -52,9 +53,9 @@ namespace AILA.Application.Features.Courses.Queries
 
             var course = await courseTask;
 
+            // CẬP NHẬT: Thay vì throw Exception bừa bãi làm sập API, trả về FailResult chuẩn hóa
             if (course == null)
-                throw new Exception(
-                    "Course not found");
+                return ResponseDto<CourseLearningViewDto>.FailResult("COURSE_NOT_FOUND", "Không tìm thấy thông tin khóa học.");
 
             var completedIds =
                 (await completedTask)
@@ -81,8 +82,10 @@ namespace AILA.Application.Features.Courses.Queries
                                 Title =
                                     material.Title,
 
+                                // CẬP NHẬT: Sử dụng thuộc tính enum MaterialType thay vì GetType().Name 
+                                // để tránh việc luôn hiển thị chữ "Material" do cơ chế Proxy/Entity cơ sở của EF Core.
                                 Type =
-                                    material.GetType().Name,
+                                    material.MaterialType.ToString(),
 
                                 IsCompleted =
                                     completedIds.Contains(
@@ -100,7 +103,8 @@ namespace AILA.Application.Features.Courses.Queries
                 modules.Sum(
                     x => x.Materials.Count);
 
-            return new CourseLearningViewDto
+            // Khởi tạo Dto kết quả
+            var learningViewDto = new CourseLearningViewDto
             {
                 Progress =
                     new CourseProgressDto
@@ -124,6 +128,9 @@ namespace AILA.Application.Features.Courses.Queries
 
                 Modules = modules
             };
+
+            // CẬP NHẬT: Bọc kết quả vào hàm SuccessResult
+            return ResponseDto<CourseLearningViewDto>.SuccessResult(learningViewDto);
         }
     }
 }
