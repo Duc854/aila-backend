@@ -20,11 +20,18 @@ namespace AILA.Infrastructure.Persistence
 
         public ICourseRepository Courses { get; private set; }
         public ILearningProgressRepository LearningProgresses { get; private set; }
+        public ITagRepository Tags { get; private set; }
+        public ICategoryRepository Categories { get; private set; }
+        public IEnrollmentRepository Enrollments { get; private set; }
+
         public UnitOfWork(ApplicationDbContext context)
         {
             _context = context;
             Courses = new CourseRepository(_context);
             LearningProgresses = new LearningProgressRepository(_context);
+            Tags = new TagRepository(_context);
+            Categories = new CategoryRepository(_context);
+            Enrollments = new EnrollmentRepository(_context);
         }
 
         public IGenericRepository<T> Repository<T>() where T : class

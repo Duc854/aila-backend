@@ -13,6 +13,9 @@ namespace AILA.Application.Common.Interfaces
 
         ICourseRepository Courses { get; }
         ILearningProgressRepository LearningProgresses { get; }
+        ITagRepository Tags { get; }
+        ICategoryRepository Categories { get; }
+        IEnrollmentRepository Enrollments { get; }
         IGenericRepository<T> Repository<T>() where T : class;
 
         /// <summary>

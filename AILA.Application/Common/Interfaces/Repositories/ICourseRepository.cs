@@ -12,5 +12,22 @@ namespace AILA.Application.Common.Interfaces.Repositories
         // HÀM GIẢI QUYẾT BÀI TOÁN LẤY CẤU TRÚC PHÂN CẤP CỦA BẠN:
         // Lấy chi tiết Khóa học gồm toàn bộ Modules, Materials, Video và Document đi kèm.
         Task<Course?> GetCourseWithFullContentAsync(Guid courseId);
+
+        /// Tìm kiếm và lọc danh sách khóa học đã công khai, kèm thông tin Author, Category, Tags.
+        /// Trả về dạng phân trang.
+        Task<(List<Course> Items, int TotalCount)> SearchCoursesAsync(
+            string? keyword,
+            Guid? categoryId,
+            Guid? tagId,
+            string? level,
+            int pageIndex,
+            int pageSize);
+
+        /// Lấy chi tiết khóa học kèm đầy đủ thông tin liên quan:
+        /// Category, Expert.User, Tags, Modules.Materials
+        Task<Course?> GetCourseDetailAsync(Guid courseId);
+
+        /// Đếm số lượng Materials (bài học) của một khóa học
+        Task<int> CountMaterialsAsync(Guid courseId);
     }
 }
