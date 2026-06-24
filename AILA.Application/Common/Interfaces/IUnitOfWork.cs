@@ -13,6 +13,14 @@ namespace AILA.Application.Common.Interfaces
 
         ICourseRepository Courses { get; }
         ILearningProgressRepository LearningProgresses { get; }
+<<<<<<< Updated upstream
+=======
+        IMaterialRepository Materials { get; }
+        IBlogPostRepository BlogPosts { get; }
+        ILearnerRepository Learners { get; }
+        IExpertRepository Experts { get; }
+        ITagRepository Tags { get; }
+>>>>>>> Stashed changes
         IGenericRepository<T> Repository<T>() where T : class;
 
         /// <summary>
