@@ -18,29 +18,32 @@ namespace AILA.Infrastructure.Persistence
         private Hashtable? _repositories;
         private bool _disposed;
 
-        public ICourseRepository Courses { get; private set; }
-        public ILearningProgressRepository LearningProgresses { get; private set; }
-        public IUserRepository             Users              { get; private set; }
-        public INotificationRepository     Notifications      { get; private set; }
-        public IMaterialRepository Materials { get; private set; }
-        public IBlogPostRepository BlogPosts { get; private set; }
-        public ILearnerRepository Learners { get; private set; }
-        public IExpertRepository Experts { get; private set; }
-        public ITagRepository Tags { get; private set; }
+        public ICourseRepository            Courses            { get; private set; }
+        public ILearningProgressRepository  LearningProgresses { get; private set; }
+        public ITagRepository               Tags               { get; private set; }
+        public ICategoryRepository          Categories         { get; private set; }
+        public IEnrollmentRepository        Enrollments        { get; private set; }
+        public IUserRepository              Users              { get; private set; }
+        public INotificationRepository      Notifications      { get; private set; }
+        public IMaterialRepository          Materials          { get; private set; }
+        public IBlogPostRepository          BlogPosts          { get; private set; }
+        public ILearnerRepository           Learners           { get; private set; }
+        public IExpertRepository            Experts            { get; private set; }
 
         public UnitOfWork(ApplicationDbContext context)
         {
-            _context = context;
-            Courses = new CourseRepository(_context);
+            _context           = context;
+            Courses            = new CourseRepository(_context);
             LearningProgresses = new LearningProgressRepository(_context);
+            Tags               = new TagRepository(_context);
+            Categories         = new CategoryRepository(_context);
+            Enrollments        = new EnrollmentRepository(_context);
             Users              = new UserRepository(_context);
             Notifications      = new NotificationRepository(_context);
-            Materials = new MaterialRepository(_context);
-            BlogPosts = new BlogPostRepository(_context);
-            Learners = new LearnerRepository(_context);
-            Experts = new ExpertRepository(_context);
-            Tags = new TagRepository(_context);
-
+            Materials          = new MaterialRepository(_context);
+            BlogPosts          = new BlogPostRepository(_context);
+            Learners           = new LearnerRepository(_context);
+            Experts            = new ExpertRepository(_context);
         }
         public IGenericRepository<T> Repository<T>() where T : class
         {
