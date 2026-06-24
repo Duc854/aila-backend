@@ -13,11 +13,11 @@ namespace AILA.Api.Controllers
     [Route("api/[controller]")]
     public class ExpertsController : ControllerBase
     {
-        private readonly IMediator _mediator;
+        private readonly ISender _sender;
 
-        public ExpertsController(IMediator mediator)
+        public ExpertsController(ISender sender)
         {
-            _mediator = mediator;
+            _sender = sender;
         }
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace AILA.Api.Controllers
                         "Xác thực người dùng thất bại hoặc mã token không hợp lệ."));
 
             var query  = new GetExpertProfileQuery(identity.UserId);
-            var result = await _mediator.Send(query);
+            var result = await _sender.Send(query);
 
             if (result is null)
                 return NotFound(

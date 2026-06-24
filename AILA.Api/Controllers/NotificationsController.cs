@@ -13,11 +13,11 @@ namespace AILA.Api.Controllers
     [Route("api/[controller]")]
     public class NotificationsController : ControllerBase
     {
-        private readonly IMediator _mediator;
+        private readonly ISender _sender;
 
-        public NotificationsController(IMediator mediator)
+        public NotificationsController(ISender sender)
         {
-            _mediator = mediator;
+            _sender = sender;
         }
 
         /// <summary>
@@ -35,7 +35,7 @@ namespace AILA.Api.Controllers
                         "Xác thực người dùng thất bại hoặc mã token không hợp lệ."));
 
             var query  = new GetNotificationListQuery(identity.UserId);
-            var result = await _mediator.Send(query);
+            var result = await _sender.Send(query);
 
             return Ok(ResponseDto<List<NotificationDto>>.SuccessResult(result));
         }

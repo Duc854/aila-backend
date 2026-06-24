@@ -14,11 +14,11 @@ namespace AILA.Api.Controllers
     [ApiController]
     public class MaterialsController : ControllerBase
     {
-        private readonly IMediator _mediator;
+        private readonly ISender _sender;
 
-        public MaterialsController(IMediator mediator)
+        public MaterialsController(ISender sender)
         {
-            _mediator = mediator;
+            _sender = sender;
         }
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace AILA.Api.Controllers
 
             // 2. Gửi Query sang tầng Application xử lý thông qua MediatR
             var query = new GetMaterialDetailQuery(courseId, materialId);
-            var result = await _mediator.Send(query);
+            var result = await _sender.Send(query);
 
             // 3. Kiểm tra kết quả nghiệp vụ từ Handler trả về
             if (!result.Success)
@@ -73,7 +73,7 @@ namespace AILA.Api.Controllers
             var command = new MarkMaterialAsCompletedCommand(courseId, materialId, identity.UserId);
 
             // Gửi sang tầng Application xử lý nghiệp vụ, truyền kèm cả CancellationToken hệ thống
-            var result = await _mediator.Send(command, HttpContext.RequestAborted);
+            var result = await _sender.Send(command, HttpContext.RequestAborted);
 
             // Nếu thất bại về mặt logic nghiệp vụ (Ví dụ: Học viên chưa đăng ký khóa học, hoặc truyền sai ID học liệu)
             if (!result.Success)

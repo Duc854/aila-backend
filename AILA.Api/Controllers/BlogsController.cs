@@ -10,11 +10,11 @@ namespace AILA.Api.Controllers
     [Route("api/[controller]")]
     public class BlogsController : ControllerBase
     {
-        private readonly IMediator _mediator;
+        private readonly ISender _sender;
 
-        public BlogsController(IMediator mediator)
+        public BlogsController(ISender sender)
         {
-            _mediator = mediator;
+            _sender = sender;
         }
 
         /// <summary>
@@ -24,7 +24,7 @@ namespace AILA.Api.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetDetail(Guid id, CancellationToken ct)
         {
-            var result = await _mediator.Send(new GetBlogDetailQuery(id), ct);
+            var result = await _sender.Send(new GetBlogDetailQuery(id), ct);
 
             if (result == null)
                 return NotFound(ResponseDto<object>.FailResult("BLOG_NOT_FOUND", "Blog not found."));

@@ -16,11 +16,11 @@ namespace AILA.Api.Controllers
     [Route("api/[controller]")]
     public class CoursesController : ControllerBase
     {
-        private readonly IMediator _mediator;
+        private readonly ISender _sender;
 
-        public CoursesController(IMediator mediator)
+        public CoursesController(ISender sender)
         {
-            _mediator = mediator;
+            _sender = sender;
         }
 
         /// Lấy danh sách khóa học đã công khai, hỗ trợ tìm kiếm và lọc.
@@ -36,7 +36,7 @@ namespace AILA.Api.Controllers
             [FromQuery] int pageSize = 12)
         {
             var query = new GetCoursesQuery(keyword, categoryId, tagId, level, pageIndex, pageSize);
-            var result = await _mediator.Send(query);
+            var result = await _sender.Send(query);
             return Ok(ResponseDto<object>.SuccessResult(result));
         }
 
@@ -46,7 +46,7 @@ namespace AILA.Api.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetCourseDetail(Guid id)
         {
-            var result = await _mediator.Send(new GetCourseDetailQuery(id));
+            var result = await _sender.Send(new GetCourseDetailQuery(id));
 
             if (result == null)
                 return NotFound(ResponseDto<object>.FailResult("COURSE_NOT_FOUND", "Không tìm thấy khóa học."));
@@ -66,7 +66,7 @@ namespace AILA.Api.Controllers
             try
             {
                 var command = new EnrollCourseCommand(id, identity.UserId);
-                var result = await _mediator.Send(command);
+                var result = await _sender.Send(command);
                 return Ok(ResponseDto<object>.SuccessResult(result));
             }
             catch (InvalidOperationException ex)
@@ -90,7 +90,7 @@ namespace AILA.Api.Controllers
             }
 
             var query = new GetCourseLearningViewQuery(courseId, identity.UserId);
-            var result = await _mediator.Send(query);
+            var result = await _sender.Send(query);
 
             // Kiểm tra trạng thái Success từ Wrapper do Handler trả về
             if (!result.Success)

@@ -9,18 +9,18 @@ namespace AILA.Api.Controllers
     [Route("api/[controller]")]
     public class CategoriesController : ControllerBase
     {
-        private readonly IMediator _mediator;
+        private readonly ISender _sender;
 
-        public CategoriesController(IMediator mediator)
+        public CategoriesController(ISender sender)
         {
-            _mediator = mediator;
+            _sender = sender;
         }
 
         /// Lấy tất cả danh mục đang hoạt động — dùng cho màn Home và filter khóa học
         [HttpGet]
         public async Task<IActionResult> GetActiveCategories()
         {
-            var result = await _mediator.Send(new GetActiveCategoriesQuery());
+            var result = await _sender.Send(new GetActiveCategoriesQuery());
             return Ok(ResponseDto<object>.SuccessResult(result));
         }
     }

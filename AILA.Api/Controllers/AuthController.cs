@@ -12,11 +12,11 @@ namespace AILA.Api.Controllers
     [Route("api/auth")]
     public class AuthController : ControllerBase
     {
-        private readonly IMediator _mediator;
+        private readonly ISender _sender;
 
-        public AuthController(IMediator mediator)
+        public AuthController(ISender sender)
         {
-            _mediator = mediator;
+            _sender = sender;
         }
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace AILA.Api.Controllers
         public async Task<IActionResult> AdminLogin([FromBody] AdminLoginRequestDto request)
         {
             var command = new AdminLoginCommand(request.Username, request.Password);
-            var result  = await _mediator.Send(command);
+            var result  = await _sender.Send(command);
 
             if (result is null)
                 return Unauthorized(
@@ -46,7 +46,7 @@ namespace AILA.Api.Controllers
         public async Task<IActionResult> ExpertLogin([FromBody] ExpertLoginRequestDto request)
         {
             var command = new ExpertLoginCommand(request.Email, request.Password);
-            var result  = await _mediator.Send(command);
+            var result  = await _sender.Send(command);
 
             if (result is null)
                 return Unauthorized(

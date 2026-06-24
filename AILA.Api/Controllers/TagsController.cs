@@ -9,18 +9,18 @@ namespace AILA.Api.Controllers
     [Route("api/[controller]")]
     public class TagsController : ControllerBase
     {
-        private readonly IMediator _mediator;
+        private readonly ISender _sender;
 
-        public TagsController(IMediator mediator)
+        public TagsController(ISender sender)
         {
-            _mediator = mediator;
+            _sender = sender;
         }
 
         /// Lấy tất cả tag đã được duyệt 
         [HttpGet]
         public async Task<IActionResult> GetPublishedTags()
         {
-            var result = await _mediator.Send(new GetPublishedTagsQuery());
+            var result = await _sender.Send(new GetPublishedTagsQuery());
             return Ok(ResponseDto<object>.SuccessResult(result));
         }
     }
