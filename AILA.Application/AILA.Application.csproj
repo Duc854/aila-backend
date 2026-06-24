@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AILA.Domain\AILA.Domain.csproj" />
+    <ProjectReference Include="..\Shared\Shared.csproj" />
   </ItemGroup>
 
 </Project>

@@ -2,29 +2,36 @@ using AILA.Application.Common.Interfaces;
 using AILA.Application.Common.Interfaces.Repositories;
 using AILA.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore.Storage;
+using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace AILA.Infrastructure.Persistence
 {
     public class UnitOfWork : IUnitOfWork
     {
         private readonly ApplicationDbContext _context;
-        private IDbContextTransaction?        _currentTransaction;
-        private Hashtable?                    _repositories;
-        private bool                          _disposed;
+        private IDbContextTransaction? _currentTransaction;
+        private Hashtable? _repositories;
+        private bool _disposed;
 
-        public ICourseRepository           Courses            { get; private set; }
+        public ICourseRepository Courses { get; private set; }
         public ILearningProgressRepository LearningProgresses { get; private set; }
         public IUserRepository             Users              { get; private set; }
         public INotificationRepository     Notifications      { get; private set; }
 
+        public IMaterialRepository Materials { get; private set; }
         public UnitOfWork(ApplicationDbContext context)
         {
-            _context           = context;
-            Courses            = new CourseRepository(_context);
+            _context = context;
+            Courses = new CourseRepository(_context);
             LearningProgresses = new LearningProgressRepository(_context);
             Users              = new UserRepository(_context);
             Notifications      = new NotificationRepository(_context);
+            Materials = new MaterialRepository(_context);
         }
 
         public IGenericRepository<T> Repository<T>() where T : class
@@ -44,11 +51,14 @@ namespace AILA.Infrastructure.Persistence
         }
 
         public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-            => await _context.SaveChangesAsync(cancellationToken);
+        {
+            return await _context.SaveChangesAsync(cancellationToken);
+        }
 
         public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
         {
             if (_currentTransaction != null) return;
+
             _currentTransaction = await _context.Database.BeginTransactionAsync(cancellationToken);
         }
 
@@ -58,7 +68,9 @@ namespace AILA.Infrastructure.Persistence
             {
                 await _context.SaveChangesAsync(cancellationToken);
                 if (_currentTransaction != null)
+                {
                     await _currentTransaction.CommitAsync(cancellationToken);
+                }
             }
             catch
             {
@@ -76,7 +88,9 @@ namespace AILA.Infrastructure.Persistence
             try
             {
                 if (_currentTransaction != null)
+                {
                     await _currentTransaction.RollbackAsync(cancellationToken);
+                }
             }
             finally
             {
@@ -93,6 +107,7 @@ namespace AILA.Infrastructure.Persistence
             }
         }
 
+        // Giải phóng tài nguyên DbContext khi Unit of Work bị hủy
         public void Dispose()
         {
             Dispose(true);
