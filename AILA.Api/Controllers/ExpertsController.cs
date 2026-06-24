@@ -1,10 +1,12 @@
 using AILA.Api.Extensions;
 using AILA.Application.Common.Dtos;
 using AILA.Application.Features.Experts.Queries;
+using AILA.Application.Features.Profile.Commands.UpdateExpertProfile;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Wrappers;
+using System.Reflection;
 
 namespace AILA.Api.Controllers
 {
@@ -47,5 +49,45 @@ namespace AILA.Api.Controllers
 
             return Ok(ResponseDto<ExpertProfileDto>.SuccessResult(result));
         }
+
+        [HttpPut("profile")]
+        [Authorize(Roles = "Expert")]
+        public async Task<IActionResult> UpdateProfile([FromBody] UpdateExpertProfileRequest request, CancellationToken ct)
+        {
+            var identity = HttpContext.GetUserIdentity();
+            if (identity == null)
+                return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực thất bại."));
+
+            var command = new UpdateExpertProfileCommand(
+                identity.UserId,
+                request.FullName,
+                request.AvatarUrl,
+                request.Bio,
+                request.Specialty,
+                request.YearsOfExperience
+            );
+
+            var result = await _sender.Send(command, ct);
+
+            if (!result.Success)
+            {
+                return result.ErrorCode switch
+                {
+                    "ACCOUNT_INACTIVE" => StatusCode(StatusCodes.Status403Forbidden, result),
+                    _ => BadRequest(result)
+                };
+            }
+
+            return Ok(result);
+        }
     }
+
+    public record UpdateExpertProfileRequest(
+        string FullName,
+        string? AvatarUrl,
+        string? Bio,
+        string? Specialty,
+        int YearsOfExperience
+    );
+}
 }
