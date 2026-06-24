@@ -1,4 +1,4 @@
-﻿using AILA.Application.Common.Interfaces.Repositories;
+using AILA.Application.Common.Interfaces.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,9 +10,10 @@ namespace AILA.Application.Common.Interfaces
 {
     public interface IUnitOfWork : IDisposable
     {
-
-        ICourseRepository Courses { get; }
-        ILearningProgressRepository LearningProgresses { get; }
+        ICourseRepository           Courses               { get; }
+        ILearningProgressRepository LearningProgresses    { get; }
+        IUserRepository             Users                 { get; }
+        INotificationRepository     Notifications         { get; }
         IMaterialRepository Materials { get; }
         IBlogPostRepository BlogPosts { get; }
         IGenericRepository<T> Repository<T>() where T : class;
