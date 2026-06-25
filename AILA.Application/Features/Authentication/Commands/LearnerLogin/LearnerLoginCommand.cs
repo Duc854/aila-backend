@@ -1,10 +1,10 @@
-using AILA.Application.Common.Dtos;
 using AILA.Application.Common.Interfaces;
+using AILA.Application.Features.Authentication.Dtos;
 using AILA.Domain.Enums;
 using MediatR;
 using Shared.Wrappers;
 
-namespace AILA.Application.Features.Auth.Commands.LearnerLogin
+namespace AILA.Application.Features.Authentication.Commands.LearnerLogin
 {
     public class LearnerLoginCommand : IRequest<ResponseDto<LoginResponseDto>>
     {

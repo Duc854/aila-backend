@@ -1,11 +1,11 @@
-using AILA.Application.Common.Dtos;
 using AILA.Application.Common.Interfaces;
+using AILA.Application.Features.Authentication.Dtos;
 using AILA.Domain.Entities;
 using AILA.Domain.Enums;
 using MediatR;
 using Shared.Wrappers;
 
-namespace AILA.Application.Features.Auth.Commands.GoogleLogin
+namespace AILA.Application.Features.Authentication.Commands.GoogleLogin
 {
     public class GoogleLoginCommand : IRequest<ResponseDto<LoginResponseDto>>
     {
@@ -36,10 +36,10 @@ namespace AILA.Application.Features.Auth.Commands.GoogleLogin
             {
                 user = new User(payload.Email, payload.Name, UserRole.Learner, null);
                 await _unitOfWork.Users.AddAsync(user);
-                
+
                 var learner = new Learner(user.Id);
                 await _unitOfWork.Learners.AddAsync(learner);
-                
+
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
             }
             else if (user.Role != UserRole.Learner)

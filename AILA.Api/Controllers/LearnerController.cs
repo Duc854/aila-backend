@@ -1,4 +1,7 @@
 using AILA.Api.Extensions;
+using AILA.Application.Features.Authentication.Commands.LearnerLogin;
+using AILA.Application.Features.Onboarding.Commands.CompleteOnboarding;
+using AILA.Application.Features.Onboarding.Queries.GetOnboardingStatus;
 using AILA.Application.Features.Profile.Commands.UpdateLearnerProfile;
 using AILA.Domain.Enums;
 using MediatR;
@@ -49,7 +52,7 @@ namespace AILA.Api.Controllers
         /// </summary>
         [AllowAnonymous]
         [HttpPost("login")]
-        public async Task<IActionResult> LearnerLogin([FromBody] Application.Features.Auth.Commands.LearnerLogin.LearnerLoginCommand command, CancellationToken ct)
+        public async Task<IActionResult> LearnerLogin([FromBody] LearnerLoginCommand command, CancellationToken ct)
         {
             var result = await sender.Send(command, ct);
 
@@ -69,7 +72,7 @@ namespace AILA.Api.Controllers
             if (identity == null)
                 return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực thất bại."));
 
-            var query = new Application.Features.Auth.Queries.GetOnboardingStatus.GetOnboardingStatusQuery
+            var query = new GetOnboardingStatusQuery
             {
                 UserId = identity.UserId
             };
@@ -91,7 +94,7 @@ namespace AILA.Api.Controllers
             if (identity == null)
                 return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực thất bại."));
 
-            var command = new Application.Features.Auth.Commands.CompleteOnboarding.CompleteOnboardingCommand
+            var command = new CompleteOnboardingCommand
             {
                 UserId = identity.UserId,
                 LearnerType = request.LearnerType,

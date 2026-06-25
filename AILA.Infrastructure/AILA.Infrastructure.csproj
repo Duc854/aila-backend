@@ -21,10 +21,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Folder Include="Services\" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<ProjectReference Include="..\AILA.Application\AILA.Application.csproj" />
 		<ProjectReference Include="..\AILA.Domain\AILA.Domain.csproj" />
 		<ProjectReference Include="..\Shared\Shared.csproj" />

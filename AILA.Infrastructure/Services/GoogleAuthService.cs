@@ -1,7 +1,7 @@
 using Google.Apis.Auth;
 using AILA.Application.Common.Interfaces;
 
-namespace AILA.Infrastructure.Security
+namespace AILA.Infrastructure.Services
 {
     public class GoogleAuthService : IGoogleAuthService
     {

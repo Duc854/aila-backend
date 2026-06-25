@@ -1,5 +1,5 @@
 using AILA.Api.Extensions;
-using AILA.Application.Features.Auth.Queries.GetCurrentUser;
+using AILA.Application.Features.Users.Queries.GetCurrentUser;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,9 +12,6 @@ namespace AILA.Api.Controllers
     [Authorize]
     public class UsersController(ISender sender) : ControllerBase
     {
-        /// <summary>
-        /// Lấy thông tin người dùng hiện tại đang đăng nhập.
-        /// </summary>
         [HttpGet("me")]
         public async Task<IActionResult> GetCurrentUser(CancellationToken ct)
         {

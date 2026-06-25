@@ -3,7 +3,7 @@ using AILA.Domain.Enums;
 using MediatR;
 using Shared.Wrappers;
 
-namespace AILA.Application.Features.Auth.Commands.CompleteOnboarding
+namespace AILA.Application.Features.Onboarding.Commands.CompleteOnboarding
 {
     public class CompleteOnboardingCommand : IRequest<ResponseDto<bool>>
     {
