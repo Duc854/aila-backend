@@ -1,4 +1,4 @@
-﻿using AILA.Application.Common.Interfaces;
+using AILA.Application.Common.Interfaces;
 using AILA.Application.Common.Interfaces.Repositories;
 using AILA.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -20,11 +20,21 @@ namespace AILA.Infrastructure.Persistence
 
         public ICourseRepository Courses { get; private set; }
         public ILearningProgressRepository LearningProgresses { get; private set; }
+        public IUserRepository Users { get; private set; }
+        public ILearnerRepository Learners { get; private set; }
+        public ICategoryRepository Categories { get; private set; }
+        public IBlogPostRepository BlogPosts { get; private set; }
+        public ITagRepository Tags { get; private set; }
         public UnitOfWork(ApplicationDbContext context)
         {
             _context = context;
             Courses = new CourseRepository(_context);
             LearningProgresses = new LearningProgressRepository(_context);
+            Users = new UserRepository(_context);
+            Learners = new LearnerRepository(_context);
+            Categories = new CategoryRepository(_context);
+            BlogPosts = new BlogPostRepository(_context);
+            Tags = new TagRepository(_context);
         }
 
         public IGenericRepository<T> Repository<T>() where T : class

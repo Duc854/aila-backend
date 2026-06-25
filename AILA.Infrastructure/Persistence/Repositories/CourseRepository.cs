@@ -1,4 +1,4 @@
-﻿using AILA.Application.Common.Interfaces.Repositories;
+using AILA.Application.Common.Interfaces.Repositories;
 using AILA.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -36,6 +36,16 @@ namespace AILA.Infrastructure.Persistence.Repositories
                         .ThenInclude(mat => mat.DocumentDetails)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(c => c.Id == courseId);
+        }
+
+        public async Task<IReadOnlyList<Course>> GetTopCoursesAsync(int count)
+        {
+            return await _context.Courses
+                .Where(c => c.IsPublished)
+                .OrderByDescending(c => c.CreatedAt) // Assuming CreatedAt since Rating doesn't exist
+                .Take(count)
+                .AsNoTracking()
+                .ToListAsync();
         }
     }
 }

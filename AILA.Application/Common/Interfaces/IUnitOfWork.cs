@@ -1,4 +1,4 @@
-﻿using AILA.Application.Common.Interfaces.Repositories;
+using AILA.Application.Common.Interfaces.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +13,11 @@ namespace AILA.Application.Common.Interfaces
 
         ICourseRepository Courses { get; }
         ILearningProgressRepository LearningProgresses { get; }
+        IUserRepository Users { get; }
+        ILearnerRepository Learners { get; }
+        ICategoryRepository Categories { get; }
+        IBlogPostRepository BlogPosts { get; }
+        ITagRepository Tags { get; }
         IGenericRepository<T> Repository<T>() where T : class;
 
         /// <summary>
