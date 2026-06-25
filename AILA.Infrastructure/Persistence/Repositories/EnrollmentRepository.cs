@@ -22,6 +22,16 @@ namespace AILA.Infrastructure.Persistence.Repositories
                 .FirstOrDefaultAsync(e => e.CourseId == courseId && e.LearnerId == learnerId, cancellationToken);
         }
 
+        public async Task<List<Enrollment>> GetEnrollmentsWithCourseByLearnerIdAsync(Guid learnerId, CancellationToken ct = default)
+            => await _context.Enrollments
+                .AsNoTracking()
+                .Include(e => e.Course)
+                    .ThenInclude(c => c.Category)
+                .Where(e => e.LearnerId == learnerId)
+                .OrderByDescending(e => e.LastAccessedAt ?? DateTime.MinValue)
+                .ThenByDescending(e => e.EnrolledAt)
+                .ToListAsync(ct);
+
         public void Update(Enrollment enrollment)
         {
             _context.Enrollments.Update(enrollment);

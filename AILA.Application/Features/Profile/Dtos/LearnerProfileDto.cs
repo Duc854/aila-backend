@@ -9,12 +9,29 @@ namespace AILA.Application.Features.Profile.Dtos
         IEnumerable<TagDto> LearningGoals
     );
 
+    public record EnrollmentSummaryDto(
+        Guid CourseId,
+        string CourseName,
+        string? ThumbnailUrl,
+        string CategoryName,
+        string? Description,
+        double DurationHours,
+        string Status,
+        int ProgressPct,
+        int TotalMaterials,
+        int CompletedMaterials,
+        DateTime EnrolledAt,
+        DateTime? CompletedAt,
+        DateTime? LastAccessedAt
+    );
+
     public record LearnerProfileDto(
         Guid Id,
         string FullName,
         string Email,
         string? AvatarUrl,
         string Role,
-        LearnerInfoDto Learner
+        LearnerInfoDto Learner,
+        IEnumerable<EnrollmentSummaryDto> Enrollments
     );
 }
