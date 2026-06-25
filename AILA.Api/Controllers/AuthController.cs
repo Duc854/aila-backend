@@ -56,5 +56,33 @@ namespace AILA.Api.Controllers
 
             return Ok(ResponseDto<LoginResponseDto>.SuccessResult(result));
         }
+
+        /// <summary>
+        /// Đăng ký tài khoản Learner bằng Email + Password.
+        /// </summary>
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] Application.Features.Auth.Commands.Register.RegisterCommand command)
+        {
+            var result = await _sender.Send(command);
+
+            if (!result.Success)
+                return BadRequest(result);
+
+            return CreatedAtAction(nameof(Register), result);
+        }
+
+        /// <summary>
+        /// Đăng nhập Learner bằng Google — tự động tạo tài khoản nếu chưa có.
+        /// </summary>
+        [HttpPost("learner/google")]
+        public async Task<IActionResult> GoogleLogin([FromBody] Application.Features.Auth.Commands.GoogleLogin.GoogleLoginCommand command)
+        {
+            var result = await _sender.Send(command);
+
+            if (!result.Success)
+                return Unauthorized(result);
+
+            return Ok(result);
+        }
     }
 }

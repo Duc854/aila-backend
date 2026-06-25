@@ -43,6 +43,68 @@ namespace AILA.Api.Controllers
 
             return Ok(result);
         }
+
+        /// <summary>
+        /// Đăng nhập Learner — Email + Password.
+        /// </summary>
+        [AllowAnonymous]
+        [HttpPost("login")]
+        public async Task<IActionResult> LearnerLogin([FromBody] Application.Features.Auth.Commands.LearnerLogin.LearnerLoginCommand command, CancellationToken ct)
+        {
+            var result = await sender.Send(command, ct);
+
+            if (!result.Success)
+                return Unauthorized(result);
+
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Lấy trạng thái onboarding của Learner hiện tại.
+        /// </summary>
+        [HttpGet("onboarding")]
+        public async Task<IActionResult> GetOnboardingStatus(CancellationToken ct)
+        {
+            var identity = HttpContext.GetUserIdentity();
+            if (identity == null)
+                return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực thất bại."));
+
+            var query = new Application.Features.Auth.Queries.GetOnboardingStatus.GetOnboardingStatusQuery
+            {
+                UserId = identity.UserId
+            };
+            var result = await sender.Send(query, ct);
+
+            if (!result.Success)
+                return NotFound(result);
+
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Hoàn thành khảo sát onboarding cho Learner.
+        /// </summary>
+        [HttpPut("onboarding")]
+        public async Task<IActionResult> CompleteOnboarding([FromBody] CompleteOnboardingRequest request, CancellationToken ct)
+        {
+            var identity = HttpContext.GetUserIdentity();
+            if (identity == null)
+                return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực thất bại."));
+
+            var command = new Application.Features.Auth.Commands.CompleteOnboarding.CompleteOnboardingCommand
+            {
+                UserId = identity.UserId,
+                LearnerType = request.LearnerType,
+                KnowledgeLevel = request.KnowledgeLevel,
+                TagIds = request.TagIds
+            };
+            var result = await sender.Send(command, ct);
+
+            if (!result.Success)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
     }
 
     public record UpdateLearnerProfileRequest(
@@ -51,5 +113,11 @@ namespace AILA.Api.Controllers
         LearnerType? LearnerType,
         KnowledgeLevel? KnowledgeLevel,
         Guid[]? LearningGoals
+    );
+
+    public record CompleteOnboardingRequest(
+        LearnerType LearnerType,
+        KnowledgeLevel KnowledgeLevel,
+        List<Guid> TagIds
     );
 }
