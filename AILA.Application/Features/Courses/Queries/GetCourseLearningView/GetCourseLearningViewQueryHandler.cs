@@ -12,10 +12,7 @@ using System.Threading.Tasks;
 
 namespace AILA.Application.Features.Courses.Queries.GetCourseLearningView
 {
-    public class GetCourseLearningViewQueryHandler :
-                IRequestHandler<
-                    GetCourseLearningViewQuery,
-                    ResponseDto<CourseLearningViewDto>>
+    public class GetCourseLearningViewQueryHandler :IRequestHandler<GetCourseLearningViewQuery,ResponseDto<CourseLearningViewDto>>
     {
         private readonly IUnitOfWork _uow;
 
@@ -24,46 +21,24 @@ namespace AILA.Application.Features.Courses.Queries.GetCourseLearningView
             _uow = uow;
         }
 
-        public async Task<ResponseDto<CourseLearningViewDto>> Handle(
-            GetCourseLearningViewQuery request,
-            CancellationToken cancellationToken)
+        public async Task<ResponseDto<CourseLearningViewDto>> Handle(GetCourseLearningViewQuery request,CancellationToken cancellationToken)
         {
-            var courseTask =
-                _uow.Courses
-                .GetCourseWithFullContentAsync(request.CourseId);
-
-            var completedTask =
-                _uow.LearningProgresses
-                .GetCompletedMaterialIdsAsync(request.CourseId, request.LearnerId);
-
-            var currentTask =
-                _uow.LearningProgresses
-                .GetCurrentMaterialIdAsync(request.CourseId, request.LearnerId);
-
-            await Task.WhenAll(
-                courseTask,
-                completedTask,
-                currentTask);
-
-            var course = await courseTask;
-
+            var course = await _uow.Courses.GetCourseWithFullContentAsync(request.CourseId);
             if (course == null)
                 return ResponseDto<CourseLearningViewDto>.FailResult("COURSE_NOT_FOUND", "Không tìm thấy thông tin khóa học.");
 
-            var completedIds = (await completedTask).ToHashSet();
-            var currentMaterialId = await currentTask;
+            var completedMaterialIds = await _uow.LearningProgresses.GetCompletedMaterialIdsAsync(request.CourseId, request.LearnerId);
 
+            var completedIds = completedMaterialIds.ToHashSet();
+
+            var currentMaterialId = await _uow.LearningProgresses.GetCurrentMaterialIdAsync(request.CourseId, request.LearnerId);
             // CẬP NHẬT: Thực hiện mapping kèm OrderIndex và ModuleId, đồng thời OrderBy để cấu trúc cây chuẩn hóa
-            var modules = course.Modules
-                .OrderBy(m => m.OrderIndex) // Sắp xếp thứ tự các Module (Chương học)
-                .Select(m => new ModuleLearningDto
+            var modules = course.Modules.OrderBy(m => m.OrderIndex).Select(m => new ModuleLearningDto
                 {
                     Id = m.Id,
                     Title = m.Title,
-                    OrderIndex = m.OrderIndex, // <--- CẬP NHẬT: Gán OrderIndex cho Module
-
-                    Materials = m.Materials
-                        .OrderBy(material => material.OrderIndex) // Sắp xếp thứ tự học liệu trong module
+                    OrderIndex = m.OrderIndex,
+                    Materials = m.Materials.OrderBy(material => material.OrderIndex)
                         .Select(material => new MaterialLearningDto
                         {
                             Id = material.Id,
@@ -73,14 +48,10 @@ namespace AILA.Application.Features.Courses.Queries.GetCourseLearningView
                             Type = material.MaterialType.ToString(),
                             IsCompleted = completedIds.Contains(material.Id),
                             IsCurrent = currentMaterialId == material.Id
-                        })
-                        .ToList()
-                })
-                .ToList();
+                        }).ToList()
+                }).ToList();
 
             var totalMaterials = modules.Sum(x => x.Materials.Count);
-
-            // Khởi tạo Dto kết quả
             var learningViewDto = new CourseLearningViewDto
             {
                 Progress = new CourseProgressDto
@@ -94,7 +65,6 @@ namespace AILA.Application.Features.Courses.Queries.GetCourseLearningView
                 },
                 Modules = modules
             };
-
             return ResponseDto<CourseLearningViewDto>.SuccessResult(learningViewDto);
         }
     }
