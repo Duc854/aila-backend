@@ -18,6 +18,8 @@ namespace AILA.Application.Features.Profile.Queries.GetLearnerProfile
             if (!learner.User.IsActive)
                 return ResponseDto<LearnerProfileDto>.FailResult("ACCOUNT_INACTIVE", "Tài khoản đã bị vô hiệu hóa.");
 
+            var enrollments = await uow.Enrollments.GetEnrollmentsWithCourseByLearnerIdAsync(request.UserId, ct);
+
             var dto = new LearnerProfileDto(
                 learner.User.Id,
                 learner.User.FullName,
@@ -29,7 +31,22 @@ namespace AILA.Application.Features.Profile.Queries.GetLearnerProfile
                     learner.KnowledgeLevel?.ToString(),
                     learner.HasCompletedOnboarding,
                     learner.LearningGoals.Select(t => new TagDto(t.Id, t.Name))
-                )
+                ),
+                enrollments.Select(e => new EnrollmentSummaryDto(
+                    e.CourseId,
+                    e.Course.Name,
+                    e.Course.ThumbnailUrl,
+                    e.Course.Category?.Name ?? "",
+                    e.Course.Description,
+                    (double)e.Course.DurationHours,
+                    e.Status.ToString(),
+                    (int)e.ProgressPct,
+                    e.TotalMaterials,
+                    e.CompletedMaterials,
+                    e.EnrolledAt,
+                    e.CompletedAt,
+                    e.LastAccessedAt
+                ))
             );
 
             return ResponseDto<LearnerProfileDto>.SuccessResult(dto);
