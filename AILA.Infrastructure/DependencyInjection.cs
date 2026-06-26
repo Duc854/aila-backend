@@ -1,5 +1,6 @@
-﻿using AILA.Application.Common.Interfaces;
+using AILA.Application.Common.Interfaces;
 using AILA.Infrastructure.Persistence;
+using AILA.Infrastructure.Services;
 using AILA.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -31,6 +32,7 @@ namespace AILA.Infrastructure
             // 3. Đăng ký các dịch vụ hạ tầng kỹ thuật đã chốt
             services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
             services.AddScoped<ITokenProvider, JwtTokenProvider>();
+            services.AddScoped<IGoogleAuthService, GoogleAuthService>();
 
             // 4. Đăng ký mẫu thiết kế Unit of Work
             services.AddScoped<IUnitOfWork, UnitOfWork>();

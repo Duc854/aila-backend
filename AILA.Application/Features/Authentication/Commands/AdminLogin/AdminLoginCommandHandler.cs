@@ -1,11 +1,11 @@
-using AILA.Application.Common.Dtos;
 using AILA.Application.Common.Interfaces;
+using AILA.Application.Features.Authentication.Dtos;
 using AILA.Domain.Entities;
 using AILA.Domain.Enums;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 
-namespace AILA.Application.Features.Auth.Commands
+namespace AILA.Application.Features.Authentication.Commands.AdminLogin
 {
     public class AdminLoginCommandHandler
         : IRequestHandler<AdminLoginCommand, LoginResponseDto?>
@@ -25,34 +25,29 @@ namespace AILA.Application.Features.Auth.Commands
             AdminLoginCommand request,
             CancellationToken cancellationToken)
         {
-            // 1. Đọc thông tin Admin từ appsettings (AdminCredentials section)
             var adminUsername = _configuration["AdminCredentials:Username"];
             var adminPassword = _configuration["AdminCredentials:Password"];
 
-            // 2. So sánh trực tiếp (plain-text vì đây là config tĩnh, không hash)
             if (request.Username != adminUsername || request.Password != adminPassword)
                 return Task.FromResult<LoginResponseDto?>(null);
 
-            // 3. Tạo một User object "ảo" đại diện cho Admin để GenerateAccessToken
-            //    (không lưu vào DB — Admin không phải entity trong hệ thống)
             var adminVirtualUser = new User(
-                email:        "admin@aila.internal",
-                fullName:     "Administrator",
-                role:         UserRole.Admin,
+                email: "admin@aila.internal",
+                fullName: "Administrator",
+                role: UserRole.Admin,
                 passwordHash: null);
 
-            // 4. Phát hành token
-            var accessToken  = _tokenProvider.GenerateAccessToken(adminVirtualUser);
+            var accessToken = _tokenProvider.GenerateAccessToken(adminVirtualUser);
             var refreshToken = _tokenProvider.GenerateRefreshToken();
 
             var response = new LoginResponseDto
             {
-                AccessToken  = accessToken,
+                AccessToken = accessToken,
                 RefreshToken = refreshToken,
-                Role         = UserRole.Admin.ToString(),
-                UserId       = adminVirtualUser.Id,
-                FullName     = "Administrator",
-                Email        = "admin@aila.internal"
+                Role = UserRole.Admin.ToString(),
+                UserId = adminVirtualUser.Id,
+                FullName = "Administrator",
+                Email = "admin@aila.internal"
             };
 
             return Task.FromResult<LoginResponseDto?>(response);
