@@ -24,10 +24,12 @@ namespace AILA.Application.Common.Dtos
         public string VideoUrl { get; set; } = null!;
         public string? ThumbnailUrl { get; set; }
         public string? CaptionsUrl { get; set; }
+        public string? Content { get; set; }
     }
 
     public class DocumentMaterialDto
     {
+        public string? Content { get; set; }
         public string? DocumentUrl { get; set; }
     }
 }

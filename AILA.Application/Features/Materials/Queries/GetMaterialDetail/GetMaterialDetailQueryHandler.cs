@@ -41,10 +41,12 @@ namespace AILA.Application.Features.Materials.Queries.GetMaterialDetail
                 {
                     VideoUrl = material.VideoDetails.VideoUrl,
                     ThumbnailUrl = material.VideoDetails.ThumbnailUrl,
-                    CaptionsUrl = material.VideoDetails.CaptionsUrl
+                    CaptionsUrl = material.VideoDetails.CaptionsUrl,
+                    Content = material.VideoDetails.Content
                 } : null,
                 DocumentDetails = material.DocumentDetails != null ? new DocumentMaterialDto
                 {
+                    Content = material.DocumentDetails.Content,
                     DocumentUrl = material.DocumentDetails.DocumentUrl
                 } : null
             };
