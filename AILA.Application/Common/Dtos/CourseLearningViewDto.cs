@@ -31,6 +31,7 @@ namespace AILA.Application.Common.Dtos
         public Guid Id { get; set; }
 
         public string Title { get; set; } = "";
+        public int OrderIndex { get; set; }
 
         public List<MaterialLearningDto> Materials { get; set; }
             = [];
@@ -40,9 +41,11 @@ namespace AILA.Application.Common.Dtos
     {
         public Guid Id { get; set; }
 
+        public Guid ModuleId { get; set; }
         public string Title { get; set; } = "";
 
         public string Type { get; set; } = "";
+        public int OrderIndex { get; set; }
 
         public bool IsCompleted { get; set; }
 

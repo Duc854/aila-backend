@@ -16,6 +16,7 @@
   <ItemGroup>
     <Folder Include="Common\Behaviours\" />
     <Folder Include="Common\Mappings\" />
+    <Folder Include="Features\Onboarding\" />
   </ItemGroup>
 
   <ItemGroup>

@@ -8,6 +8,9 @@ namespace AILA.Application.Common.Interfaces.Repositories
         Task<Enrollment?> GetByLearnerAndCourseAsync(Guid learnerId, Guid courseId);
 
         Task<Enrollment?> GetByCourseAndLearnerAsync(Guid courseId, Guid learnerId, CancellationToken cancellationToken = default);
+
+        Task<List<Enrollment>> GetEnrollmentsWithCourseByLearnerIdAsync(Guid learnerId, CancellationToken ct = default);
+
         void Update(Enrollment enrollment);
     }
 }

@@ -45,5 +45,17 @@ namespace AILA.Api.Controllers
 
             return Ok(result);
         }
+
+        /// <summary>
+        /// Lấy danh sách bài viết nổi bật cho trang chủ.
+        /// </summary>
+        [HttpGet("top")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetTopBlogs([FromQuery] int count = 2)
+        {
+            var query = new Application.Features.Blogs.Queries.GetTopBlogs.GetTopBlogsQuery { Count = count };
+            var result = await _sender.Send(query);
+            return Ok(result);
+        }
     }
 }

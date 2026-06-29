@@ -1,4 +1,4 @@
-﻿using AILA.Api.Extensions;
+using AILA.Api.Extensions;
 using AILA.Application.Features.Courses.Commands;
 using AILA.Application.Features.Courses.Queries;
 using AILA.Application.Features.Courses.Queries.GetCourseLearningView;
@@ -100,6 +100,18 @@ namespace AILA.Api.Controllers
             }
 
             // Trả về kết quả thành công chứa ResponseDto chuẩn hóa
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Lấy danh sách khóa học nổi bật cho trang chủ.
+        /// </summary>
+        [HttpGet("top")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetTopCourses([FromQuery] int count = 5)
+        {
+            var query = new Application.Features.Courses.Queries.GetTopCourses.GetTopCoursesQuery { Count = count };
+            var result = await _sender.Send(query);
             return Ok(result);
         }
     }

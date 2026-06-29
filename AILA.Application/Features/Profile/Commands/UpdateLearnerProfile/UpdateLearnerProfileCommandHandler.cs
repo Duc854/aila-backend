@@ -56,7 +56,8 @@ namespace AILA.Application.Features.Profile.Commands.UpdateLearnerProfile
                     learner.KnowledgeLevel?.ToString(),
                     learner.HasCompletedOnboarding,
                     learner.LearningGoals.Select(t => new TagDto(t.Id, t.Name))
-                )
+                ),
+                Enumerable.Empty<EnrollmentSummaryDto>()
             );
 
             return ResponseDto<LearnerProfileDto>.SuccessResult(dto);

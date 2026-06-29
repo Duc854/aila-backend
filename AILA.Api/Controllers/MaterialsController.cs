@@ -10,7 +10,7 @@ using Shared.Wrappers;
 
 namespace AILA.Api.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/courses/{courseId}/[controller]")]
     [ApiController]
     public class MaterialsController : ControllerBase
     {
