@@ -2,7 +2,6 @@ using AILA.Api.Extensions;
 using AILA.Application.Features.Courses.Commands;
 using AILA.Application.Features.Courses.Queries;
 using AILA.Application.Features.Courses.Queries.GetCourseLearningView;
-using GetCourseLearningViewQuery = AILA.Application.Features.Courses.Queries.GetCourseLearningView.GetCourseLearningViewQuery;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
