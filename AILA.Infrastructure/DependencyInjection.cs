@@ -26,13 +26,14 @@ namespace AILA.Infrastructure
                 )
             );
 
-            // 2. Map dữ liệu từ appsettings.json vào Class JwtSettings của tầng Shared
+            // 2. Map dữ liệu từ appsettings.json vào Class JwtSettings và GoogleSettings của tầng Shared
             services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
+            services.Configure<GoogleSettings>(configuration.GetSection("GoogleSettings"));
 
             // 3. Đăng ký các dịch vụ hạ tầng kỹ thuật đã chốt
             services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
             services.AddScoped<ITokenProvider, JwtTokenProvider>();
-            services.AddScoped<IGoogleAuthService, GoogleAuthService>();
+            services.AddHttpClient<IGoogleAuthService, GoogleAuthService>();
 
             // 4. Đăng ký mẫu thiết kế Unit of Work
             services.AddScoped<IUnitOfWork, UnitOfWork>();
