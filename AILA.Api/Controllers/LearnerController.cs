@@ -23,12 +23,28 @@ namespace AILA.Api.Controllers
             if (identity == null)
                 return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực thất bại."));
 
+            LearnerType? learnerType = null;
+            if (!string.IsNullOrWhiteSpace(request.LearnerType))
+            {
+                if (!Enum.TryParse(request.LearnerType, true, out LearnerType parsedLearnerType))
+                    return BadRequest(ResponseDto<object>.FailResult("INVALID_LEARNER_TYPE", "Loại học viên không hợp lệ."));
+                learnerType = parsedLearnerType;
+            }
+
+            KnowledgeLevel? knowledgeLevel = null;
+            if (!string.IsNullOrWhiteSpace(request.KnowledgeLevel))
+            {
+                if (!Enum.TryParse(request.KnowledgeLevel, true, out KnowledgeLevel parsedKnowledgeLevel))
+                    return BadRequest(ResponseDto<object>.FailResult("INVALID_KNOWLEDGE_LEVEL", "Trình độ không hợp lệ."));
+                knowledgeLevel = parsedKnowledgeLevel;
+            }
+
             var command = new UpdateLearnerProfileCommand(
                 identity.UserId,
                 request.FullName,
                 request.AvatarUrl,
-                request.LearnerType,
-                request.KnowledgeLevel,
+                learnerType,
+                knowledgeLevel,
                 request.LearningGoals ?? []
             );
 
@@ -94,11 +110,17 @@ namespace AILA.Api.Controllers
             if (identity == null)
                 return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực thất bại."));
 
+            if (!Enum.TryParse(request.LearnerType, true, out LearnerType learnerType))
+                return BadRequest(ResponseDto<object>.FailResult("INVALID_LEARNER_TYPE", "Loại học viên không hợp lệ."));
+
+            if (!Enum.TryParse(request.KnowledgeLevel, true, out KnowledgeLevel knowledgeLevel))
+                return BadRequest(ResponseDto<object>.FailResult("INVALID_KNOWLEDGE_LEVEL", "Trình độ không hợp lệ."));
+
             var command = new CompleteOnboardingCommand
             {
                 UserId = identity.UserId,
-                LearnerType = request.LearnerType,
-                KnowledgeLevel = request.KnowledgeLevel,
+                LearnerType = learnerType,
+                KnowledgeLevel = knowledgeLevel,
                 TagIds = request.TagIds
             };
             var result = await sender.Send(command, ct);
@@ -113,14 +135,14 @@ namespace AILA.Api.Controllers
     public record UpdateLearnerProfileRequest(
         string FullName,
         string? AvatarUrl,
-        LearnerType? LearnerType,
-        KnowledgeLevel? KnowledgeLevel,
+        string? LearnerType,
+        string? KnowledgeLevel,
         Guid[]? LearningGoals
     );
 
     public record CompleteOnboardingRequest(
-        LearnerType LearnerType,
-        KnowledgeLevel KnowledgeLevel,
+        string LearnerType,
+        string KnowledgeLevel,
         List<Guid> TagIds
     );
 }
