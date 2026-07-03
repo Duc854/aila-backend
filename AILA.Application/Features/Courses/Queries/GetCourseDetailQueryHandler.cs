@@ -39,7 +39,7 @@ namespace AILA.Application.Features.Courses.Queries
                             Id           = mat.Id,
                             ModuleId     = mat.ModuleId,
                             Title        = mat.Title,
-                            MaterialType = mat.MaterialType.ToString(),
+                            Type = mat.MaterialType.ToString(),
                             OrderIndex   = mat.OrderIndex,
                             VideoDetails = mat.VideoDetails == null ? null : new VideoMaterialDto
                             {

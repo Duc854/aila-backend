@@ -121,5 +121,15 @@ namespace AILA.Infrastructure.Persistence.Repositories
                 .Where(mat => mat.Module.CourseId == courseId)
                 .CountAsync();
         }
+
+        /// Lấy danh sách khóa học đã published của một Expert, sắp xếp mới nhất trước.
+        public async Task<List<Course>> GetPublishedByExpertAsync(Guid expertId, CancellationToken ct = default)
+        {
+            return await _context.Courses
+                .Where(c => c.ExpertId == expertId && c.IsPublished)
+                .OrderByDescending(c => c.CreatedAt)
+                .AsNoTracking()
+                .ToListAsync(ct);
+        }
     }
 }

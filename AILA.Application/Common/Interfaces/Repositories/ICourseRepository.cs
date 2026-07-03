@@ -29,5 +29,9 @@ namespace AILA.Application.Common.Interfaces.Repositories
 
         /// Đếm số lượng Materials (bài học) của một khóa học
         Task<int> CountMaterialsAsync(Guid courseId);
+
+        /// Lấy danh sách khóa học đã published của một Expert, sắp xếp mới nhất trước.
+        /// Dùng cho Public Expert Profile (read-only).
+        Task<List<Course>> GetPublishedByExpertAsync(Guid expertId, CancellationToken ct = default);
     }
 }
