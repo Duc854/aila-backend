@@ -20,5 +20,25 @@ namespace AILA.Infrastructure.Persistence.Repositories
                 .AsNoTracking()
                 .ToListAsync();
         }
+        public async Task MarkAsReadAsync(Guid notificationId, Guid userId, CancellationToken ct = default)
+        {
+            // Chỉ cho phép đánh dấu notification của chính user đó
+            var notification = await _context.Notifications
+                .FirstOrDefaultAsync(n => n.Id == notificationId && n.UserId == userId, ct);
+
+            if (notification is null) return;
+
+            notification.MarkAsRead();
+        }
+
+        public async Task MarkAllAsReadAsync(Guid userId, CancellationToken ct = default)
+        {
+            var notifications = await _context.Notifications
+                .Where(n => n.UserId == userId && !n.IsRead)
+                .ToListAsync(ct);
+
+            foreach (var n in notifications)
+                n.MarkAsRead();
+        }
     }
 }

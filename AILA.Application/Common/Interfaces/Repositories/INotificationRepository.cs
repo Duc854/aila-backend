@@ -6,5 +6,7 @@ namespace AILA.Application.Common.Interfaces.Repositories
     {
         /// <summary>Lấy toàn bộ thông báo của một User, mới nhất trước</summary>
         Task<List<Notification>> GetAllByUserIdAsync(Guid userId);
+        Task MarkAsReadAsync(Guid notificationId, Guid userId, CancellationToken ct = default);
+        Task MarkAllAsReadAsync(Guid userId, CancellationToken ct = default);
     }
 }
