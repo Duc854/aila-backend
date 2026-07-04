@@ -2,6 +2,7 @@ using AILA.Api.Extensions;
 using AILA.Application.Features.Courses.Commands;
 using AILA.Application.Features.Courses.Queries;
 using AILA.Application.Features.Courses.Queries.GetCourseLearningView;
+using GetCourseLearningViewQuery = AILA.Application.Features.Courses.Queries.GetCourseLearningView.GetCourseLearningViewQuery;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -72,6 +73,20 @@ namespace AILA.Api.Controllers
             {
                 return BadRequest(ResponseDto<object>.FailResult("ENROLL_FAILED", ex.Message));
             }
+        }
+
+        /// Kiểm tra học viên đã đăng ký khóa học chưa. Yêu cầu đăng nhập với vai trò Learner.
+        [HttpGet("{id}/enrollment")]
+        [Authorize(Roles = "Learner")]
+        public async Task<IActionResult> CheckEnrollment(Guid id)
+        {
+            var identity = HttpContext.GetUserIdentity();
+            if (identity == null)
+                return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực người dùng thất bại hoặc mã token không hợp lệ."));
+
+            var query = new AILA.Application.Features.Courses.Queries.CheckEnrollmentQuery(id, identity.UserId);
+            var result = await _sender.Send(query);
+            return Ok(result);
         }
 
         [HttpGet("{courseId}/learning-view")]
