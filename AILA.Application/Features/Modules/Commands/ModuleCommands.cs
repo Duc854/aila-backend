@@ -51,7 +51,7 @@ namespace AILA.Application.Features.Modules.Commands
             await _uow.Modules.AddAsync(module);
             await _uow.SaveChangesAsync(ct);
 
-            return ResponseDto<ModuleDto>.SuccessResult(MapToDto(module));
+            return ResponseDto<ModuleDto>.SuccessResult(ModuleMapper.MapToDto(module));
         }
     }
 
@@ -90,7 +90,7 @@ namespace AILA.Application.Features.Modules.Commands
             module.UpdateInfo(request.Title, request.Description);
             await _uow.SaveChangesAsync(ct);
 
-            return ResponseDto<ModuleDto>.SuccessResult(MapToDto(module));
+            return ResponseDto<ModuleDto>.SuccessResult(ModuleMapper.MapToDto(module));
         }
     }
 
@@ -120,7 +120,7 @@ namespace AILA.Application.Features.Modules.Commands
             if (module.Course.ExpertId != request.ExpertId)
                 return ResponseDto<object>.FailResult("FORBIDDEN", "Bạn không có quyền xóa chương học này.");
 
-            _uow.Modules.Remove(module);
+            _uow.Modules.Delete(module);
             await _uow.SaveChangesAsync(ct);
 
             return ResponseDto<object>.SuccessResult(null!);
@@ -158,7 +158,7 @@ namespace AILA.Application.Features.Modules.Commands
 
             await _uow.SaveChangesAsync(ct);
 
-            return ResponseDto<ModuleDto>.SuccessResult(MapToDto(module));
+            return ResponseDto<ModuleDto>.SuccessResult(ModuleMapper.MapToDto(module));
         }
     }
 
@@ -230,5 +230,4 @@ namespace AILA.Application.Features.Modules.Commands
     }
 
     // Hàm helper dùng trong handlers cùng file
-    file static ModuleDto MapToDto(Module m) => ModuleMapper.MapToDto(m);
 }
