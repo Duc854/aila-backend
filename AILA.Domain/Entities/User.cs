@@ -38,6 +38,12 @@ namespace AILA.Domain.Entities
             if (string.IsNullOrWhiteSpace(fullName))
                 throw new ArgumentException("Tên người dùng không được để trống.", nameof(fullName));
 
+            if (string.IsNullOrWhiteSpace(passwordHash) &&
+                string.IsNullOrWhiteSpace(googleId))
+            {
+                throw new InvalidOperationException(
+                    "User phải có ít nhất một phương thức xác thực.");
+            }
             Id = Guid.NewGuid();
             Email = email.ToLower().Trim();
             FullName = fullName.Trim();
@@ -73,7 +79,7 @@ namespace AILA.Domain.Entities
         public void UpdatePassword(string newPasswordHash)
         {
             if (string.IsNullOrWhiteSpace(newPasswordHash))
-                throw new ArgumentException("Password hash không hợp lệ.", nameof(newPasswordHash));
+                throw new ArgumentException("Password không hợp lệ.", nameof(newPasswordHash));
 
             PasswordHash = newPasswordHash;
             UpdateTimestamp();

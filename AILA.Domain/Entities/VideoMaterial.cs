@@ -13,10 +13,8 @@ namespace AILA.Domain.Entities
 
         // Cột này sẽ lưu URL (như link youtube) HOẶC lưu nguyên đoạn mã <iframe src="..."> tùy bạn cấu hình ở FE
         public string VideoUrl { get; private set; }
-        public string? ThumbnailUrl { get; private set; }
         public int DurationSeconds { get; private set; }
         public string? Content { get; private set; }
-        public string? CaptionsUrl { get; private set; }
         public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; private set; }
 
@@ -24,11 +22,11 @@ namespace AILA.Domain.Entities
 
         private VideoMaterial() { }
 
-        public VideoMaterial(Guid materialId, string videoUrl, int durationSeconds, string? thumbnailUrl = null, string? content = null, string? captionsUrl = null)
+        public VideoMaterial(Guid materialId, string videoUrl, int durationSeconds, string? content = null)
         {
-            if (materialId == Guid.Empty) throw new ArgumentException("MaterialId không hợp lệ.");
+            if (materialId == Guid.Empty) throw new ArgumentException("Mã học liệu không hợp lệ.");
 
-            ValidateEmbeddableVideo(videoUrl);
+            ValidateVideoUrl(videoUrl);
 
             if (durationSeconds < 0) // Để bằng 0 nếu Expert không biết chính xác thời lượng file nhúng
                 throw new ArgumentException("Thời lượng video không được là số âm.");
@@ -36,41 +34,31 @@ namespace AILA.Domain.Entities
             MaterialId = materialId;
             VideoUrl = videoUrl.Trim();
             DurationSeconds = durationSeconds;
-            ThumbnailUrl = thumbnailUrl?.Trim();
             Content = content?.Trim();
-            CaptionsUrl = captionsUrl?.Trim();
         }
 
         public void UpdateDetails(string videoUrl, int durationSeconds, string? thumbnailUrl, string? content, string? captionsUrl)
         {
-            ValidateEmbeddableVideo(videoUrl);
+            ValidateVideoUrl(videoUrl);
 
             if (durationSeconds < 0)
                 throw new ArgumentException("Thời lượng video không được là số âm.");
 
             VideoUrl = videoUrl.Trim();
             DurationSeconds = durationSeconds;
-            ThumbnailUrl = thumbnailUrl?.Trim();
             Content = content?.Trim();
-            CaptionsUrl = captionsUrl?.Trim();
 
             UpdatedAt = DateTime.UtcNow;
         }
 
         // --- DOMAIN VALIDATION GIAO DIỆN NHÚNG ---
-        private static void ValidateEmbeddableVideo(string embedSource)
+        private static void ValidateVideoUrl(string videoUrl)
         {
-            if (string.IsNullOrWhiteSpace(embedSource))
-                throw new ArgumentException("Nguồn video nhúng không được để trống.");
+            if (string.IsNullOrWhiteSpace(videoUrl))
+                throw new ArgumentException("Video URL không được để trống.");
 
-            // Kiểm tra xem có phải là một URL hợp lệ HOẶC chứa thẻ nhúng <iframe> không
-            bool isUrl = Uri.TryCreate(embedSource, UriKind.Absolute, out _);
-            bool isIframe = embedSource.Contains("<iframe", StringComparison.OrdinalIgnoreCase);
-
-            if (!isUrl && !isIframe)
-            {
-                throw new ArgumentException("Nguồn video không hợp lệ. Vui lòng nhập một liên kết URL hoặc mã nhúng <iframe> hợp lệ.");
-            }
+            if (!Uri.TryCreate(videoUrl, UriKind.Absolute, out _))
+                throw new ArgumentException("Video URL không hợp lệ.");
         }
     }
 }

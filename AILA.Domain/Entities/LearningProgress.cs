@@ -24,8 +24,8 @@ namespace AILA.Domain.Entities
         // Constructor chuẩn DDD khi học viên click mở một bài học lần đầu tiên
         public LearningProgress(Guid enrollmentId, Guid materialId)
         {
-            if (enrollmentId == Guid.Empty) throw new ArgumentException("EnrollmentId không hợp lệ.");
-            if (materialId == Guid.Empty) throw new ArgumentException("MaterialId không hợp lệ.");
+            if (enrollmentId == Guid.Empty) throw new ArgumentException("Mã ghi danh không hợp lệ.");
+            if (materialId == Guid.Empty) throw new ArgumentException("Mã học liệu không hợp lệ.");
 
             EnrollmentId = enrollmentId;
             MaterialId = materialId;
