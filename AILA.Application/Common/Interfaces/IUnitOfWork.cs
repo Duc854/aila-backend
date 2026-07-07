@@ -21,6 +21,7 @@ namespace AILA.Application.Common.Interfaces
         IBlogPostRepository         BlogPosts          { get; }
         ILearnerRepository          Learners           { get; }
         IExpertRepository           Experts            { get; }
+        IModuleRepository Modules { get; }
         IGenericRepository<T> Repository<T>() where T : class;
 
         /// <summary>
