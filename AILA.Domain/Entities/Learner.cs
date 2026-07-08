@@ -27,7 +27,7 @@ namespace AILA.Domain.Entities
 
         public Learner(Guid userId)
         {
-            if (userId == Guid.Empty) throw new ArgumentException("UserId không hợp lệ.");
+            if (userId == Guid.Empty) throw new ArgumentException("Mã người dùng không hợp lệ.");
             UserId = userId;
             HasCompletedOnboarding = false;
         }
@@ -39,12 +39,18 @@ namespace AILA.Domain.Entities
         /// </summary>
         public void CompleteOnboarding(LearnerType type, KnowledgeLevel level, List<Tag> selectedTags)
         {
+            if (HasCompletedOnboarding)
+                throw new InvalidOperationException(
+                    "Học viên đã hoàn thành khảo sát ban đầu.");
             if (selectedTags == null || !selectedTags.Any())
                 throw new ArgumentException("Học viên phải chọn ít nhất một mục tiêu học tập.");
 
             // Domain Validation: Chỉ cho phép chọn các Tag đã được Admin duyệt (IsPublished = true)
             if (selectedTags.Any(t => !t.IsPublished))
                 throw new InvalidOperationException("Không thể chọn mục tiêu học tập chưa được phê duyệt.");
+
+            if (selectedTags.Select(t => t.Id).Distinct().Count() != selectedTags.Count)
+                throw new InvalidOperationException("Danh sách mục tiêu học tập không được chứa mục tiêu trùng lặp.");
 
             LearnerType = type;
             KnowledgeLevel = level;
@@ -66,7 +72,10 @@ namespace AILA.Domain.Entities
                 throw new ArgumentException("Danh sách mục tiêu không được để trống.");
 
             if (newTags.Any(t => !t.IsPublished))
-                throw new InvalidOperationException("Có mục tiêu chứa tag chưa được phê duyệt.");
+                throw new InvalidOperationException("Mục tiêu học tập chỉ được chọn trong danh sách đã có");
+
+            if (newTags.Select(t => t.Id).Distinct().Count() != newTags.Count)
+                throw new InvalidOperationException("Danh sách mục tiêu học tập không được chứa mục tiêu trùng lặp.");
 
             _learningGoals.Clear();
             _learningGoals.AddRange(newTags);

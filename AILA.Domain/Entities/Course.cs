@@ -39,8 +39,8 @@ namespace AILA.Domain.Entities
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("Tên khóa học không được để trống.", nameof(name));
 
-            if (categoryId == Guid.Empty) throw new ArgumentException("CategoryId không hợp lệ.");
-            if (expertId == Guid.Empty) throw new ArgumentException("ExpertId không hợp lệ.");
+            if (categoryId == Guid.Empty) throw new ArgumentException("Mã danh mục không hợp lệ.");
+            if (expertId == Guid.Empty) throw new ArgumentException("Mã chuyên gia không hợp lệ.");
 
             Id = Guid.NewGuid();
             Name = name.Trim();
@@ -63,7 +63,7 @@ namespace AILA.Domain.Entities
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("Tên khóa học không được để trống.", nameof(name));
 
-            if (categoryId == Guid.Empty) throw new ArgumentException("CategoryId không hợp lệ.");
+            if (categoryId == Guid.Empty) throw new ArgumentException("Mã danh mục không hợp lệ.");
 
             Name = name.Trim();
             CategoryId = categoryId;
@@ -110,7 +110,9 @@ namespace AILA.Domain.Entities
         public void Publish()
         {
             if (IsPublished) return;
-
+            if (!_modules.Any())
+                throw new InvalidOperationException(
+                    "Khóa học phải có ít nhất một học phần trước khi xuất bản.");
             // Có thể chèn thêm business rule tại đây sau này: Ví dụ khóa học phải có ít nhất 1 bài học mới cho Publish
             IsPublished = true;
             UpdateTimestamp();
@@ -124,6 +126,28 @@ namespace AILA.Domain.Entities
             if (!IsPublished) return;
 
             IsPublished = false;
+            UpdateTimestamp();
+        }
+
+        public void AddModule(Module module)
+        {
+            ArgumentNullException.ThrowIfNull(module);
+
+            if (_modules.Any(m => m.Id == module.Id))
+                throw new InvalidOperationException("Học phần đã tồn tại trong khóa học.");
+
+            _modules.Add(module);
+
+            UpdateTimestamp();
+        }
+
+        public void RemoveModule(Guid moduleId)
+        {
+            var module = _modules.FirstOrDefault(m => m.Id == moduleId)
+                ?? throw new ArgumentException("Không tìm thấy học phần.", nameof(moduleId));
+
+            _modules.Remove(module);
+
             UpdateTimestamp();
         }
     }

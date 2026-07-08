@@ -25,7 +25,7 @@ namespace AILA.Domain.Entities
         public Expert(Guid userId, string? specialty = null, int yearsOfExperience = 0, string? bio = null)
         {
             if (userId == Guid.Empty)
-                throw new ArgumentException("UserId không được để trống.", nameof(userId));
+                throw new ArgumentException("Mã người dùng không được để trống.", nameof(userId));
 
             if (yearsOfExperience < 0)
                 throw new ArgumentException("Số năm kinh nghiệm không được nhỏ hơn 0.", nameof(yearsOfExperience));

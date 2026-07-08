@@ -11,8 +11,6 @@ namespace AILA.Domain.Entities
         // Khóa chính đồng thời là Khóa ngoại tham chiếu sang bảng Material gốc
         public Guid MaterialId { get; private set; }
         public string Content { get; private set; } // Nội dung bài viết văn bản (Markdown/HTML)
-        public string? DocumentUrl { get; private set; } // Link file tài liệu ngoại vi (Google Drive, PDF...)
-        public int? FileSizeKb { get; private set; }
         public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; private set; }
 
@@ -23,39 +21,29 @@ namespace AILA.Domain.Entities
         private DocumentMaterial() { }
 
         // Constructor chuẩn DDD khi tạo mới tài liệu học tập
-        public DocumentMaterial(Guid materialId, string content, string? documentUrl = null, int? fileSizeKb = null)
+        public DocumentMaterial(Guid materialId, string content)
         {
             if (materialId == Guid.Empty)
-                throw new ArgumentException("MaterialId không hợp lệ.", nameof(materialId));
+                throw new ArgumentException("Mã học liệu không hợp lệ.", nameof(materialId));
 
             if (string.IsNullOrWhiteSpace(content))
                 throw new ArgumentException("Nội dung tài liệu văn bản không được để trống.", nameof(content));
 
-            if (fileSizeKb.HasValue && fileSizeKb.Value <= 0)
-                throw new ArgumentException("Dung lượng file (file_size_kb) phải lớn hơn 0.", nameof(fileSizeKb));
-
             MaterialId = materialId;
             Content = content.Trim();
-            DocumentUrl = documentUrl?.Trim();
-            FileSizeKb = fileSizeKb;
         }
 
         // --- CÁC HÀNH VI NGHIỆP VỤ (METHODS) ---
 
         /// <summary>
-        /// Cập nhật nội dung bài viết hoặc file đính kèm của tài liệu
+        /// Cập nhật nội dung bài viết 
         /// </summary>
-        public void UpdateDetails(string content, string? documentUrl, int? fileSizeKb)
+        public void UpdateDetails(string content)
         {
             if (string.IsNullOrWhiteSpace(content))
                 throw new ArgumentException("Nội dung tài liệu văn bản không được để trống.", nameof(content));
 
-            if (fileSizeKb.HasValue && fileSizeKb.Value <= 0)
-                throw new ArgumentException("Dung lượng file phải lớn hơn 0.", nameof(fileSizeKb));
-
             Content = content.Trim();
-            DocumentUrl = documentUrl?.Trim();
-            FileSizeKb = fileSizeKb;
 
             UpdatedAt = DateTime.UtcNow;
         }
