@@ -33,5 +33,27 @@ namespace AILA.Infrastructure.Persistence.Repositories
             return await _context.Materials
                 .AnyAsync(m => m.Id == materialId && m.Module.CourseId == courseId, cancellationToken);
         }
+
+        public async Task<Material?> GetWithModuleAndCourseAsync(
+            Guid materialId,
+            CancellationToken cancellationToken = default)
+        {
+            return await _context.Materials
+                .Include(m => m.Module)
+                    .ThenInclude(m => m.Course)
+                .FirstOrDefaultAsync(
+                    m => m.Id == materialId,
+                    cancellationToken);
+        }
+
+        public async Task<List<Material>> GetByModuleIdAsync(
+            Guid moduleId,
+            CancellationToken cancellationToken = default)
+        {
+            return await _context.Materials
+                .Where(m => m.ModuleId == moduleId)
+                .OrderBy(m => m.OrderIndex)
+                .ToListAsync(cancellationToken);
+        }
     }
 }

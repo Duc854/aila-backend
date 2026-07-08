@@ -14,5 +14,19 @@ namespace AILA.Application.Common.Interfaces.Repositories
         /// </summary>
         Task<Material?> GetMaterialDetailAsync(Guid courseId, Guid materialId, CancellationToken cancellationToken = default);
         Task<bool> IsMaterialInCourseAsync(Guid materialId, Guid courseId, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Lấy Material kèm Module và Course để xác minh quyền của Expert.
+        /// </summary>
+        Task<Material?> GetWithModuleAndCourseAsync(
+            Guid materialId,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Lấy toàn bộ Material của Module.
+        /// </summary>
+        Task<List<Material>> GetByModuleIdAsync(
+            Guid moduleId,
+            CancellationToken cancellationToken = default);
     }
 }
