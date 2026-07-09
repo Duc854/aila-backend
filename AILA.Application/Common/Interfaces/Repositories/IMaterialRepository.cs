@@ -28,5 +28,9 @@ namespace AILA.Application.Common.Interfaces.Repositories
         Task<List<Material>> GetByModuleIdAsync(
             Guid moduleId,
             CancellationToken cancellationToken = default);
+
+        Task<VideoMaterial?> GetVideoDetailForExpertAsync(
+            Guid materialId,
+            CancellationToken cancellationToken = default);
     }
 }

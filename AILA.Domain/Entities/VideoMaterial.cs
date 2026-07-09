@@ -37,7 +37,7 @@ namespace AILA.Domain.Entities
             Content = content?.Trim();
         }
 
-        public void UpdateDetails(string videoUrl, int durationSeconds, string? thumbnailUrl, string? content, string? captionsUrl)
+        public void UpdateDetails(string videoUrl, int durationSeconds, string? content)
         {
             ValidateVideoUrl(videoUrl);
 

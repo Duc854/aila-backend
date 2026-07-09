@@ -55,5 +55,18 @@ namespace AILA.Infrastructure.Persistence.Repositories
                 .OrderBy(m => m.OrderIndex)
                 .ToListAsync(cancellationToken);
         }
+
+        public async Task<VideoMaterial?> GetVideoDetailForExpertAsync(
+            Guid materialId,
+            CancellationToken cancellationToken = default)
+        {
+            return await _context.VideoMaterials
+                .Include(v => v.Material)
+                    .ThenInclude(m => m.Module)
+                        .ThenInclude(m => m.Course)
+                .FirstOrDefaultAsync(
+                    v => v.MaterialId == materialId,
+                    cancellationToken);
+        }
     }
 }
