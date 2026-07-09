@@ -6,9 +6,6 @@ using Shared.Wrappers;
 
 namespace AILA.Application.Features.Modules.Commands
 {
-    // ══════════════════════════════════════════════════════════════════════════
-    // CREATE MODULE
-    // ══════════════════════════════════════════════════════════════════════════
 
     /// <summary>
     /// Expert tạo một Chương mới trong Khóa học của mình.
@@ -55,9 +52,6 @@ namespace AILA.Application.Features.Modules.Commands
         }
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    // UPDATE MODULE
-    // ══════════════════════════════════════════════════════════════════════════
 
     /// <summary>Expert cập nhật tiêu đề và mô tả của một Chương học.</summary>
     public record UpdateModuleCommand(
@@ -94,9 +88,6 @@ namespace AILA.Application.Features.Modules.Commands
         }
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    // DELETE MODULE
-    // ══════════════════════════════════════════════════════════════════════════
 
     /// <summary>Expert xóa một Chương học (kéo theo toàn bộ Material bên trong - Cascade).</summary>
     public record DeleteModuleCommand(Guid ModuleId, Guid ExpertId)
@@ -126,10 +117,6 @@ namespace AILA.Application.Features.Modules.Commands
             return ResponseDto<object>.SuccessResult(null!);
         }
     }
-
-    // ══════════════════════════════════════════════════════════════════════════
-    // PUBLISH / UNPUBLISH MODULE
-    // ══════════════════════════════════════════════════════════════════════════
 
     /// <summary>Expert công khai hoặc ẩn một Chương học.</summary>
     public record SetModulePublishCommand(Guid ModuleId, Guid ExpertId, bool Publish)
@@ -161,10 +148,6 @@ namespace AILA.Application.Features.Modules.Commands
             return ResponseDto<ModuleDto>.SuccessResult(ModuleMapper.MapToDto(module));
         }
     }
-
-    // ══════════════════════════════════════════════════════════════════════════
-    // REORDER MODULES
-    // ══════════════════════════════════════════════════════════════════════════
 
     /// <summary>Expert kéo thả sắp xếp lại thứ tự các Chương trong Khóa học.</summary>
     public record ReorderModulesCommand(
@@ -209,10 +192,6 @@ namespace AILA.Application.Features.Modules.Commands
         }
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    // SHARED MAPPER (dùng nội bộ trong file này)
-    // ══════════════════════════════════════════════════════════════════════════
-
     internal static class ModuleMapper
     {
         internal static ModuleDto MapToDto(Module m) => new()
@@ -229,5 +208,5 @@ namespace AILA.Application.Features.Modules.Commands
         };
     }
 
-    // Hàm helper dùng trong handlers cùng file
+    
 }

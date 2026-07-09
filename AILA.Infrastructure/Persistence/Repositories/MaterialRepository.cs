@@ -33,5 +33,53 @@ namespace AILA.Infrastructure.Persistence.Repositories
             return await _context.Materials
                 .AnyAsync(m => m.Id == materialId && m.Module.CourseId == courseId, cancellationToken);
         }
+
+        public async Task<Material?> GetWithModuleAndCourseAsync(
+            Guid materialId,
+            CancellationToken cancellationToken = default)
+        {
+            return await _context.Materials
+                .Include(m => m.Module)
+                    .ThenInclude(m => m.Course)
+                .FirstOrDefaultAsync(
+                    m => m.Id == materialId,
+                    cancellationToken);
+        }
+
+        public async Task<List<Material>> GetByModuleIdAsync(
+            Guid moduleId,
+            CancellationToken cancellationToken = default)
+        {
+            return await _context.Materials
+                .Where(m => m.ModuleId == moduleId)
+                .OrderBy(m => m.OrderIndex)
+                .ToListAsync(cancellationToken);
+        }
+
+        public async Task<VideoMaterial?> GetVideoDetailForExpertAsync(
+            Guid materialId,
+            CancellationToken cancellationToken = default)
+        {
+            return await _context.VideoMaterials
+                .Include(v => v.Material)
+                    .ThenInclude(m => m.Module)
+                        .ThenInclude(m => m.Course)
+                .FirstOrDefaultAsync(
+                    v => v.MaterialId == materialId,
+                    cancellationToken);
+        }
+
+        public async Task<DocumentMaterial?> GetDocumentDetailForExpertAsync(
+            Guid materialId,
+            CancellationToken cancellationToken = default)
+        {
+            return await _context.DocumentMaterials
+                .Include(d => d.Material)
+                    .ThenInclude(m => m.Module)
+                        .ThenInclude(m => m.Course)
+                .FirstOrDefaultAsync(
+                    d => d.MaterialId == materialId,
+                    cancellationToken);
+        }
     }
 }
