@@ -11,6 +11,13 @@ namespace AILA.Application.Common.Interfaces.Repositories
 
         Task<List<Enrollment>> GetEnrollmentsWithCourseByLearnerIdAsync(Guid learnerId, CancellationToken ct = default);
 
+        /// <summary>
+        /// Trang danh sách khóa học đã tham gia của một Learner (kèm Course + Category), sắp xếp
+        /// truy cập gần nhất trước. Phục vụ màn "Xem tất cả khóa học" (UC-30). Lọc theo learnerId (BR-01).
+        /// </summary>
+        Task<(IEnumerable<Enrollment> Items, int TotalCount)> GetPagedEnrollmentsByLearnerAsync(
+            Guid learnerId, int pageIndex, int pageSize, CancellationToken ct = default);
+
         void Update(Enrollment enrollment);
     }
 }
