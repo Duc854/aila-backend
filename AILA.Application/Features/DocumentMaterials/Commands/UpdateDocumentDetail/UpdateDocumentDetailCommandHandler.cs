@@ -1,6 +1,8 @@
 ﻿using AILA.Application.Common.Interfaces;
 using AILA.Application.Features.DocumentMaterials.Dtos;
 using AILA.Application.Features.DocumentMaterials.Mapping;
+using AILA.Domain.Entities;
+using AILA.Domain.Enums;
 using MediatR;
 using Shared.Wrappers;
 
@@ -26,15 +28,40 @@ public sealed class UpdateDocumentDetailCommandHandler
                 request.MaterialId,
                 ct);
 
-        if (document == null)
+        if (document != null)
+        {
+            if (document.Material.Module.Course.ExpertId != request.ExpertId)
+            {
+                return ResponseDto<DocumentMaterialDto>
+                    .FailResult(
+                        "FORBIDDEN",
+                        "Bạn không có quyền chỉnh sửa.");
+            }
+
+            document.UpdateDetails(request.Content);
+
+            await _uow.SaveChangesAsync(ct);
+
+            return ResponseDto<DocumentMaterialDto>
+                .SuccessResult(
+                    DocumentMaterialMapper.MapToDto(document));
+        }
+
+        // Chưa có DocumentMaterial -> kiểm tra Material gốc rồi tạo mới (upsert)
+        var material = await _uow.Materials
+            .GetWithModuleAndCourseAsync(
+                request.MaterialId,
+                ct);
+
+        if (material == null)
         {
             return ResponseDto<DocumentMaterialDto>
                 .FailResult(
-                    "DOCUMENT_NOT_FOUND",
-                    "Không tìm thấy tài liệu.");
+                    "MATERIAL_NOT_FOUND",
+                    "Không tìm thấy học liệu.");
         }
 
-        if (document.Material.Module.Course.ExpertId != request.ExpertId)
+        if (material.Module.Course.ExpertId != request.ExpertId)
         {
             return ResponseDto<DocumentMaterialDto>
                 .FailResult(
@@ -42,12 +69,24 @@ public sealed class UpdateDocumentDetailCommandHandler
                     "Bạn không có quyền chỉnh sửa.");
         }
 
-        document.UpdateDetails(request.Content);
+        if (material.MaterialType != MaterialType.Document)
+        {
+            return ResponseDto<DocumentMaterialDto>
+                .FailResult(
+                    "INVALID_TYPE",
+                    "Học liệu này không phải Document.");
+        }
+
+        var newDocument = new DocumentMaterial(
+            request.MaterialId,
+            request.Content);
+
+        await _uow.Repository<DocumentMaterial>().AddAsync(newDocument);
 
         await _uow.SaveChangesAsync(ct);
 
         return ResponseDto<DocumentMaterialDto>
             .SuccessResult(
-                DocumentMaterialMapper.MapToDto(document));
+                DocumentMaterialMapper.MapToDto(newDocument));
     }
 }

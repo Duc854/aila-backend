@@ -10,10 +10,14 @@ public sealed class DeleteLearningMaterialCommandHandler
         ResponseDto<object>>
 {
     private readonly IUnitOfWork _uow;
+    public DeleteLearningMaterialCommandHandler(IUnitOfWork uow)
+    {
+        _uow = uow;
+    }
 
     public async Task<ResponseDto<object>> Handle(
-    DeleteLearningMaterialCommand request,
-    CancellationToken ct)
+        DeleteLearningMaterialCommand request,
+        CancellationToken ct)
     {
         var material = await _uow.Materials
             .GetWithModuleAndCourseAsync(

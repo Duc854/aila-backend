@@ -1,6 +1,7 @@
 ﻿using AILA.Application.Common.Interfaces;
 using AILA.Application.Features.DocumentMaterials.Dtos;
 using AILA.Application.Features.DocumentMaterials.Mapping;
+using AILA.Domain.Enums;
 using MediatR;
 using Shared.Wrappers;
 
@@ -12,7 +13,8 @@ public sealed class GetDocumentDetailQueryHandler
 {
     private readonly IUnitOfWork _uow;
 
-    public GetDocumentDetailQueryHandler(IUnitOfWork uow)
+    public GetDocumentDetailQueryHandler(
+        IUnitOfWork uow)
     {
         _uow = uow;
     }
@@ -26,24 +28,58 @@ public sealed class GetDocumentDetailQueryHandler
                 request.MaterialId,
                 ct);
 
-        if (document == null)
+        if (document != null)
+        {
+            if (document.Material.Module.Course.ExpertId != request.ExpertId)
+            {
+                return ResponseDto<DocumentMaterialDto>
+                    .FailResult(
+                        "FORBIDDEN",
+                        "Bạn không có quyền truy cập tài liệu này.");
+            }
+
+            return ResponseDto<DocumentMaterialDto>
+                .SuccessResult(
+                    DocumentMaterialMapper.MapToDto(document));
+        }
+
+        var material = await _uow.Materials
+            .GetWithModuleAndCourseAsync(
+                request.MaterialId,
+                ct);
+
+        if (material == null)
         {
             return ResponseDto<DocumentMaterialDto>
                 .FailResult(
-                    "DOCUMENT_NOT_FOUND",
-                    "Không tìm thấy tài liệu.");
+                    "MATERIAL_NOT_FOUND",
+                    "Không tìm thấy học liệu.");
         }
 
-        if (document.Material.Module.Course.ExpertId != request.ExpertId)
+        if (material.Module.Course.ExpertId != request.ExpertId)
         {
             return ResponseDto<DocumentMaterialDto>
                 .FailResult(
                     "FORBIDDEN",
-                    "Bạn không có quyền truy cập.");
+                    "Bạn không có quyền truy cập tài liệu này.");
         }
 
+        if (material.MaterialType != MaterialType.Document)
+        {
+            return ResponseDto<DocumentMaterialDto>
+                .FailResult(
+                    "INVALID_TYPE",
+                    "Học liệu này không phải Document.");
+        }
+
+        var emptyDto = new DocumentMaterialDto
+        {
+            MaterialId = material.Id,
+            Title = material.Title,
+            Content = string.Empty
+        };
+
         return ResponseDto<DocumentMaterialDto>
-            .SuccessResult(
-                DocumentMaterialMapper.MapToDto(document));
+            .SuccessResult(emptyDto);
     }
 }

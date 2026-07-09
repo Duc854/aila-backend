@@ -13,6 +13,7 @@ internal static class LearningMaterialMapper
             Id = material.Id,
             ModuleId = material.ModuleId,
             Title = material.Title,
+            MaterialType = material.MaterialType,
             MaterialTypeName = material.MaterialType switch
             {
                 MaterialType.Video => "Video",

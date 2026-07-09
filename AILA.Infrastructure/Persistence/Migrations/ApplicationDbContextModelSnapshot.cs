@@ -1333,7 +1333,6 @@ namespace AILA.Infrastructure.Persistence.Migrations
 
                     b.Navigation("UserTokens");
                 });
-#pragma warning restore 612, 618
         }
     }
 }

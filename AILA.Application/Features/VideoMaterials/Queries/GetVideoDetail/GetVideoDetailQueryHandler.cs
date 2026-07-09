@@ -1,6 +1,7 @@
 ﻿using AILA.Application.Common.Interfaces;
 using AILA.Application.Features.VideoMaterials.Dtos;
 using AILA.Application.Features.VideoMaterials.Mapping;
+using AILA.Domain.Enums;
 using MediatR;
 using Shared.Wrappers;
 
@@ -28,15 +29,37 @@ public sealed class GetVideoDetailQueryHandler
                 request.MaterialId,
                 ct);
 
-        if (video == null)
+        if (video != null)
+        {
+            if (video.Material.Module.Course.ExpertId != request.ExpertId)
+            {
+                return ResponseDto<VideoMaterialDto>
+                    .FailResult(
+                        "FORBIDDEN",
+                        "Bạn không có quyền truy cập video này.");
+            }
+
+            return ResponseDto<VideoMaterialDto>
+                .SuccessResult(
+                    VideoMaterialMapper.MapToDto(video));
+        }
+
+        // Chưa có VideoMaterial (mới tạo Material, chưa từng lưu chi tiết)
+        // -> kiểm tra Material gốc rồi trả về DTO rỗng để FE hiển thị form nhập lần đầu
+        var material = await _uow.Materials
+            .GetWithModuleAndCourseAsync(
+                request.MaterialId,
+                ct);
+
+        if (material == null)
         {
             return ResponseDto<VideoMaterialDto>
                 .FailResult(
-                    "VIDEO_NOT_FOUND",
-                    "Không tìm thấy video.");
+                    "MATERIAL_NOT_FOUND",
+                    "Không tìm thấy học liệu.");
         }
 
-        if (video.Material.Module.Course.ExpertId != request.ExpertId)
+        if (material.Module.Course.ExpertId != request.ExpertId)
         {
             return ResponseDto<VideoMaterialDto>
                 .FailResult(
@@ -44,8 +67,24 @@ public sealed class GetVideoDetailQueryHandler
                     "Bạn không có quyền truy cập video này.");
         }
 
+        if (material.MaterialType != MaterialType.Video)
+        {
+            return ResponseDto<VideoMaterialDto>
+                .FailResult(
+                    "INVALID_TYPE",
+                    "Học liệu này không phải Video.");
+        }
+
+        var emptyDto = new VideoMaterialDto
+        {
+            MaterialId = material.Id,
+            Title = material.Title,
+            VideoUrl = string.Empty,
+            DurationSeconds = 0,
+            Content = string.Empty
+        };
+
         return ResponseDto<VideoMaterialDto>
-            .SuccessResult(
-                VideoMaterialMapper.MapToDto(video));
+            .SuccessResult(emptyDto);
     }
 }
