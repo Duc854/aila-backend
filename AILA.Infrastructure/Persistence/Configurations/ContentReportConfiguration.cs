@@ -13,6 +13,10 @@ namespace AILA.Infrastructure.Persistence.Configurations
     {
         public void Configure(EntityTypeBuilder<ContentReport> builder)
         {
+            // Pin tên bảng (số ít) khớp với migration đã tạo — tránh việc thêm DbSet<ContentReport>
+            // (số nhiều) sau này làm EF đổi tên bảng và lệch với DB.
+            builder.ToTable("ContentReport");
+
             builder.HasKey(x => x.Id);
 
             builder.HasIndex(x => new

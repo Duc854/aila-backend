@@ -32,6 +32,27 @@ namespace AILA.Infrastructure.Persistence.Repositories
                 .ThenByDescending(e => e.EnrolledAt)
                 .ToListAsync(ct);
 
+        public async Task<(IEnumerable<Enrollment> Items, int TotalCount)> GetPagedEnrollmentsByLearnerAsync(
+            Guid learnerId, int pageIndex, int pageSize, CancellationToken ct = default)
+        {
+            var query = _context.Enrollments
+                .AsNoTracking()
+                .Include(e => e.Course)
+                    .ThenInclude(c => c.Category)
+                .Where(e => e.LearnerId == learnerId);
+
+            var totalCount = await query.CountAsync(ct);
+
+            var items = await query
+                .OrderByDescending(e => e.LastAccessedAt ?? DateTime.MinValue)
+                .ThenByDescending(e => e.EnrolledAt)
+                .Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(ct);
+
+            return (items, totalCount);
+        }
+
         public void Update(Enrollment enrollment)
         {
             _context.Enrollments.Update(enrollment);
