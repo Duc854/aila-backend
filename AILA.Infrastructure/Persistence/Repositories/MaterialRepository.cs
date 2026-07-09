@@ -68,5 +68,18 @@ namespace AILA.Infrastructure.Persistence.Repositories
                     v => v.MaterialId == materialId,
                     cancellationToken);
         }
+
+        public async Task<DocumentMaterial?> GetDocumentDetailForExpertAsync(
+            Guid materialId,
+            CancellationToken cancellationToken = default)
+        {
+            return await _context.DocumentMaterials
+                .Include(d => d.Material)
+                    .ThenInclude(m => m.Module)
+                        .ThenInclude(m => m.Course)
+                .FirstOrDefaultAsync(
+                    d => d.MaterialId == materialId,
+                    cancellationToken);
+        }
     }
 }
