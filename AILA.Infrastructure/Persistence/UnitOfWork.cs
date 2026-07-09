@@ -29,6 +29,7 @@ namespace AILA.Infrastructure.Persistence
         public IBlogPostRepository          BlogPosts          { get; private set; }
         public ILearnerRepository           Learners           { get; private set; }
         public IExpertRepository            Experts            { get; private set; }
+        public IModuleRepository Modules { get; private set; }
 
         public UnitOfWork(ApplicationDbContext context)
         {
@@ -44,6 +45,7 @@ namespace AILA.Infrastructure.Persistence
             BlogPosts          = new BlogPostRepository(_context);
             Learners           = new LearnerRepository(_context);
             Experts            = new ExpertRepository(_context);
+            Modules = new ModuleRepository(_context);
         }
         public IGenericRepository<T> Repository<T>() where T : class
         {
