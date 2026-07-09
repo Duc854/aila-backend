@@ -131,5 +131,57 @@ namespace AILA.Infrastructure.Persistence.Repositories
                 .AsNoTracking()
                 .ToListAsync(ct);
         }
+
+        
+        /// Lấy toàn bộ khóa học (draft + published) của Expert, kèm Category và Tags.
+        /// Hỗ trợ filter theo keyword, trạng thái publish và phân trang.
+        public async Task<(List<Course> Items, int TotalCount)> GetByExpertAsync(
+            Guid expertId,
+            string? keyword,
+            bool? isPublished,
+            int pageIndex,
+            int pageSize,
+            CancellationToken ct = default)
+        {
+            var query = _context.Courses
+                .Include(c => c.Category)
+                .Include(c => c.CourseTags)
+                .Include(c => c.Modules)
+                    .ThenInclude(m => m.Materials)
+                .Where(c => c.ExpertId == expertId)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                var lower = keyword.ToLower().Trim();
+                query = query.Where(c =>
+                    c.Name.ToLower().Contains(lower) ||
+                    (c.Description != null && c.Description.ToLower().Contains(lower)));
+            }
+
+            if (isPublished.HasValue)
+                query = query.Where(c => c.IsPublished == isPublished.Value);
+
+            var totalCount = await query.CountAsync(ct);
+
+            var items = await query
+                .OrderByDescending(c => c.CreatedAt)
+                .Skip(pageIndex * pageSize)
+                .Take(pageSize)
+                .AsNoTracking()
+                .ToListAsync(ct);
+
+            return (items, totalCount);
+        }
+
+        /// Lấy khóa học kèm CourseTags để EF Core có thể track và lưu thay đổi.
+        /// Dùng cho các thao tác ghi: Edit, Publish, Unpublish.
+        public async Task<Course?> GetWithTagsForUpdateAsync(Guid courseId, CancellationToken ct = default)
+        {
+            return await _context.Courses
+                .Include(c => c.CourseTags)
+                .Include(c => c.Modules)
+                .FirstOrDefaultAsync(c => c.Id == courseId, ct);
+        }
     }
 }

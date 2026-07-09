@@ -33,5 +33,21 @@ namespace AILA.Application.Common.Interfaces.Repositories
         /// Lấy danh sách khóa học đã published của một Expert, sắp xếp mới nhất trước.
         /// Dùng cho Public Expert Profile (read-only).
         Task<List<Course>> GetPublishedByExpertAsync(Guid expertId, CancellationToken ct = default);
+
+       
+        /// Lấy toàn bộ khóa học (cả draft lẫn published) của một Expert,
+        /// kèm Category và Tags. Dùng cho trang quản lý của Expert.
+        Task<(List<Course> Items, int TotalCount)> GetByExpertAsync(
+            Guid expertId,
+            string? keyword,
+            bool? isPublished,
+            int pageIndex,
+            int pageSize,
+            CancellationToken ct = default);
+
+       
+        /// Lấy khóa học kèm Tags để phục vụ thao tác ghi (Edit/Publish/Unpublish).
+        /// Dùng AsTracking để EF Core có thể lưu thay đổi.     
+        Task<Course?> GetWithTagsForUpdateAsync(Guid courseId, CancellationToken ct = default);
     }
 }
