@@ -1,5 +1,6 @@
 using AILA.Application.Common.Dtos;
 using AILA.Application.Common.Interfaces;
+using AILA.Domain.Entities;
 using MediatR;
 
 namespace AILA.Application.Features.Tags.Commands
@@ -18,7 +19,7 @@ namespace AILA.Application.Features.Tags.Commands
             RequestTagVerificationCommand request,
             CancellationToken cancellationToken)
         {
-            // 1. Lấy tag kèm PublishRequest (có tracking để lưu thay đổi)
+            // 1. Lấy tag kèm PublishRequest để kiểm tra trạng thái
             var tag = await _uow.Tags.GetWithPublishRequestAsync(request.TagId, cancellationToken);
             if (tag == null)
                 throw new InvalidOperationException("Tag không tồn tại.");
@@ -31,13 +32,38 @@ namespace AILA.Application.Features.Tags.Commands
             if (tag.IsPublished)
                 throw new InvalidOperationException("Tag này đã được xuất bản.");
 
-            // 4. Gọi domain method — tự kiểm tra Pending trùng bên trong
-            tag.CreatePublishRequest(request.Note);
+            // 4. Kiểm tra không có request Pending đang tồn tại
+            if (tag.PublishRequest != null &&
+                tag.PublishRequest.Status == Domain.Enums.TagPublishRequestStatus.Pending)
+                throw new InvalidOperationException("Đã tồn tại yêu cầu chờ duyệt.");
 
-            _uow.Tags.Update(tag);
+            // 5. Tạo TagPublishRequest mới và add trực tiếp vào repository.
+            // Không dùng domain method Tag.CreatePublishRequest() vì navigation property
+            // có UsePropertyAccessMode.Property khiến EF Core không track được thay đổi.
+            var publishRequest = new TagPublishRequest(tag.Id, request.Note);
+            await _uow.Repository<TagPublishRequest>().AddAsync(publishRequest);
+
+            // 6. Cập nhật UpdatedAt trên Tag
+            tag.UpdateTimestamp();
+
             await _uow.SaveChangesAsync(cancellationToken);
 
-            return MapToDto(tag);
+            return new ExpertTagDto
+            {
+                Id          = tag.Id,
+                Name        = tag.Name,
+                Code        = tag.Code,
+                IsPublished = tag.IsPublished,
+                CreatedAt   = tag.CreatedAt,
+                PublishRequest = new TagPublishRequestDto
+                {
+                    Id         = publishRequest.Id,
+                    Status     = publishRequest.Status.ToString(),
+                    Note       = publishRequest.Note,
+                    CreatedAt  = publishRequest.CreatedAt,
+                    ReviewedAt = publishRequest.ReviewedAt
+                }
+            };
         }
 
         private static ExpertTagDto MapToDto(Domain.Entities.Tag tag) => new()
