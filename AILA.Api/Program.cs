@@ -1,6 +1,8 @@
 using AILA.Api.Configurations;
 using AILA.Application;
 using AILA.Infrastructure;
+using AILA.Infrastructure.Persistence;
+using AILA.Infrastructure.Persistence.Seed;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.OpenApi.Models;
 using System.Text.Json.Serialization;
@@ -66,6 +68,8 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+await app.Services.InitializeDatabaseAsync();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

@@ -1,7 +1,8 @@
 using AILA.Application.Common.Interfaces;
 using AILA.Infrastructure.Persistence;
-using AILA.Infrastructure.Services;
+using AILA.Infrastructure.Persistence.Seed;
 using AILA.Infrastructure.Security;
+using AILA.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,6 +31,7 @@ namespace AILA.Infrastructure
             services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
             services.Configure<CloudinarySettings>(configuration.GetSection("Cloudinary"));
             services.Configure<GoogleSettings>(configuration.GetSection("GoogleSettings"));
+            services.Configure<AdminAccountSettings>(configuration.GetSection("AdminAccount"));
 
             // 3. Đăng ký các dịch vụ hạ tầng kỹ thuật đã chốt
             services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
@@ -40,6 +42,8 @@ namespace AILA.Infrastructure
 
             // 4. Đăng ký mẫu thiết kế Unit of Work
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+            // 5. Đăng ký Seeder cho tài khoản hệ thống (Admin)
+            services.AddScoped<AdminSeeder>();
 
             return services;
         }

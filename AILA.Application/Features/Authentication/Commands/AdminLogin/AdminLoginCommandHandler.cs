@@ -1,4 +1,5 @@
 using AILA.Application.Common.Interfaces;
+using AILA.Application.Common.Interfaces.Repositories;
 using AILA.Application.Features.Authentication.Dtos;
 using AILA.Domain.Entities;
 using AILA.Domain.Enums;
@@ -10,47 +11,50 @@ namespace AILA.Application.Features.Authentication.Commands.AdminLogin
     public class AdminLoginCommandHandler
         : IRequestHandler<AdminLoginCommand, LoginResponseDto?>
     {
-        private readonly IConfiguration _configuration;
+        private readonly IUnitOfWork _uow;
+        private readonly IPasswordHasher _passwordHasher;
         private readonly ITokenProvider _tokenProvider;
 
         public AdminLoginCommandHandler(
-            IConfiguration configuration,
-            ITokenProvider tokenProvider)
+        IUnitOfWork uow,
+        IPasswordHasher passwordHasher,
+        ITokenProvider tokenProvider)
         {
-            _configuration = configuration;
+            _uow = uow;
+            _passwordHasher = passwordHasher;
             _tokenProvider = tokenProvider;
         }
 
-        public Task<LoginResponseDto?> Handle(
+        public async Task<LoginResponseDto?> Handle(
             AdminLoginCommand request,
             CancellationToken cancellationToken)
         {
-            var adminUsername = _configuration["AdminCredentials:Username"];
-            var adminPassword = _configuration["AdminCredentials:Password"];
+            var user = await _uow.Users.GetByEmailAsync(request.Email);
 
-            if (request.Username != adminUsername || request.Password != adminPassword)
-                return Task.FromResult<LoginResponseDto?>(null);
+            if (user is null || user.PasswordHash is null)
+                throw new UnauthorizedAccessException("Sai email hoặc mật khẩu.");
 
-            var adminVirtualUser = new User(
-                email: "admin@aila.internal",
-                fullName: "Administrator",
-                role: UserRole.Admin,
-                passwordHash: null);
+            if (!user.IsActive)
+                throw new UnauthorizedAccessException("Tài khoản đã bị khóa.");
 
-            var accessToken = _tokenProvider.GenerateAccessToken(adminVirtualUser);
+            bool isValid = _passwordHasher.Verify(request.Password, user.PasswordHash);
+            if (!isValid)
+                throw new UnauthorizedAccessException("Sai email hoặc mật khẩu.");
+
+            var accessToken = _tokenProvider.GenerateAccessToken(user);
             var refreshToken = _tokenProvider.GenerateRefreshToken();
 
             var response = new LoginResponseDto
             {
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
-                Role = UserRole.Admin.ToString(),
-                UserId = adminVirtualUser.Id,
+                Role = user.Role.ToString(),
+                UserId = user.Id,
                 FullName = "Administrator",
-                Email = "admin@aila.internal"
+                Email = "adminEmail",
             };
 
-            return Task.FromResult<LoginResponseDto?>(response);
+            return response;
         }
     }
 }
