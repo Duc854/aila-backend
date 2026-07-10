@@ -108,5 +108,16 @@ namespace AILA.Domain.Entities
                     break;
             }
         }
+        public void ChangeOrder(int newOrderIndex)
+        {
+            if (newOrderIndex < 1)
+                throw new ArgumentException("Thứ tự hiển thị phải lớn hơn 0.");
+
+            if (OrderIndex == newOrderIndex)
+                return;
+
+            OrderIndex = newOrderIndex;
+            UpdateTimestamp();
+        }
     }
 }

@@ -32,6 +32,8 @@ namespace AILA.Infrastructure.Persistence
         public IModuleRepository Modules { get; private set; }
         public IQuizRepository Quizzes { get; private set; }
         public IContentReportRepository ContentReports { get; private set; }
+        public IQuestionRepository Questions { get; private set; }
+        public IAnswerOptionRepository AnswerOptions { get; private set; }
 
         public UnitOfWork(ApplicationDbContext context)
         {
@@ -50,6 +52,8 @@ namespace AILA.Infrastructure.Persistence
             Modules = new ModuleRepository(_context);
             Quizzes = new QuizRepository(_context);
             ContentReports = new ContentReportRepository(_context);
+            Questions = new QuestionRepository(_context);
+            AnswerOptions = new AnswerOptionRepository(_context);
         }
         public IGenericRepository<T> Repository<T>() where T : class
         {

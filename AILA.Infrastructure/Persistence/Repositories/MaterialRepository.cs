@@ -81,5 +81,21 @@ namespace AILA.Infrastructure.Persistence.Repositories
                     d => d.MaterialId == materialId,
                     cancellationToken);
         }
+
+        public async Task<QuizMaterial?> GetQuizDetailForExpertAsync(
+            Guid materialId,
+            CancellationToken cancellationToken = default)
+        {
+            return await _context.QuizMaterials
+                .Include(q => q.Material)
+                    .ThenInclude(m => m.Module)
+                        .ThenInclude(m => m.Course)
+
+                .Include(q => q.Questions)
+
+                .FirstOrDefaultAsync(
+                    q => q.MaterialId == materialId,
+                    cancellationToken);
+        }
     }
 }
