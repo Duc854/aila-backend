@@ -16,7 +16,9 @@ public class CreateLearningMaterialValidator
         RuleFor(x => x.MaterialType)
             .Must(x =>
                 x == MaterialType.Video ||
-                x == MaterialType.Document)
-            .WithMessage("Hiện tại chỉ hỗ trợ Video và Tài liệu.");
+                x == MaterialType.Document ||
+                x == MaterialType.Quiz)
+            .WithMessage(
+                "Chỉ hỗ trợ Video, Document và Quiz.");
     }
 }

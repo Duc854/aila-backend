@@ -14,10 +14,22 @@ internal static class LearningMaterialFactory
         return type switch
         {
             MaterialType.Video =>
-                Material.CreateVideo(moduleId, title, orderIndex),
+                Material.CreateVideo(
+                    moduleId,
+                    title,
+                    orderIndex),
 
             MaterialType.Document =>
-                Material.CreateDocument(moduleId, title, orderIndex),
+                Material.CreateDocument(
+                    moduleId,
+                    title,
+                    orderIndex),
+
+            MaterialType.Quiz =>
+                Material.CreateQuiz(
+                    moduleId,
+                    title,
+                    orderIndex),
 
             _ =>
                 throw new NotSupportedException(

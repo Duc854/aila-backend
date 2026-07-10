@@ -24,6 +24,8 @@ namespace AILA.Application.Common.Interfaces
         IModuleRepository Modules { get; }
         IQuizRepository Quizzes { get; }
         IContentReportRepository ContentReports { get; }
+        IQuestionRepository Questions { get; }
+        IAnswerOptionRepository AnswerOptions { get; }
         IGenericRepository<T> Repository<T>() where T : class;
 
         /// <summary>

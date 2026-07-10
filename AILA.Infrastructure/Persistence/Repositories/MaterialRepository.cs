@@ -90,6 +90,9 @@ namespace AILA.Infrastructure.Persistence.Repositories
                 .Include(q => q.Material)
                     .ThenInclude(m => m.Module)
                         .ThenInclude(m => m.Course)
+
+                .Include(q => q.Questions)
+
                 .FirstOrDefaultAsync(
                     q => q.MaterialId == materialId,
                     cancellationToken);
