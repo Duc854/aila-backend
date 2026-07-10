@@ -3,6 +3,6 @@ using MediatR;
 
 namespace AILA.Application.Features.Authentication.Commands.AdminLogin
 {
-    public record AdminLoginCommand(string Username, string Password)
+    public record AdminLoginCommand(string Email, string Password)
         : IRequest<LoginResponseDto?>;
 }

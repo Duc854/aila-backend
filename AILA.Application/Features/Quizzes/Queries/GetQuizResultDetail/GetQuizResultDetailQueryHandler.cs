@@ -57,22 +57,24 @@ namespace AILA.Application.Features.Quizzes.Queries.GetQuizResultDetail
 
             // Lựa chọn của Learner theo từng câu (dữ liệu đã đóng băng ở UC-26).
             var selectionByQuestion = attempt.Answers
+                .Where(a => a.SelectedAnswerOptionId.HasValue)
                 .GroupBy(a => a.QuestionId)
-                .ToDictionary(g => g.Key, g => g.First().SelectedAnswerOptionId);
+                .ToDictionary(g => g.Key, g => g.Select(a => a.SelectedAnswerOptionId!.Value).ToList());
 
             var questions = quiz.Questions
                 .OrderBy(q => q.OrderIndex)
                 .Select(q =>
                 {
-                    selectionByQuestion.TryGetValue(q.Id, out var selectedOptionId);
+                    selectionByQuestion.TryGetValue(q.Id, out var selectedIds);
+                    selectedIds ??= new List<Guid>();
                     return new QuizResultQuestionDto
                     {
                         QuestionId = q.Id,
                         Content = q.Content,
                         QuestionType = q.QuestionType.ToString(),
                         OrderIndex = q.OrderIndex,
-                        SelectedOptionId = selectedOptionId,
-                        IsCorrect = QuizGrading.IsSelectionCorrect(q, selectedOptionId),
+                        SelectedOptionIds = selectedIds,
+                        IsCorrect = QuizGrading.IsAnswerCorrect(q, selectedIds),
                         Options = q.AnswerOptions
                             .OrderBy(o => o.OrderIndex)
                             .Select(o => new QuizResultOptionDto
@@ -81,7 +83,7 @@ namespace AILA.Application.Features.Quizzes.Queries.GetQuizResultDetail
                                 Content = o.Content,
                                 OrderIndex = o.OrderIndex,
                                 IsCorrect = o.IsCorrect,
-                                IsSelected = selectedOptionId == o.Id
+                                IsSelected = selectedIds.Contains(o.Id)
                             })
                             .ToList()
                     };

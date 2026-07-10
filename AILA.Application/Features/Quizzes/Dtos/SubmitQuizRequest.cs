@@ -2,7 +2,7 @@ namespace AILA.Application.Features.Quizzes.Dtos
 {
     /// <summary>
     /// Body request khi Learner nộp bài kiểm tra.
-    /// Mỗi câu hỏi chỉ chọn duy nhất một đáp án.
+    /// Mỗi câu hỏi có thể chọn một HOẶC nhiều đáp án (câu hỏi nhiều lựa chọn).
     /// </summary>
     public class SubmitQuizRequest
     {
@@ -13,7 +13,7 @@ namespace AILA.Application.Features.Quizzes.Dtos
     {
         public Guid QuestionId { get; set; }
 
-        /// <summary>Đáp án được chọn cho câu hỏi. Null nghĩa là bỏ trống (không trả lời).</summary>
-        public Guid? SelectedOptionId { get; set; }
+        /// <summary>Danh sách đáp án được chọn cho câu hỏi. Rỗng nghĩa là bỏ trống (không trả lời).</summary>
+        public List<Guid> SelectedOptionIds { get; set; } = new();
     }
 }

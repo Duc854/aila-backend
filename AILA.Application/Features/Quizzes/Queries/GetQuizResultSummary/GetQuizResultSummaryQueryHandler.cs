@@ -53,8 +53,9 @@ namespace AILA.Application.Features.Quizzes.Queries.GetQuizResultSummary
             // Đếm số câu đúng từ dữ liệu đã đóng băng (điểm số vẫn đọc nguyên như đã lưu).
             var questionsById = quiz.Questions.ToDictionary(q => q.Id);
             var selections = attempt.Answers
+                .Where(a => a.SelectedAnswerOptionId.HasValue)
                 .GroupBy(a => a.QuestionId)
-                .ToDictionary(g => g.Key, g => g.First().SelectedAnswerOptionId);
+                .ToDictionary(g => g.Key, g => g.Select(a => a.SelectedAnswerOptionId!.Value).ToList());
             var correctAnswers = QuizGrading.CountCorrect(questionsById, selections);
 
             var dto = new QuizResultSummaryDto

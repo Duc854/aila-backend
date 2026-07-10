@@ -59,8 +59,11 @@ namespace AILA.Domain.Entities
             if (Status != QuizAttemptStatus.InProgress)
                 throw new InvalidOperationException("Không thể thêm câu trả lời khi bài kiểm tra đã nộp.");
 
-            if (_answers.Any(x => x.QuestionId == answer.QuestionId))
-                throw new InvalidOperationException("Câu hỏi này đã được trả lời.");
+            // Cho phép nhiều đáp án cho một câu hỏi (câu hỏi nhiều lựa chọn),
+            // chỉ chặn ghi trùng cùng một lựa chọn cho cùng một câu hỏi.
+            if (_answers.Any(x => x.QuestionId == answer.QuestionId
+                                  && x.SelectedAnswerOptionId == answer.SelectedAnswerOptionId))
+                throw new InvalidOperationException("Lựa chọn này đã được ghi nhận cho câu hỏi.");
 
             _answers.Add(answer);
 

@@ -24,10 +24,10 @@ namespace AILA.Application.Features.Quizzes.Dtos
         public string QuestionType { get; set; } = string.Empty;
         public int OrderIndex { get; set; }
 
-        /// <summary>Đáp án Learner đã chọn (null nếu bỏ trống).</summary>
-        public Guid? SelectedOptionId { get; set; }
+        /// <summary>Các đáp án Learner đã chọn (rỗng nếu bỏ trống).</summary>
+        public List<Guid> SelectedOptionIds { get; set; } = new();
 
-        /// <summary>Lựa chọn của Learner có đúng không.</summary>
+        /// <summary>Lựa chọn của Learner có đúng không (khớp đúng tập đáp án đúng).</summary>
         public bool IsCorrect { get; set; }
 
         public List<QuizResultOptionDto> Options { get; set; } = new();
