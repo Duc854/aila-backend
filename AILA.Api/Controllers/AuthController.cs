@@ -70,17 +70,6 @@ namespace AILA.Api.Controllers
             return CreatedAtAction(nameof(Register), result);
         }
 
-        [HttpPost("learner/google")]
-        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginCommand command)
-        {
-            var result = await _sender.Send(command);
-
-            if (!result.Success)
-                return Unauthorized(result);
-
-            return Ok(result);
-        }
-
         private string GetCurrentGoogleRedirectUri()
         {
             var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.PathBase}";
