@@ -32,7 +32,7 @@ namespace AILA.Api.Controllers
         [HttpPost("admin/login")]
         public async Task<IActionResult> AdminLogin([FromBody] AdminLoginRequestDto request)
         {
-            var command = new AdminLoginCommand(request.Username, request.Password);
+            var command = new AdminLoginCommand(request.Email, request.Password);
             var result = await _sender.Send(command);
 
             if (result is null)

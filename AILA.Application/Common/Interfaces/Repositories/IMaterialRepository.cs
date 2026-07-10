@@ -36,5 +36,9 @@ namespace AILA.Application.Common.Interfaces.Repositories
         Task<DocumentMaterial?> GetDocumentDetailForExpertAsync(
             Guid materialId,
             CancellationToken cancellationToken = default);
+
+        Task<QuizMaterial?> GetQuizDetailForExpertAsync(
+            Guid materialId,
+            CancellationToken cancellationToken = default);
     }
 }

@@ -80,16 +80,16 @@ namespace AILA.Application.Features.Quizzes.Commands.SubmitQuiz
                 var previousSelections = attempt.Answers
                     .Where(a => a.SelectedAnswerOptionId.HasValue)
                     .GroupBy(a => a.QuestionId)
-                    .ToDictionary(g => g.Key, g => g.First().SelectedAnswerOptionId);
+                    .ToDictionary(g => g.Key, g => g.Select(a => a.SelectedAnswerOptionId!.Value).ToList());
 
-                var previousCorrect = CountCorrect(questionsById, previousSelections);
+                var previousCorrect = QuizGrading.CountCorrect(questionsById, previousSelections);
 
                 return ResponseDto<QuizResultDto>.SuccessResult(
                     BuildResult(attempt, quiz, enrollment, previousCorrect, wasAutoSubmitted: false));
             }
 
-            // 6. Validate submission: câu hỏi phải thuộc quiz, đáp án phải thuộc câu hỏi.
-            var selections = new Dictionary<Guid, Guid?>();
+            // 6. Validate submission: câu hỏi phải thuộc quiz, các đáp án phải thuộc câu hỏi.
+            var selections = new Dictionary<Guid, List<Guid>>();
             foreach (var answer in request.Answers)
             {
                 if (!questionsById.TryGetValue(answer.QuestionId, out var question))
@@ -98,15 +98,15 @@ namespace AILA.Application.Features.Quizzes.Commands.SubmitQuiz
                         "INVALID_SUBMISSION", "Bài nộp chứa câu hỏi không thuộc bài kiểm tra này.");
                 }
 
-                if (answer.SelectedOptionId.HasValue
-                    && question.AnswerOptions.All(o => o.Id != answer.SelectedOptionId.Value))
+                var optionIds = (answer.SelectedOptionIds ?? new List<Guid>()).Distinct().ToList();
+                if (optionIds.Any(id => question.AnswerOptions.All(o => o.Id != id)))
                 {
                     return ResponseDto<QuizResultDto>.FailResult(
                         "INVALID_SUBMISSION", "Bài nộp chứa đáp án không hợp lệ cho câu hỏi.");
                 }
 
                 // Giữ lựa chọn cuối cùng nếu client gửi trùng câu hỏi.
-                selections[answer.QuestionId] = answer.SelectedOptionId;
+                selections[answer.QuestionId] = optionIds;
             }
 
             // 7. Mốc hết giờ do server quyết định (AF-01): xác định auto-submit để ghi log.
@@ -117,18 +117,18 @@ namespace AILA.Application.Features.Quizzes.Commands.SubmitQuiz
             await _uow.BeginTransactionAsync(cancellationToken);
             try
             {
-                foreach (var (questionId, optionId) in selections)
+                foreach (var (questionId, optionIds) in selections)
                 {
-                    if (optionId.HasValue)
+                    foreach (var optionId in optionIds)
                     {
                         var answer = new QuizAnswer(attempt.Id, questionId, optionId);
-                        attempt.AddAnswer(answer); // giữ bất biến domain (1 đáp án / câu hỏi)
+                        attempt.AddAnswer(answer); // mỗi lựa chọn là một QuizAnswer
                         // Thêm tường minh vào DbSet để EF INSERT (QuizAnswer dùng client-generated Id).
                         await _uow.Quizzes.AddAnswerAsync(answer, cancellationToken);
                     }
                 }
 
-                var correctCount = CountCorrect(questionsById, selections);
+                var correctCount = QuizGrading.CountCorrect(questionsById, selections);
                 var totalQuestions = quiz.Questions.Count;
 
                 // Điểm chuẩn hóa 0.00 - 100.00 (BR-02), kiểu decimal, 2 chữ số thập phân.
@@ -171,26 +171,6 @@ namespace AILA.Application.Features.Quizzes.Commands.SubmitQuiz
                 await _uow.RollbackTransactionAsync(cancellationToken);
                 throw;
             }
-        }
-
-        /// <summary>
-        /// Chấm điểm: mỗi câu hỏi chỉ chọn một đáp án, đúng khi đáp án được chọn là đáp án đúng.
-        /// </summary>
-        private static int CountCorrect(
-            IReadOnlyDictionary<Guid, Question> questionsById,
-            IReadOnlyDictionary<Guid, Guid?> selections)
-        {
-            var correct = 0;
-            foreach (var question in questionsById.Values)
-            {
-                if (!selections.TryGetValue(question.Id, out var selectedOptionId) || selectedOptionId is null)
-                    continue;
-
-                if (question.AnswerOptions.Any(o => o.Id == selectedOptionId.Value && o.IsCorrect))
-                    correct++;
-            }
-
-            return correct;
         }
 
         private static QuizResultDto BuildResult(
