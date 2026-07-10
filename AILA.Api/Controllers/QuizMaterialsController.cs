@@ -1,6 +1,8 @@
 ﻿using AILA.Api.Extensions;
+using AILA.Application.Features.QuizMaterials.Commands.BulkCreateQuiz;
 using AILA.Application.Features.QuizMaterials.Commands.UpdateQuizDetail;
 using AILA.Application.Features.QuizMaterials.Dtos;
+using AILA.Application.Features.QuizMaterials.Dtos.BulkCreateQuiz;
 using AILA.Application.Features.QuizMaterials.Queries.GetQuizDetail;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -93,6 +95,49 @@ public class QuizMaterialsController : ControllerBase
             {
                 "MATERIAL_NOT_FOUND" => NotFound(result),
                 "FORBIDDEN" => StatusCode(StatusCodes.Status403Forbidden, result),
+                _ => BadRequest(result)
+            };
+        }
+
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Tạo nhanh toàn bộ Quiz gồm nhiều Question và Answer trong một Transaction.
+    /// </summary>
+    [HttpPost("{materialId:guid}/bulk")]
+    public async Task<IActionResult> BulkCreateQuiz(
+        Guid materialId,
+        [FromBody] BulkCreateQuizRequest request,
+        CancellationToken ct)
+    {
+        var identity = HttpContext.GetUserIdentity();
+
+        if (identity == null)
+        {
+            return Unauthorized(
+                ResponseDto<object>.FailResult(
+                    "AUTH_FAILED",
+                    "Xác thực thất bại."));
+        }
+
+        var command = new BulkCreateQuizCommand(
+            materialId,
+            identity.UserId,
+            request.TimeLimitMinutes,
+            request.PassingScore,
+            request.ShowCorrectAnswersAfterSubmission,
+            request.Questions);
+
+        var result = await _sender.Send(command, ct);
+
+        if (!result.Success)
+        {
+            return result.ErrorCode switch
+            {
+                "MATERIAL_NOT_FOUND" => NotFound(result),
+                "FORBIDDEN" => StatusCode(StatusCodes.Status403Forbidden, result),
+                "INVALID_TYPE" => BadRequest(result),
                 _ => BadRequest(result)
             };
         }
