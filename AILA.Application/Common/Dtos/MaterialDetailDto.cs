@@ -10,8 +10,8 @@ namespace AILA.Application.Common.Dtos
     {
         public Guid Id { get; set; }
         public Guid ModuleId { get; set; }
-        public string Title { get; set; } = null!;
-        public string MaterialType { get; set; } = null!;
+        public string Title { get; set; } = string.Empty;
+        public string Type { get; set; } = string.Empty;
         public int OrderIndex { get; set; }
 
         // Chi tiết động dựa theo loại học liệu
@@ -21,7 +21,7 @@ namespace AILA.Application.Common.Dtos
 
     public class VideoMaterialDto
     {
-        public string VideoUrl { get; set; } = null!;
+        public string VideoUrl { get; set; } = string.Empty;
         public string? ThumbnailUrl { get; set; }
         public string? CaptionsUrl { get; set; }
         public string? Content { get; set; }

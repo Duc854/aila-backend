@@ -1,5 +1,6 @@
 using AILA.Api.Extensions;
 using AILA.Application.Common.Dtos;
+using AILA.Application.Features.Notifications.Commands;
 using AILA.Application.Features.Notifications.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -38,6 +39,36 @@ namespace AILA.Api.Controllers
             var result = await _sender.Send(query);
 
             return Ok(ResponseDto<List<NotificationDto>>.SuccessResult(result));
+        }
+
+        /// <summary>
+        /// Đánh dấu 1 thông báo đã đọc.
+        /// </summary>
+        [HttpPatch("{id:guid}/read")]
+        public async Task<IActionResult> MarkAsRead(Guid id, CancellationToken ct)
+        {
+            var identity = HttpContext.GetUserIdentity();
+            if (identity is null)
+                return Unauthorized(ResponseDto<object>.FailResult("AUTH_FAILED", "Xác thực thất bại."));
+
+            var command = new MarkNotificationReadCommand(id, identity.UserId);
+            var result = await _sender.Send(command, ct);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Đánh dấu tất cả thông báo của user hiện tại là đã đọc.
+        /// </summary>
+        [HttpPatch("read-all")]
+        public async Task<IActionResult> MarkAllAsRead(CancellationToken ct)
+        {
+            var identity = HttpContext.GetUserIdentity();
+            if (identity is null)
+                return Unauthorized(ResponseDto<object>.FailResult("AUTH_FAILED", "Xác thực thất bại."));
+
+            var command = new MarkAllNotificationsReadCommand(identity.UserId);
+            var result = await _sender.Send(command, ct);
+            return Ok(result);
         }
     }
 }

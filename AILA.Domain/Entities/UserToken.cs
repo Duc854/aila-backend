@@ -10,9 +10,7 @@ namespace AILA.Domain.Entities
     public class UserToken : BaseEntity
     {
         public Guid UserId { get; private set; }
-        public string RefreshToken { get; private set; }
-        public string IpAddress { get; private set; }
-        public string? UserAgent { get; private set; }
+        public string RefreshTokenHash { get; private set; }
         public bool IsRevoked { get; private set; }
         public DateTime ExpiredAt { get; private set; }
 
@@ -23,18 +21,22 @@ namespace AILA.Domain.Entities
         private UserToken() { }
 
         // Constructor chuẩn DDD khi cấp mới một cặp Token đăng nhập
-        public UserToken(Guid userId, string refreshToken, string ipAddress, DateTime expiredAt, string? userAgent = null)
+        public UserToken(
+            Guid userId,
+            string refreshTokenHash,
+            DateTime expiredAt)
         {
-            if (userId == Guid.Empty) throw new ArgumentException("UserId không hợp lệ.");
-            if (string.IsNullOrWhiteSpace(refreshToken)) throw new ArgumentException("Refresh token không được trống.");
-            if (string.IsNullOrWhiteSpace(ipAddress)) throw new ArgumentException("IP Address không được trống.");
-            if (expiredAt <= DateTime.UtcNow) throw new ArgumentException("Thời gian hết hạn phải lớn hơn hiện tại.");
+            if (userId == Guid.Empty)
+                throw new ArgumentException("Mã người dùng không hợp lệ.", nameof(userId));
+
+            if (string.IsNullOrWhiteSpace(refreshTokenHash))
+                throw new ArgumentNullException(nameof(refreshTokenHash), "Refresh Token không được để trống.");
+
+            if (expiredAt <= DateTime.UtcNow)
+                throw new ArgumentException("Thời gian hết hạn phải lớn hơn thời điểm hiện tại.", nameof(expiredAt));
 
             Id = Guid.NewGuid();
             UserId = userId;
-            RefreshToken = refreshToken;
-            IpAddress = ipAddress;
-            UserAgent = userAgent;
             ExpiredAt = expiredAt;
             IsRevoked = false;
         }

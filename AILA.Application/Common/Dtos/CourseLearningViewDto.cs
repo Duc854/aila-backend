@@ -48,7 +48,5 @@ namespace AILA.Application.Common.Dtos
         public int OrderIndex { get; set; }
 
         public bool IsCompleted { get; set; }
-
-        public bool IsCurrent { get; set; }
     }
 }

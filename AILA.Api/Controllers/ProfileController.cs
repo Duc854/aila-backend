@@ -2,7 +2,10 @@ using AILA.Api.Extensions;
 using AILA.Application.Features.Profile.Commands.ChangePassword;
 using AILA.Application.Features.Profile.Commands.UploadAvatar;
 using AILA.Application.Features.Profile.Queries.GetExpertProfile;
+using AILA.Application.Features.Profile.Queries.GetLearnerAiScenarios;
+using AILA.Application.Features.Profile.Queries.GetLearnerCourses;
 using AILA.Application.Features.Profile.Queries.GetLearnerProfile;
+using AILA.Application.Features.Profile.Queries.GetLearnerQuizHistory;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -35,6 +38,61 @@ namespace AILA.Api.Controllers
             }
 
             return Ok(result);
+        }
+
+        /// <summary>
+        /// UC-30 — "Xem tất cả khóa học đã tham gia" (có phân trang). Chỉ dữ liệu của chính Learner (BR-01).
+        /// </summary>
+        [HttpGet("learner/me/courses")]
+        [Authorize(Roles = "Learner")]
+        public async Task<IActionResult> GetLearnerCourses(
+            [FromQuery] int pageIndex, [FromQuery] int pageSize, CancellationToken ct)
+        {
+            var identity = HttpContext.GetUserIdentity();
+            if (identity == null)
+                return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực thất bại."));
+
+            var query = new GetLearnerCoursesQuery(identity.UserId, new PageRequest { PageIndex = pageIndex, PageSize = pageSize });
+            var result = await sender.Send(query, ct);
+
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        /// <summary>
+        /// UC-30 — "Xem tất cả lịch sử quiz đã làm" (có phân trang). Chỉ dữ liệu của chính Learner (BR-01).
+        /// </summary>
+        [HttpGet("learner/me/quiz-history")]
+        [Authorize(Roles = "Learner")]
+        public async Task<IActionResult> GetLearnerQuizHistory(
+            [FromQuery] int pageIndex, [FromQuery] int pageSize, CancellationToken ct)
+        {
+            var identity = HttpContext.GetUserIdentity();
+            if (identity == null)
+                return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực thất bại."));
+
+            var query = new GetLearnerQuizHistoryQuery(identity.UserId, new PageRequest { PageIndex = pageIndex, PageSize = pageSize });
+            var result = await sender.Send(query, ct);
+
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        /// <summary>
+        /// UC-30 — "Xem tất cả lịch sử AI scenario đã làm" (có phân trang). Chỉ dữ liệu của chính Learner (BR-01).
+        /// Hiện trả về trang rỗng cho tới khi có luồng lưu bản ghi AI practice.
+        /// </summary>
+        [HttpGet("learner/me/ai-scenarios")]
+        [Authorize(Roles = "Learner")]
+        public async Task<IActionResult> GetLearnerAiScenarios(
+            [FromQuery] int pageIndex, [FromQuery] int pageSize, CancellationToken ct)
+        {
+            var identity = HttpContext.GetUserIdentity();
+            if (identity == null)
+                return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực thất bại."));
+
+            var query = new GetLearnerAiScenariosQuery(identity.UserId, new PageRequest { PageIndex = pageIndex, PageSize = pageSize });
+            var result = await sender.Send(query, ct);
+
+            return result.Success ? Ok(result) : BadRequest(result);
         }
 
         [HttpGet("expert/me")]

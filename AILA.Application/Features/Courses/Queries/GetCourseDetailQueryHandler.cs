@@ -39,17 +39,16 @@ namespace AILA.Application.Features.Courses.Queries
                             Id           = mat.Id,
                             ModuleId     = mat.ModuleId,
                             Title        = mat.Title,
-                            MaterialType = mat.MaterialType.ToString(),
+                            Type = mat.MaterialType.ToString(),
                             OrderIndex   = mat.OrderIndex,
                             VideoDetails = mat.VideoDetails == null ? null : new VideoMaterialDto
                             {
                                 VideoUrl     = mat.VideoDetails.VideoUrl,
-                                ThumbnailUrl = mat.VideoDetails.ThumbnailUrl,
-                                CaptionsUrl  = mat.VideoDetails.CaptionsUrl
+                                Content = mat.VideoDetails.Content,
                             },
                             DocumentDetails = mat.DocumentDetails == null ? null : new DocumentMaterialDto
                             {
-                                DocumentUrl = mat.DocumentDetails.DocumentUrl
+                                Content = mat.DocumentDetails.Content,
                             }
                         }).ToList()
                 }).ToList();

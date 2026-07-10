@@ -28,7 +28,7 @@ namespace AILA.Domain.Entities
         // Constructor chuẩn DDD được gọi khi hệ thống phát hành một thông báo cá nhân hóa
         public Notification(Guid userId, string title, string body, NotificationType type, string? redirectUrl = null)
         {
-            if (userId == Guid.Empty) throw new ArgumentException("UserId không hợp lệ.");
+            if (userId == Guid.Empty) throw new ArgumentException("Mã người dùng không hợp lệ.");
 
             if (string.IsNullOrWhiteSpace(title) || title.Length > 200)
                 throw new ArgumentException("Tiêu đề thông báo không được trống và không quá 200 ký tự.", nameof(title));

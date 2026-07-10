@@ -32,6 +32,16 @@ namespace AILA.Application.Features.Courses.Queries.GetCourseLearningView
             var completedIds = completedMaterialIds.ToHashSet();
 
             var currentMaterialId = await _uow.LearningProgresses.GetCurrentMaterialIdAsync(request.CourseId, request.LearnerId);
+            //Cập nhật việc nếu như chưa từng học bài nào sẽ tự lấy bài đầu tiên
+            if (currentMaterialId == null || currentMaterialId == Guid.Empty)
+            {
+                currentMaterialId = course.Modules
+                    .OrderBy(m => m.OrderIndex)
+                    .SelectMany(m => m.Materials
+                        .OrderBy(material => material.OrderIndex))
+                    .Select(material => (Guid?)material.Id)
+                    .FirstOrDefault();
+            }
             // CẬP NHẬT: Thực hiện mapping kèm OrderIndex và ModuleId, đồng thời OrderBy để cấu trúc cây chuẩn hóa
             var modules = course.Modules.OrderBy(m => m.OrderIndex).Select(m => new ModuleLearningDto
                 {
@@ -47,7 +57,6 @@ namespace AILA.Application.Features.Courses.Queries.GetCourseLearningView
                             OrderIndex = material.OrderIndex, // <--- CẬP NHẬT: Gán OrderIndex cho Material
                             Type = material.MaterialType.ToString(),
                             IsCompleted = completedIds.Contains(material.Id),
-                            IsCurrent = currentMaterialId == material.Id
                         }).ToList()
                 }).ToList();
 

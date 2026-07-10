@@ -1,4 +1,5 @@
 ﻿using AILA.Domain.Common;
+using AILA.Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,14 +15,16 @@ namespace AILA.Domain.Entities
         public bool IsPublished { get; private set; }
         public Guid? CreatedById { get; private set; } // Null nếu do Hệ thống/Admin tạo, có giá trị nếu do Expert tạo
 
+        public virtual TagPublishRequest? PublishRequest { get; private set; }
+
         // Constructor phục vụ EF Core
         private Tag() { }
 
         // Constructor dành cho Admin/Hệ thống tạo (Mặc định duyệt luôn hoặc tùy chọn)
         private Tag(string name, string code, bool isPublished, Guid? createdById)
         {
-            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Tên Tag không được để trống.");
-            if (string.IsNullOrWhiteSpace(code)) throw new ArgumentException("Code Tag không được để trống.");
+            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Tên thẻ không được để trống.");
+            if (string.IsNullOrWhiteSpace(code)) throw new ArgumentException("Mã thẻ không được để trống.");
 
             Id = Guid.NewGuid();
             Name = name.Trim();
@@ -36,7 +39,7 @@ namespace AILA.Domain.Entities
         /// </summary>
         public static Tag CreateByExpert(string name, string code, Guid expertId)
         {
-            if (expertId == Guid.Empty) throw new ArgumentException("ExpertId không hợp lệ.", nameof(expertId));
+            if (expertId == Guid.Empty) throw new ArgumentException("Mã chuyên gia không hợp lệ.", nameof(expertId));
 
             return new Tag(name, code, isPublished: false, createdById: expertId);
         }
@@ -49,10 +52,24 @@ namespace AILA.Domain.Entities
             return new Tag(name, code, isPublished: true, createdById: null);
         }
 
+        public void CreatePublishRequest(string? note)
+        {
+            if (IsPublished)
+                throw new InvalidOperationException("Tag đã được xuất bản.");
+
+            if (PublishRequest != null &&
+                PublishRequest.Status == TagPublishRequestStatus.Pending)
+                throw new InvalidOperationException("Đã tồn tại yêu cầu chờ duyệt.");
+
+            PublishRequest = new TagPublishRequest(Id, note);
+
+            UpdateTimestamp();
+        }
+
         /// <summary>
         /// Admin duyệt các Tag do Expert đề xuất
         /// </summary>
-        public void Approve()
+        public void Publish()
         {
             if (IsPublished) return; // Đã duyệt rồi thì bỏ qua
 

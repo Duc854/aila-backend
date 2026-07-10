@@ -35,19 +35,16 @@ namespace AILA.Application.Features.Materials.Queries.GetMaterialDetail
                 Id = material.Id,
                 ModuleId = material.ModuleId,
                 Title = material.Title,
-                MaterialType = material.MaterialType.ToString(),
+                Type = material.MaterialType.ToString(),
                 OrderIndex = material.OrderIndex,
                 VideoDetails = material.VideoDetails != null ? new VideoMaterialDto
                 {
                     VideoUrl = material.VideoDetails.VideoUrl,
-                    ThumbnailUrl = material.VideoDetails.ThumbnailUrl,
-                    CaptionsUrl = material.VideoDetails.CaptionsUrl,
                     Content = material.VideoDetails.Content
                 } : null,
                 DocumentDetails = material.DocumentDetails != null ? new DocumentMaterialDto
                 {
                     Content = material.DocumentDetails.Content,
-                    DocumentUrl = material.DocumentDetails.DocumentUrl
                 } : null
             };
 

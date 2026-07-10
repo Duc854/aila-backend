@@ -57,7 +57,11 @@ namespace AILA.Application.Features.Profile.Commands.UpdateLearnerProfile
                     learner.HasCompletedOnboarding,
                     learner.LearningGoals.Select(t => new TagDto(t.Id, t.Name))
                 ),
-                Enumerable.Empty<EnrollmentSummaryDto>()
+                Enumerable.Empty<EnrollmentSummaryDto>(),
+                // Màn cập nhật hồ sơ không tổng hợp dashboard học tập (UC-30) — trả về giá trị rỗng.
+                new LearningSummaryDto(0, 0, 0, 0, 0, null),
+                Enumerable.Empty<QuizHistoryItemDto>(),
+                Enumerable.Empty<AiScenarioHistoryItemDto>()
             );
 
             return ResponseDto<LearnerProfileDto>.SuccessResult(dto);
