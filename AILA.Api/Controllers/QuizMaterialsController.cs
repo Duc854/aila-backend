@@ -103,7 +103,7 @@ public class QuizMaterialsController : ControllerBase
     }
 
     /// <summary>
-    /// Tạo nhanh toàn bộ Quiz gồm nhiều Question và Answer trong một Transaction.
+    /// Tạo nhanh toàn bộ Quiz (Question + AnswerOption) trong một Transaction.
     /// </summary>
     [HttpPost("{materialId:guid}/bulk")]
     public async Task<IActionResult> BulkCreateQuiz(
@@ -135,9 +135,20 @@ public class QuizMaterialsController : ControllerBase
         {
             return result.ErrorCode switch
             {
-                "MATERIAL_NOT_FOUND" => NotFound(result),
-                "FORBIDDEN" => StatusCode(StatusCodes.Status403Forbidden, result),
-                "INVALID_TYPE" => BadRequest(result),
+                "MATERIAL_NOT_FOUND"
+                    => NotFound(result),
+
+                "FORBIDDEN"
+                    => StatusCode(
+                        StatusCodes.Status403Forbidden,
+                        result),
+
+                "INVALID_TYPE"
+                    => BadRequest(result),
+
+                "INVALID_QUESTION"
+                    => BadRequest(result),
+
                 _ => BadRequest(result)
             };
         }
