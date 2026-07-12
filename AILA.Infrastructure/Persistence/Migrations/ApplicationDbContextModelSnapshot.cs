@@ -22,6 +22,64 @@ namespace AILA.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("AILA.Domain.Entities.AIPracticeMaterial", b =>
+                {
+                    b.Property<Guid>("MaterialId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Difficulty")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<int>("MaxPromptAttempts")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Scenario")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TaskDescription")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("MaterialId");
+
+                    b.ToTable("AIPracticeMaterials");
+                });
+
+            modelBuilder.Entity("AILA.Domain.Entities.AnswerOption", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsCorrect")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("QuestionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QuestionId");
+
+                    b.ToTable("AnswerOptions");
+                });
+
             modelBuilder.Entity("AILA.Domain.Entities.BlogPost", b =>
                 {
                     b.Property<Guid>("Id")
@@ -103,6 +161,58 @@ namespace AILA.Infrastructure.Persistence.Migrations
                     b.ToTable("Categories");
                 });
 
+            modelBuilder.Entity("AILA.Domain.Entities.ContentReport", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CourseId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("LearnerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("MaterialId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ReportType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime?>("ResolvedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourseId");
+
+                    b.HasIndex("MaterialId");
+
+                    b.HasIndex("LearnerId", "CourseId", "MaterialId")
+                        .IsUnique();
+
+                    b.ToTable("ContentReport", t =>
+                        {
+                            t.HasCheckConstraint("CK_ContentReport_Target", "(\r\n                    (\"CourseId\" IS NOT NULL AND \"MaterialId\" IS NULL)\r\n                    OR\r\n                    (\"CourseId\" IS NULL AND \"MaterialId\" IS NOT NULL)\r\n                )");
+                        });
+                });
+
             modelBuilder.Entity("AILA.Domain.Entities.Course", b =>
                 {
                     b.Property<Guid>("Id")
@@ -165,13 +275,6 @@ namespace AILA.Infrastructure.Persistence.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("DocumentUrl")
-                        .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
-
-                    b.Property<int?>("FileSizeKb")
-                        .HasColumnType("integer");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -417,6 +520,212 @@ namespace AILA.Infrastructure.Persistence.Migrations
                     b.ToTable("Notifications");
                 });
 
+            modelBuilder.Entity("AILA.Domain.Entities.PromptTemplate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AIPracticeMaterialId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AIPracticeMaterialId");
+
+                    b.ToTable("PromptTemplates");
+                });
+
+            modelBuilder.Entity("AILA.Domain.Entities.Question", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("QuestionType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<Guid>("QuizMaterialId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QuizMaterialId", "OrderIndex")
+                        .IsUnique();
+
+                    b.ToTable("Questions");
+                });
+
+            modelBuilder.Entity("AILA.Domain.Entities.QuizAnswer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("QuestionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("QuizAttemptId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("SelectedAnswerOptionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QuestionId");
+
+                    b.HasIndex("QuizAttemptId");
+
+                    b.HasIndex("SelectedAnswerOptionId");
+
+                    b.ToTable("QuizAnswers");
+                });
+
+            modelBuilder.Entity("AILA.Domain.Entities.QuizAttempt", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("EnrollmentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsPassed")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("QuizMaterialId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Score")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime?>("SubmittedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EnrollmentId");
+
+                    b.HasIndex("QuizMaterialId");
+
+                    b.ToTable("QuizAttempts");
+                });
+
+            modelBuilder.Entity("AILA.Domain.Entities.QuizMaterial", b =>
+                {
+                    b.Property<Guid>("MaterialId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("PassingScore")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)");
+
+                    b.Property<bool>("ShowCorrectAnswersAfterSubmission")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("TimeLimitMinutes")
+                        .HasColumnType("integer");
+
+                    b.HasKey("MaterialId");
+
+                    b.ToTable("QuizMaterials");
+                });
+
+            modelBuilder.Entity("AILA.Domain.Entities.ScoringCriteria", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AIPracticeMaterialId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<decimal>("Weight")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AIPracticeMaterialId");
+
+                    b.ToTable("ScoringCriterias");
+                });
+
+            modelBuilder.Entity("AILA.Domain.Entities.StepGuidance", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AIPracticeMaterialId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AIPracticeMaterialId", "OrderIndex")
+                        .IsUnique();
+
+                    b.ToTable("StepGuidances");
+                });
+
             modelBuilder.Entity("AILA.Domain.Entities.Tag", b =>
                 {
                     b.Property<Guid>("Id")
@@ -437,9 +746,6 @@ namespace AILA.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsPublished")
                         .HasColumnType("boolean");
 
-                    b.Property<Guid?>("LearnerUserId")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -453,9 +759,44 @@ namespace AILA.Infrastructure.Persistence.Migrations
                     b.HasIndex("Code")
                         .IsUnique();
 
-                    b.HasIndex("LearnerUserId");
-
                     b.ToTable("Tags");
+                });
+
+            modelBuilder.Entity("AILA.Domain.Entities.TagPublishRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<Guid>("TagId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TagId")
+                        .IsUnique();
+
+                    b.ToTable("TagPublishRequest");
                 });
 
             modelBuilder.Entity("AILA.Domain.Entities.User", b =>
@@ -518,15 +859,10 @@ namespace AILA.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("ExpiredAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("IpAddress")
-                        .IsRequired()
-                        .HasMaxLength(45)
-                        .HasColumnType("character varying(45)");
-
                     b.Property<bool>("IsRevoked")
                         .HasColumnType("boolean");
 
-                    b.Property<string>("RefreshToken")
+                    b.Property<string>("RefreshTokenHash")
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
@@ -534,16 +870,12 @@ namespace AILA.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("UserAgent")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("RefreshToken")
+                    b.HasIndex("RefreshTokenHash")
                         .IsUnique();
 
                     b.HasIndex("UserId");
@@ -556,10 +888,6 @@ namespace AILA.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("MaterialId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("CaptionsUrl")
-                        .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
-
                     b.Property<string>("Content")
                         .HasColumnType("text");
 
@@ -568,10 +896,6 @@ namespace AILA.Infrastructure.Persistence.Migrations
 
                     b.Property<int>("DurationSeconds")
                         .HasColumnType("integer");
-
-                    b.Property<string>("ThumbnailUrl")
-                        .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -586,19 +910,81 @@ namespace AILA.Infrastructure.Persistence.Migrations
                     b.ToTable("VideoMaterials");
                 });
 
-            modelBuilder.Entity("course_tags_mapping", b =>
+            modelBuilder.Entity("CourseTags", b =>
                 {
-                    b.Property<Guid>("course_id")
+                    b.Property<Guid>("CourseId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("tag_id")
+                    b.Property<Guid>("TagId")
                         .HasColumnType("uuid");
 
-                    b.HasKey("course_id", "tag_id");
+                    b.HasKey("CourseId", "TagId");
 
-                    b.HasIndex("tag_id");
+                    b.HasIndex("TagId");
 
-                    b.ToTable("course_tags_mapping");
+                    b.ToTable("CourseTags");
+                });
+
+            modelBuilder.Entity("LearnerLearningGoals", b =>
+                {
+                    b.Property<Guid>("LearnerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TagId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("LearnerId", "TagId");
+
+                    b.HasIndex("TagId");
+
+                    b.ToTable("LearnerLearningGoals");
+                });
+
+            modelBuilder.Entity("AILA.Domain.Entities.AIPracticeMaterial", b =>
+                {
+                    b.HasOne("AILA.Domain.Entities.Material", "Material")
+                        .WithOne("AIPracticeDetails")
+                        .HasForeignKey("AILA.Domain.Entities.AIPracticeMaterial", "MaterialId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Material");
+                });
+
+            modelBuilder.Entity("AILA.Domain.Entities.AnswerOption", b =>
+                {
+                    b.HasOne("AILA.Domain.Entities.Question", "Question")
+                        .WithMany("AnswerOptions")
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Question");
+                });
+
+            modelBuilder.Entity("AILA.Domain.Entities.ContentReport", b =>
+                {
+                    b.HasOne("AILA.Domain.Entities.Course", "Course")
+                        .WithMany()
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("AILA.Domain.Entities.Learner", "Learner")
+                        .WithMany()
+                        .HasForeignKey("LearnerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AILA.Domain.Entities.Material", "Material")
+                        .WithMany()
+                        .HasForeignKey("MaterialId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Course");
+
+                    b.Navigation("Learner");
+
+                    b.Navigation("Material");
                 });
 
             modelBuilder.Entity("AILA.Domain.Entities.Course", b =>
@@ -724,11 +1110,115 @@ namespace AILA.Infrastructure.Persistence.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("AILA.Domain.Entities.Tag", b =>
+            modelBuilder.Entity("AILA.Domain.Entities.PromptTemplate", b =>
                 {
-                    b.HasOne("AILA.Domain.Entities.Learner", null)
-                        .WithMany("LearningGoals")
-                        .HasForeignKey("LearnerUserId");
+                    b.HasOne("AILA.Domain.Entities.AIPracticeMaterial", "AIPracticeMaterial")
+                        .WithMany("PromptTemplates")
+                        .HasForeignKey("AIPracticeMaterialId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AIPracticeMaterial");
+                });
+
+            modelBuilder.Entity("AILA.Domain.Entities.Question", b =>
+                {
+                    b.HasOne("AILA.Domain.Entities.QuizMaterial", "QuizMaterial")
+                        .WithMany("Questions")
+                        .HasForeignKey("QuizMaterialId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("QuizMaterial");
+                });
+
+            modelBuilder.Entity("AILA.Domain.Entities.QuizAnswer", b =>
+                {
+                    b.HasOne("AILA.Domain.Entities.Question", "Question")
+                        .WithMany()
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AILA.Domain.Entities.QuizAttempt", "QuizAttempt")
+                        .WithMany("Answers")
+                        .HasForeignKey("QuizAttemptId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AILA.Domain.Entities.AnswerOption", "SelectedAnswerOption")
+                        .WithMany()
+                        .HasForeignKey("SelectedAnswerOptionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Question");
+
+                    b.Navigation("QuizAttempt");
+
+                    b.Navigation("SelectedAnswerOption");
+                });
+
+            modelBuilder.Entity("AILA.Domain.Entities.QuizAttempt", b =>
+                {
+                    b.HasOne("AILA.Domain.Entities.Enrollment", "Enrollment")
+                        .WithMany()
+                        .HasForeignKey("EnrollmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AILA.Domain.Entities.QuizMaterial", "QuizMaterial")
+                        .WithMany("QuizAttempts")
+                        .HasForeignKey("QuizMaterialId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Enrollment");
+
+                    b.Navigation("QuizMaterial");
+                });
+
+            modelBuilder.Entity("AILA.Domain.Entities.QuizMaterial", b =>
+                {
+                    b.HasOne("AILA.Domain.Entities.Material", "Material")
+                        .WithOne("QuizDetails")
+                        .HasForeignKey("AILA.Domain.Entities.QuizMaterial", "MaterialId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Material");
+                });
+
+            modelBuilder.Entity("AILA.Domain.Entities.ScoringCriteria", b =>
+                {
+                    b.HasOne("AILA.Domain.Entities.AIPracticeMaterial", "AIPracticeMaterial")
+                        .WithMany("ScoringCriterias")
+                        .HasForeignKey("AIPracticeMaterialId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AIPracticeMaterial");
+                });
+
+            modelBuilder.Entity("AILA.Domain.Entities.StepGuidance", b =>
+                {
+                    b.HasOne("AILA.Domain.Entities.AIPracticeMaterial", "AIPracticeMaterial")
+                        .WithMany("StepGuidances")
+                        .HasForeignKey("AIPracticeMaterialId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AIPracticeMaterial");
+                });
+
+            modelBuilder.Entity("AILA.Domain.Entities.TagPublishRequest", b =>
+                {
+                    b.HasOne("AILA.Domain.Entities.Tag", "Tag")
+                        .WithOne("PublishRequest")
+                        .HasForeignKey("AILA.Domain.Entities.TagPublishRequest", "TagId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Tag");
                 });
 
             modelBuilder.Entity("AILA.Domain.Entities.UserToken", b =>
@@ -753,19 +1243,43 @@ namespace AILA.Infrastructure.Persistence.Migrations
                     b.Navigation("Material");
                 });
 
-            modelBuilder.Entity("course_tags_mapping", b =>
+            modelBuilder.Entity("CourseTags", b =>
                 {
                     b.HasOne("AILA.Domain.Entities.Course", null)
                         .WithMany()
-                        .HasForeignKey("course_id")
+                        .HasForeignKey("CourseId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("AILA.Domain.Entities.Tag", null)
                         .WithMany()
-                        .HasForeignKey("tag_id")
+                        .HasForeignKey("TagId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("LearnerLearningGoals", b =>
+                {
+                    b.HasOne("AILA.Domain.Entities.Learner", null)
+                        .WithMany()
+                        .HasForeignKey("LearnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AILA.Domain.Entities.Tag", null)
+                        .WithMany()
+                        .HasForeignKey("TagId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("AILA.Domain.Entities.AIPracticeMaterial", b =>
+                {
+                    b.Navigation("PromptTemplates");
+
+                    b.Navigation("ScoringCriterias");
+
+                    b.Navigation("StepGuidances");
                 });
 
             modelBuilder.Entity("AILA.Domain.Entities.Course", b =>
@@ -773,14 +1287,13 @@ namespace AILA.Infrastructure.Persistence.Migrations
                     b.Navigation("Modules");
                 });
 
-            modelBuilder.Entity("AILA.Domain.Entities.Learner", b =>
-                {
-                    b.Navigation("LearningGoals");
-                });
-
             modelBuilder.Entity("AILA.Domain.Entities.Material", b =>
                 {
+                    b.Navigation("AIPracticeDetails");
+
                     b.Navigation("DocumentDetails");
+
+                    b.Navigation("QuizDetails");
 
                     b.Navigation("VideoDetails");
                 });
@@ -788,6 +1301,28 @@ namespace AILA.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("AILA.Domain.Entities.Module", b =>
                 {
                     b.Navigation("Materials");
+                });
+
+            modelBuilder.Entity("AILA.Domain.Entities.Question", b =>
+                {
+                    b.Navigation("AnswerOptions");
+                });
+
+            modelBuilder.Entity("AILA.Domain.Entities.QuizAttempt", b =>
+                {
+                    b.Navigation("Answers");
+                });
+
+            modelBuilder.Entity("AILA.Domain.Entities.QuizMaterial", b =>
+                {
+                    b.Navigation("Questions");
+
+                    b.Navigation("QuizAttempts");
+                });
+
+            modelBuilder.Entity("AILA.Domain.Entities.Tag", b =>
+                {
+                    b.Navigation("PublishRequest");
                 });
 
             modelBuilder.Entity("AILA.Domain.Entities.User", b =>
@@ -798,7 +1333,6 @@ namespace AILA.Infrastructure.Persistence.Migrations
 
                     b.Navigation("UserTokens");
                 });
-#pragma warning restore 612, 618
         }
     }
 }

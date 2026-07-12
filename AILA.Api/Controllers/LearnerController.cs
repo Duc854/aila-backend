@@ -1,0 +1,148 @@
+using AILA.Api.Extensions;
+using AILA.Application.Features.Authentication.Commands.LearnerLogin;
+using AILA.Application.Features.Onboarding.Commands.CompleteOnboarding;
+using AILA.Application.Features.Onboarding.Queries.GetOnboardingStatus;
+using AILA.Application.Features.Profile.Commands.UpdateLearnerProfile;
+using AILA.Domain.Enums;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Shared.Wrappers;
+
+namespace AILA.Api.Controllers
+{
+    [ApiController]
+    [Route("api/learner")]
+    [Authorize(Roles = "Learner")]
+    public class LearnerController(ISender sender) : ControllerBase
+    {
+        [HttpPut("profile")]
+        public async Task<IActionResult> UpdateProfile([FromBody] UpdateLearnerProfileRequest request, CancellationToken ct)
+        {
+            var identity = HttpContext.GetUserIdentity();
+            if (identity == null)
+                return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực thất bại."));
+
+            LearnerType? learnerType = null;
+            if (!string.IsNullOrWhiteSpace(request.LearnerType))
+            {
+                if (!Enum.TryParse(request.LearnerType, true, out LearnerType parsedLearnerType))
+                    return BadRequest(ResponseDto<object>.FailResult("INVALID_LEARNER_TYPE", "Loại học viên không hợp lệ."));
+                learnerType = parsedLearnerType;
+            }
+
+            KnowledgeLevel? knowledgeLevel = null;
+            if (!string.IsNullOrWhiteSpace(request.KnowledgeLevel))
+            {
+                if (!Enum.TryParse(request.KnowledgeLevel, true, out KnowledgeLevel parsedKnowledgeLevel))
+                    return BadRequest(ResponseDto<object>.FailResult("INVALID_KNOWLEDGE_LEVEL", "Trình độ không hợp lệ."));
+                knowledgeLevel = parsedKnowledgeLevel;
+            }
+
+            var command = new UpdateLearnerProfileCommand(
+                identity.UserId,
+                request.FullName,
+                request.AvatarUrl,
+                learnerType,
+                knowledgeLevel,
+                request.LearningGoals ?? []
+            );
+
+            var result = await sender.Send(command, ct);
+
+            if (!result.Success)
+            {
+                return result.ErrorCode switch
+                {
+                    "ACCOUNT_INACTIVE" => StatusCode(StatusCodes.Status403Forbidden, result),
+                    "UNPUBLISHED_TAG" => UnprocessableEntity(result),
+                    _ => BadRequest(result)
+                };
+            }
+
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Đăng nhập Learner — Email + Password.
+        /// </summary>
+        [AllowAnonymous]
+        [HttpPost("login")]
+        public async Task<IActionResult> LearnerLogin([FromBody] LearnerLoginCommand command, CancellationToken ct)
+        {
+            var result = await sender.Send(command, ct);
+
+            if (!result.Success)
+                return Unauthorized(result);
+
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Lấy trạng thái onboarding của Learner hiện tại.
+        /// </summary>
+        [HttpGet("onboarding")]
+        public async Task<IActionResult> GetOnboardingStatus(CancellationToken ct)
+        {
+            var identity = HttpContext.GetUserIdentity();
+            if (identity == null)
+                return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực thất bại."));
+
+            var query = new GetOnboardingStatusQuery
+            {
+                UserId = identity.UserId
+            };
+            var result = await sender.Send(query, ct);
+
+            if (!result.Success)
+                return NotFound(result);
+
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Hoàn thành khảo sát onboarding cho Learner.
+        /// </summary>
+        [HttpPut("onboarding")]
+        public async Task<IActionResult> CompleteOnboarding([FromBody] CompleteOnboardingRequest request, CancellationToken ct)
+        {
+            var identity = HttpContext.GetUserIdentity();
+            if (identity == null)
+                return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực thất bại."));
+
+            if (!Enum.TryParse(request.LearnerType, true, out LearnerType learnerType))
+                return BadRequest(ResponseDto<object>.FailResult("INVALID_LEARNER_TYPE", "Loại học viên không hợp lệ."));
+
+            if (!Enum.TryParse(request.KnowledgeLevel, true, out KnowledgeLevel knowledgeLevel))
+                return BadRequest(ResponseDto<object>.FailResult("INVALID_KNOWLEDGE_LEVEL", "Trình độ không hợp lệ."));
+
+            var command = new CompleteOnboardingCommand
+            {
+                UserId = identity.UserId,
+                LearnerType = learnerType,
+                KnowledgeLevel = knowledgeLevel,
+                TagIds = request.TagIds
+            };
+            var result = await sender.Send(command, ct);
+
+            if (!result.Success)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
+    }
+
+    public record UpdateLearnerProfileRequest(
+        string FullName,
+        string? AvatarUrl,
+        string? LearnerType,
+        string? KnowledgeLevel,
+        Guid[]? LearningGoals
+    );
+
+    public record CompleteOnboardingRequest(
+        string LearnerType,
+        string KnowledgeLevel,
+        List<Guid> TagIds
+    );
+}

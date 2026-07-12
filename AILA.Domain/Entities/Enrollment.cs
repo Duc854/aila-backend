@@ -30,8 +30,8 @@ namespace AILA.Domain.Entities
         // Constructor chuẩn DDD khi Học viên bắt đầu bấm tham gia khóa học
         public Enrollment(Guid learnerId, Guid courseId, int totalMaterials)
         {
-            if (learnerId == Guid.Empty) throw new ArgumentException("LearnerId không hợp lệ.");
-            if (courseId == Guid.Empty) throw new ArgumentException("CourseId không hợp lệ.");
+            if (learnerId == Guid.Empty) throw new ArgumentException("Mã học viên không hợp lệ.");
+            if (courseId == Guid.Empty) throw new ArgumentException("Mã khóa học không hợp lệ.");
             if (totalMaterials < 0) throw new ArgumentException("Tổng số học liệu không được nhỏ hơn 0.");
 
             Id = Guid.NewGuid();

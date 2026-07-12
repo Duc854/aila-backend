@@ -1,15 +1,52 @@
 using AILA.Api.Configurations;
 using AILA.Application;
 using AILA.Infrastructure;
+using AILA.Infrastructure.Persistence;
+using AILA.Infrastructure.Persistence.Seed;
+using Microsoft.IdentityModel.Logging;
+using Microsoft.OpenApi.Models;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
+IdentityModelEventSource.ShowPII = true;
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+}); 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "AILA.Api", Version = "v1" });
+
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Nhập Access Token vào ô bên dưới (KHÔNG cần gõ 'Bearer ')."
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id   = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 // Đăng ký DI của Tầng Application (MediatR, Business Services)
 builder.Services.AddApplication();
@@ -31,6 +68,8 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+await app.Services.InitializeDatabaseAsync();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

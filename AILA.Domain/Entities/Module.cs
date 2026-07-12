@@ -81,7 +81,9 @@ namespace AILA.Domain.Entities
         public void Publish()
         {
             if (IsPublished) return;
-
+            if (!_materials.Any())
+                throw new InvalidOperationException(
+                    "Module phải có ít nhất một learning material.");
             IsPublished = true;
             UpdateTimestamp();
         }
@@ -94,6 +96,28 @@ namespace AILA.Domain.Entities
             if (!IsPublished) return;
 
             IsPublished = false;
+            UpdateTimestamp();
+        }
+
+        public void AddMaterial(Material material)
+        {
+            ArgumentNullException.ThrowIfNull(material);
+
+            if (_materials.Any(m => m.Id == material.Id))
+                throw new InvalidOperationException("Học liệu đã tồn tại trong học phần.");
+
+            _materials.Add(material);
+
+            UpdateTimestamp();
+        }
+
+        public void RemoveMaterial(Guid materialId)
+        {
+            var material = _materials.FirstOrDefault(m => m.Id == materialId)
+                ?? throw new ArgumentException("Không tìm thấy học liệu.", nameof(materialId));
+
+            _materials.Remove(material);
+
             UpdateTimestamp();
         }
     }
