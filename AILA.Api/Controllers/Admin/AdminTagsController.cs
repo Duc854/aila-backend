@@ -1,4 +1,5 @@
 using AILA.Api.Extensions;
+using AILA.Application.Features.Tags.Dtos;
 using AILA.Infrastructure.Persistence;
 using AILA.Domain.Entities;
 using AILA.Domain.Enums;
@@ -14,7 +15,6 @@ namespace AILA.Api.Controllers.Admin
     public class AdminTagsController : ControllerBase
     {
         private readonly ApplicationDbContext _db;
-
         private readonly ILogger<AdminTagsController> _logger;
 
         public AdminTagsController(ApplicationDbContext db, ILogger<AdminTagsController> logger)
@@ -81,6 +81,57 @@ namespace AILA.Api.Controllers.Admin
             return Ok(ResponseDto<object>.SuccessResult(pending));
         }
 
+        [HttpPut("{tagId:guid}")]
+        public IActionResult UpdateTag([FromRoute] Guid tagId, [FromBody] UpdateTagRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Name) || request.Name.Length > 100)
+                return BadRequest(ResponseDto<object>.FailResult("INVALID_NAME", "Tên tag không hợp lệ."));
+
+            var tag = _db.Tags.FirstOrDefault(t => t.Id == tagId);
+            if (tag == null)
+                return NotFound(ResponseDto<object>.FailResult("NOT_FOUND", "Không tìm thấy tag."));
+
+            if (tag.CreatedById != null && tag.IsPublished)
+                return BadRequest(ResponseDto<object>.FailResult("CUSTOM_TAG_NOT_UPDATABLE", "Tag do chuyên gia tạo đã được công khai nên không thể cập nhật."));
+
+            var assignedToCourse = _db.Courses.Any(c => c.CourseTags.Any(ct => ct.Id == tagId));
+            if (assignedToCourse)
+                return BadRequest(ResponseDto<object>.FailResult("TAG_IN_USE", "Tag đang được sử dụng không thể cập nhật."));
+
+            var normalizedName = request.Name.Trim();
+            var normalizedCode = normalizedName.ToLower().Replace(" ", "-");
+            if (_db.Tags.Any(t => t.Id != tagId && (t.Code == normalizedCode || t.Name.ToLower() == normalizedName.ToLower())))
+                return Conflict(ResponseDto<object>.FailResult("DUPLICATE_TAG", "Tag đã tồn tại."));
+
+            var tagEntry = _db.Entry(tag);
+            tagEntry.Property(t => t.Name).CurrentValue = normalizedName;
+            tagEntry.Property(t => t.Code).CurrentValue = normalizedCode;
+            tag.UpdateTimestamp();
+            _db.SaveChanges();
+
+            return Ok(ResponseDto<object>.SuccessResult(new { Message = "Tag updated" }));
+        }
+
+        [HttpDelete("{tagId:guid}")]
+        public IActionResult DeleteTag([FromRoute] Guid tagId)
+        {
+            var tag = _db.Tags.FirstOrDefault(t => t.Id == tagId);
+            if (tag == null)
+                return NotFound(ResponseDto<object>.FailResult("NOT_FOUND", "Không tìm thấy tag."));
+
+            if (tag.CreatedById != null && tag.IsPublished)
+                return BadRequest(ResponseDto<object>.FailResult("CUSTOM_TAG_NOT_REMOVABLE", "Tag do chuyên gia tạo không thể xóa."));
+
+            var assignedToCourse = _db.Courses.Any(c => c.CourseTags.Any(ct => ct.Id == tagId));
+            if (assignedToCourse)
+                return BadRequest(ResponseDto<object>.FailResult("TAG_IN_USE", "Tag đang được sử dụng không thể xóa."));
+
+            _db.Tags.Remove(tag);
+            _db.SaveChanges();
+
+            return Ok(ResponseDto<object>.SuccessResult(new { Message = "Tag removed" }));
+        }
+
         [HttpPost("{tagId:guid}/verify")]
         public IActionResult VerifyTag([FromRoute] Guid tagId, [FromBody] VerifyTagRequest request)
         {
@@ -89,10 +140,7 @@ namespace AILA.Api.Controllers.Admin
 
             if (request.Decision == VerifyDecision.Approve)
             {
-                // Approve: publish tag
                 tag.Publish();
-
-                // Also mark request approved (guard against null for analyzer)
                 var publishRequest = tag.PublishRequest;
                 if (publishRequest == null)
                 {
@@ -101,7 +149,6 @@ namespace AILA.Api.Controllers.Admin
                 }
 
                 publishRequest.Approve();
-                // Audit
                 var identity = HttpContext.GetUserIdentity();
                 if (identity != null)
                 {
@@ -111,12 +158,9 @@ namespace AILA.Api.Controllers.Admin
                 return Ok(ResponseDto<object>.SuccessResult(new { Message = "Tag approved" }));
             }
 
-            // Reject
             if (string.IsNullOrWhiteSpace(request.RejectionReason))
                 return BadRequest(ResponseDto<object>.FailResult("MISSING_REASON", "Lý do từ chối là bắt buộc."));
 
-            // Remove tag from pending queue (delete)
-            // Audit rejection
             var iden = HttpContext.GetUserIdentity();
             if (iden != null)
             {
@@ -128,14 +172,4 @@ namespace AILA.Api.Controllers.Admin
             return Ok(ResponseDto<object>.SuccessResult(new { Message = "Tag rejected and removed" }));
         }
     }
-
-    public record CreateTagRequest(string Name);
-
-    public enum VerifyDecision
-    {
-        Approve,
-        Reject
-    }
-
-    public record VerifyTagRequest(VerifyDecision Decision, string? RejectionReason);
 }

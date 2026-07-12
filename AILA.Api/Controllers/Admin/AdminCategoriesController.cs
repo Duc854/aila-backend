@@ -1,4 +1,5 @@
 using AILA.Api.Extensions;
+using AILA.Application.Features.Categories.Dtos;
 using AILA.Infrastructure.Persistence;
 using AILA.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -41,7 +42,6 @@ namespace AILA.Api.Controllers.Admin
             if (string.IsNullOrWhiteSpace(request.Name) || request.Name.Length > 100)
                 return BadRequest(ResponseDto<object>.FailResult("INVALID_NAME", "Tên danh mục không hợp lệ."));
 
-            // Uniqueness check
             var exists = _db.Categories.Any(c => c.Name.ToLower() == request.Name.Trim().ToLower());
             if (exists)
                 return Conflict(ResponseDto<object>.FailResult("DUPLICATE_CATEGORY", "Tên danh mục đã tồn tại."));
@@ -61,7 +61,6 @@ namespace AILA.Api.Controllers.Admin
             var cat = _db.Categories.FirstOrDefault(c => c.Id == id);
             if (cat == null) return NotFound(ResponseDto<object>.FailResult("NOT_FOUND", "Không tìm thấy danh mục."));
 
-            // Check duplicate name excluding self
             if (_db.Categories.Any(c => c.Id != id && c.Name.ToLower() == request.Name.Trim().ToLower()))
                 return Conflict(ResponseDto<object>.FailResult("DUPLICATE_CATEGORY", "Tên danh mục đã tồn tại."));
 
@@ -72,6 +71,54 @@ namespace AILA.Api.Controllers.Admin
             _db.SaveChanges();
 
             return Ok(ResponseDto<object>.SuccessResult(new { Message = "Category updated" }));
+        }
+
+        [HttpPatch("{id:guid}/status")]
+        public IActionResult ChangeStatus([FromRoute] Guid id, [FromBody] ChangeCategoryStatusRequest request)
+        {
+            var cat = _db.Categories.FirstOrDefault(c => c.Id == id);
+            if (cat == null) return NotFound(ResponseDto<object>.FailResult("NOT_FOUND", "Không tìm thấy danh mục."));
+
+            var assigned = _db.Courses.Any(co => co.CategoryId == id);
+            if (!request.IsActive && assigned)
+                return BadRequest(ResponseDto<object>.FailResult("CATEGORY_HAS_COURSES", "Không thể vô hiệu hóa danh mục đang có khóa học."));
+
+            if (request.IsActive) cat.Activate(); else cat.Deactivate();
+            _db.SaveChanges();
+
+            return Ok(ResponseDto<object>.SuccessResult(new
+            {
+                Message = "Category status updated",
+                cat.Id,
+                cat.IsActive
+            }));
+        }
+
+        [HttpPut("reorder")]
+        public IActionResult Reorder([FromBody] ReorderCategoriesRequest request)
+        {
+            if (request?.CategoryIds == null || request.CategoryIds.Count == 0)
+                return BadRequest(ResponseDto<object>.FailResult("INVALID_ORDER", "Danh sách sắp xếp không hợp lệ."));
+
+            if (request.CategoryIds.Any(id => id == Guid.Empty))
+                return BadRequest(ResponseDto<object>.FailResult("INVALID_ORDER", "Danh sách sắp xếp không hợp lệ."));
+
+            if (request.CategoryIds.Distinct().Count() != request.CategoryIds.Count)
+                return BadRequest(ResponseDto<object>.FailResult("INVALID_ORDER", "Danh sách sắp xếp không hợp lệ."));
+
+            var existingCategories = _db.Categories.Where(c => request.CategoryIds.Contains(c.Id)).ToList();
+            if (existingCategories.Count != request.CategoryIds.Count)
+                return BadRequest(ResponseDto<object>.FailResult("INVALID_ORDER", "Danh sách sắp xếp không hợp lệ."));
+
+            for (var i = 0; i < request.CategoryIds.Count; i++)
+            {
+                var category = existingCategories.First(c => c.Id == request.CategoryIds[i]);
+                category.ChangeOrder(i);
+            }
+
+            _db.SaveChanges();
+
+            return Ok(ResponseDto<object>.SuccessResult(new { Message = "Category order updated" }));
         }
 
         [HttpDelete("{id:guid}")]
@@ -89,6 +136,4 @@ namespace AILA.Api.Controllers.Admin
             return Ok(ResponseDto<object>.SuccessResult(new { Message = "Category deleted" }));
         }
     }
-
-    public record ManageCategoryRequest(string Name, string? Description, int OrderIndex, bool IsActive);
 }

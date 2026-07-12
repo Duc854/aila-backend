@@ -1,4 +1,7 @@
 using AILA.Api.Extensions;
+using AILA.Application.Common.Interfaces;
+using AILA.Application.Features.Users.Dtos;
+using AILA.Domain.Entities;
 using AILA.Domain.Enums;
 using AILA.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
@@ -15,11 +18,16 @@ namespace AILA.Api.Controllers.Admin
     {
         private readonly ApplicationDbContext _db;
         private readonly ILogger<UsersManagementController> _logger;
+        private readonly IPasswordHasher _passwordHasher;
 
-        public UsersManagementController(ApplicationDbContext db, ILogger<UsersManagementController> logger)
+        public UsersManagementController(
+            ApplicationDbContext db,
+            ILogger<UsersManagementController> logger,
+            IPasswordHasher passwordHasher)
         {
             _db = db;
             _logger = logger;
+            _passwordHasher = passwordHasher;
         }
 
         [HttpGet]
@@ -177,6 +185,97 @@ namespace AILA.Api.Controllers.Admin
             }));
         }
 
+        [HttpPost("experts")]
+        public IActionResult CreateExpertAccount([FromBody] CreateExpertAccountRequest request)
+        {
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
+
+            if (string.IsNullOrWhiteSpace(request.FullName))
+                return BadRequest(ResponseDto<object>.FailResult("INVALID_FULL_NAME", "Họ tên không được để trống."));
+
+            if (string.IsNullOrWhiteSpace(request.Email) || !new EmailAddressAttribute().IsValid(request.Email))
+                return BadRequest(ResponseDto<object>.FailResult("INVALID_EMAIL", "Email không hợp lệ."));
+
+            if (string.IsNullOrWhiteSpace(request.Password))
+                return BadRequest(ResponseDto<object>.FailResult("INVALID_PASSWORD", "Mật khẩu không được để trống."));
+
+            var normalizedEmail = request.Email.Trim().ToLowerInvariant();
+            if (_db.Users.Any(u => u.Email == normalizedEmail))
+                return Conflict(ResponseDto<object>.FailResult("DUPLICATE_EMAIL", "Email đã tồn tại."));
+
+            var passwordHash = _passwordHasher.HashPassword(request.Password);
+            var user = new User(normalizedEmail, request.FullName.Trim(), UserRole.Expert, passwordHash);
+
+            _db.Users.Add(user);
+            _db.SaveChanges();
+
+            var expertProfile = new Expert(user.Id);
+            _db.Experts.Add(expertProfile);
+            _db.SaveChanges();
+
+            return Ok(ResponseDto<object>.SuccessResult(new
+            {
+                Message = "Expert account created successfully",
+                User = new UserManagementResponse(
+                    user.Id,
+                    user.Email,
+                    user.FullName,
+                    user.Role,
+                    user.IsActive ? AccountStatus.Active : AccountStatus.Inactive)
+            }));
+        }
+
+        [HttpPatch("{id:guid}/status")]
+        public IActionResult UpdateUserStatus([FromRoute] Guid id, [FromBody] UpdateUserStatusRequest request)
+        {
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
+
+            var identity = HttpContext.GetUserIdentity();
+            if (identity == null)
+                return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực thất bại."));
+
+            if (id == Guid.Empty)
+                return BadRequest(ResponseDto<object>.FailResult("INVALID_USER_ID", "User Id không hợp lệ."));
+
+            var user = _db.Users.FirstOrDefault(u => u.Id == id);
+            if (user == null)
+                return NotFound(ResponseDto<object>.FailResult("USER_NOT_FOUND", "Không tìm thấy tài khoản người dùng."));
+
+            if (identity.UserId == id && request.AccountStatus == AccountStatus.Inactive)
+            {
+                var otherAdmins = _db.Users.Count(u => u.Role == UserRole.Admin && u.Id != id && u.IsActive);
+                if (otherAdmins == 0)
+                    return BadRequest(ResponseDto<object>.FailResult("CANNOT_DEACTIVATE_SELF_ADMIN", "Không thể vô hiệu hóa tài khoản Admin của chính bạn."));
+            }
+
+            switch (request.AccountStatus)
+            {
+                case AccountStatus.Active:
+                    user.Activate();
+                    break;
+                case AccountStatus.Inactive:
+                    user.Deactivate();
+                    break;
+                default:
+                    return BadRequest(ResponseDto<object>.FailResult("INVALID_STATUS", "Trạng thái tài khoản không hợp lệ."));
+            }
+
+            _db.SaveChanges();
+
+            return Ok(ResponseDto<object>.SuccessResult(new
+            {
+                Message = "User status updated successfully",
+                User = new UserManagementResponse(
+                    user.Id,
+                    user.Email,
+                    user.FullName,
+                    user.Role,
+                    user.IsActive ? AccountStatus.Active : AccountStatus.Inactive)
+            }));
+        }
+
         [HttpGet("roles")]
         public IActionResult GetRoles()
         {
@@ -187,30 +286,4 @@ namespace AILA.Api.Controllers.Admin
             return Ok(ResponseDto<object>.SuccessResult(roles));
         }
     }
-
-    public enum AccountStatus
-    {
-        Active,
-        Inactive,
-        Suspended
-    }
-
-    public class ManageUserRequest
-    {
-        [Required(ErrorMessage = "User Id là bắt buộc.")]
-        public Guid? UserId { get; init; }
-
-        [StringLength(100, ErrorMessage = "Search Keyword tối đa 100 ký tự.")]
-        public string? SearchKeyword { get; init; }
-
-        [Required(ErrorMessage = "Account Status là bắt buộc.")]
-        public AccountStatus? AccountStatus { get; init; }
-
-        [Required(ErrorMessage = "User Role là bắt buộc.")]
-        public UserRole? UserRole { get; init; }
-    }
-
-    public record UserListItemResponse(Guid Id, string Email, string FullName, UserRole Role, AccountStatus AccountStatus);
-
-    public record UserManagementResponse(Guid Id, string Email, string FullName, UserRole Role, AccountStatus AccountStatus);
 }
