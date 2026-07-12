@@ -1,13 +1,14 @@
-using AILA.Api.Extensions;
-using AILA.Application.Common.Interfaces;
+using AILA.Application.Features.Users.Commands.CreateExpertAccount;
+using AILA.Application.Features.Users.Commands.UpdateUserStatus;
 using AILA.Application.Features.Users.Dtos;
-using AILA.Domain.Entities;
+using AILA.Application.Features.Users.Queries.GetRoles;
+using AILA.Application.Features.Users.Queries.GetUserById;
+using AILA.Application.Features.Users.Queries.GetUsers;
 using AILA.Domain.Enums;
-using AILA.Infrastructure.Persistence;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Wrappers;
-using System.ComponentModel.DataAnnotations;
 
 namespace AILA.Api.Controllers.Admin
 {
@@ -16,274 +17,141 @@ namespace AILA.Api.Controllers.Admin
     [Authorize(Roles = "Admin")]
     public class UsersManagementController : ControllerBase
     {
-        private readonly ApplicationDbContext _db;
+        private readonly ISender _sender;
         private readonly ILogger<UsersManagementController> _logger;
-        private readonly IPasswordHasher _passwordHasher;
 
         public UsersManagementController(
-            ApplicationDbContext db,
-            ILogger<UsersManagementController> logger,
-            IPasswordHasher passwordHasher)
+            ISender sender,
+            ILogger<UsersManagementController> logger)
         {
-            _db = db;
+            _sender = sender;
             _logger = logger;
-            _passwordHasher = passwordHasher;
         }
 
+        #region UC-76: Review User Accounts
+
+        /// <summary>
+        /// UC-76: Get list of user accounts with search and filter
+        /// </summary>
         [HttpGet]
-        public IActionResult GetAllUsers()
+        public async Task<IActionResult> GetUsers(
+            [FromQuery] string? searchKeyword = null,
+            [FromQuery] UserRole? role = null,
+            [FromQuery] bool? isActive = null,
+            CancellationToken cancellationToken = default)
         {
-            var users = _db.Users
-                .OrderBy(u => u.FullName)
-                .Select(u => new UserListItemResponse(
-                    u.Id,
-                    u.Email,
-                    u.FullName,
-                    u.Role,
-                    u.IsActive ? AccountStatus.Active : AccountStatus.Inactive))
-                .ToList();
+            var result = await _sender.Send(
+                new GetUsersQuery(searchKeyword, role, isActive),
+                cancellationToken);
 
-            return Ok(ResponseDto<object>.SuccessResult(users));
+            return Ok(result);
         }
 
-
-
-
-        [HttpGet("filter")]
-        public IActionResult FilterUsers(
-       [FromQuery] string? searchKeyword,
-       [FromQuery] AccountStatus? accountStatus,
-       [FromQuery] UserRole? userRole)
-        {
-            var query = _db.Users.AsQueryable();
-
-            if (!string.IsNullOrWhiteSpace(searchKeyword))
-            {
-                var keyword = searchKeyword.Trim().ToLowerInvariant();
-
-                query = query.Where(u =>
-                    u.Email.ToLower().Contains(keyword) ||
-                    u.FullName.ToLower().Contains(keyword));
-            }
-
-            if (accountStatus.HasValue)
-            {
-                query = accountStatus.Value switch
-                {
-                    AccountStatus.Active => query.Where(u => u.IsActive),
-                    AccountStatus.Inactive => query.Where(u => !u.IsActive),
-                    AccountStatus.Suspended => query.Where(u => !u.IsActive),
-                    _ => query
-                };
-            }
-
-            if (userRole.HasValue)
-            {
-                query = query.Where(u => u.Role == userRole.Value);
-            }
-
-            var users = query
-                .OrderBy(u => u.FullName)
-                .Select(u => new UserListItemResponse(
-                    u.Id,
-                    u.Email,
-                    u.FullName,
-                    u.Role,
-                    u.IsActive ? AccountStatus.Active : AccountStatus.Inactive))
-                .ToList();
-
-            return Ok(ResponseDto<object>.SuccessResult(users));
-        }
-
+        /// <summary>
+        /// UC-76: Get user account detail
+        /// </summary>
         [HttpGet("{id:guid}")]
-        public IActionResult GetUserById(Guid id)
+        public async Task<IActionResult> GetUserById(
+            Guid id,
+            CancellationToken cancellationToken = default)
         {
-            var user = _db.Users.FirstOrDefault(u => u.Id == id);
-            if (user == null)
+            var result = await _sender.Send(
+                new GetUserByIdQuery(id),
+                cancellationToken);
+
+            if (!result.Success)
             {
-                return NotFound(ResponseDto<object>.FailResult("USER_NOT_FOUND", "Không tìm thấy tài khoản người dùng."));
+                if (result.ErrorCode == "USER_NOT_FOUND")
+                    return NotFound(result);
+
+                return BadRequest(result);
             }
 
-            var response = new UserManagementResponse(
-                user.Id,
-                user.Email,
-                user.FullName,
-                user.Role,
-                user.IsActive ? AccountStatus.Active : AccountStatus.Inactive);
-
-            return Ok(ResponseDto<object>.SuccessResult(response));
+            return Ok(result);
         }
 
-        [HttpPut("{id:guid}")]
-        public IActionResult UpdateUser([FromRoute] Guid id, [FromBody] ManageUserRequest request)
+        #endregion
+
+        #region UC-77: Update User Status
+
+        /// <summary>
+        /// UC-77: Update user account status (Active/Inactive)
+        /// </summary>
+        [HttpPatch("{id:guid}/status")]
+        public async Task<IActionResult> UpdateUserStatus(
+            Guid id,
+            [FromBody] UpdateUserStatusCommand command,
+            CancellationToken cancellationToken = default)
         {
-            if (!ModelState.IsValid)
-                return ValidationProblem(ModelState);
+            var fullCommand = command with { UserId = id };
 
-            var identity = HttpContext.GetUserIdentity();
-            if (identity == null)
-                return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực thất bại."));
+            var result = await _sender.Send(fullCommand, cancellationToken);
 
-            var targetUserId = request.UserId ?? id;
-            if (targetUserId == Guid.Empty)
-                return BadRequest(ResponseDto<object>.FailResult("INVALID_USER_ID", "User Id không hợp lệ."));
-
-            if (request.UserId.HasValue && request.UserId.Value != id)
-                return BadRequest(ResponseDto<object>.FailResult("INVALID_USER_ID", "User Id không khớp với route."));
-
-            var user = _db.Users.FirstOrDefault(u => u.Id == targetUserId);
-            if (user == null)
-                return NotFound(ResponseDto<object>.FailResult("USER_NOT_FOUND", "Không tìm thấy tài khoản người dùng."));
-
-            if (!Enum.IsDefined(typeof(UserRole), request.UserRole!.Value))
-                return BadRequest(ResponseDto<object>.FailResult("INVALID_ROLE", "Vai trò không hợp lệ."));
-
-            if (identity.UserId == targetUserId && request.UserRole.Value != UserRole.Admin)
+            if (!result.Success)
             {
-                var otherAdmins = _db.Users.Count(u => u.Role == UserRole.Admin && u.Id != targetUserId && u.IsActive);
-                if (otherAdmins == 0)
-                    return BadRequest(ResponseDto<object>.FailResult("CANNOT_REMOVE_SELF_ADMIN", "Không thể gỡ quyền Admin của chính bạn vì hệ thống sẽ không còn Admin nào."));
-            }
+                if (result.ErrorCode == "USER_NOT_FOUND")
+                    return NotFound(result);
 
-            switch (request.AccountStatus!.Value)
-            {
-                case AccountStatus.Active:
-                    user.Activate();
-                    break;
-                case AccountStatus.Inactive:
-                case AccountStatus.Suspended:
-                    user.Deactivate();
-                    break;
-                default:
-                    return BadRequest(ResponseDto<object>.FailResult("INVALID_STATUS", "Trạng thái tài khoản không hợp lệ."));
+                return BadRequest(result);
             }
-
-            var entry = _db.Entry(user);
-            entry.Property("Role").CurrentValue = request.UserRole.Value;
-            user.UpdateTimestamp();
 
             _logger.LogInformation(
-                "Admin {AdminId} managed user {UserId}. Role={Role}, Status={Status}",
-                identity.UserId,
-                user.Id,
-                request.UserRole.Value,
-                request.AccountStatus.Value);
+                "Admin updated user status. UserId: {UserId}, IsActive: {IsActive}",
+                id,
+                command.IsActive);
 
-            _db.SaveChanges();
-
-            var updatedUser = new UserManagementResponse(
-                user.Id,
-                user.Email,
-                user.FullName,
-                user.Role,
-                user.IsActive ? AccountStatus.Active : AccountStatus.Inactive);
-
-            return Ok(ResponseDto<object>.SuccessResult(new
-            {
-                Message = "User updated successfully",
-                User = updatedUser
-            }));
+            return Ok(result);
         }
 
+        #endregion
+
+        #region UC-78: Create Expert Account
+
+        /// <summary>
+        /// UC-78: Create new expert account
+        /// </summary>
         [HttpPost("experts")]
-        public IActionResult CreateExpertAccount([FromBody] CreateExpertAccountRequest request)
+        public async Task<IActionResult> CreateExpertAccount(
+            [FromBody] CreateExpertAccountCommand command,
+            CancellationToken cancellationToken = default)
         {
-            if (!ModelState.IsValid)
-                return ValidationProblem(ModelState);
+            var result = await _sender.Send(command, cancellationToken);
 
-            if (string.IsNullOrWhiteSpace(request.FullName))
-                return BadRequest(ResponseDto<object>.FailResult("INVALID_FULL_NAME", "Họ tên không được để trống."));
-
-            if (string.IsNullOrWhiteSpace(request.Email) || !new EmailAddressAttribute().IsValid(request.Email))
-                return BadRequest(ResponseDto<object>.FailResult("INVALID_EMAIL", "Email không hợp lệ."));
-
-            if (string.IsNullOrWhiteSpace(request.Password))
-                return BadRequest(ResponseDto<object>.FailResult("INVALID_PASSWORD", "Mật khẩu không được để trống."));
-
-            var normalizedEmail = request.Email.Trim().ToLowerInvariant();
-            if (_db.Users.Any(u => u.Email == normalizedEmail))
-                return Conflict(ResponseDto<object>.FailResult("DUPLICATE_EMAIL", "Email đã tồn tại."));
-
-            var passwordHash = _passwordHasher.HashPassword(request.Password);
-            var user = new User(normalizedEmail, request.FullName.Trim(), UserRole.Expert, passwordHash);
-
-            _db.Users.Add(user);
-            _db.SaveChanges();
-
-            var expertProfile = new Expert(user.Id);
-            _db.Experts.Add(expertProfile);
-            _db.SaveChanges();
-
-            return Ok(ResponseDto<object>.SuccessResult(new
+            if (!result.Success)
             {
-                Message = "Expert account created successfully",
-                User = new UserManagementResponse(
-                    user.Id,
-                    user.Email,
-                    user.FullName,
-                    user.Role,
-                    user.IsActive ? AccountStatus.Active : AccountStatus.Inactive)
-            }));
-        }
+                if (result.ErrorCode == "DUPLICATE_EMAIL")
+                    return Conflict(result);
 
-        [HttpPatch("{id:guid}/status")]
-        public IActionResult UpdateUserStatus([FromRoute] Guid id, [FromBody] UpdateUserStatusRequest request)
-        {
-            if (!ModelState.IsValid)
-                return ValidationProblem(ModelState);
+                if (result.ErrorCode == "INVALID_EMAIL" ||
+                    result.ErrorCode == "INVALID_PASSWORD" ||
+                    result.ErrorCode == "INVALID_FULL_NAME")
+                    return BadRequest(result);
 
-            var identity = HttpContext.GetUserIdentity();
-            if (identity == null)
-                return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực thất bại."));
-
-            if (id == Guid.Empty)
-                return BadRequest(ResponseDto<object>.FailResult("INVALID_USER_ID", "User Id không hợp lệ."));
-
-            var user = _db.Users.FirstOrDefault(u => u.Id == id);
-            if (user == null)
-                return NotFound(ResponseDto<object>.FailResult("USER_NOT_FOUND", "Không tìm thấy tài khoản người dùng."));
-
-            if (identity.UserId == id && request.AccountStatus == AccountStatus.Inactive)
-            {
-                var otherAdmins = _db.Users.Count(u => u.Role == UserRole.Admin && u.Id != id && u.IsActive);
-                if (otherAdmins == 0)
-                    return BadRequest(ResponseDto<object>.FailResult("CANNOT_DEACTIVATE_SELF_ADMIN", "Không thể vô hiệu hóa tài khoản Admin của chính bạn."));
+                return BadRequest(result);
             }
 
-            switch (request.AccountStatus)
-            {
-                case AccountStatus.Active:
-                    user.Activate();
-                    break;
-                case AccountStatus.Inactive:
-                    user.Deactivate();
-                    break;
-                default:
-                    return BadRequest(ResponseDto<object>.FailResult("INVALID_STATUS", "Trạng thái tài khoản không hợp lệ."));
-            }
+            _logger.LogInformation(
+                "Admin created expert account. UserId: {UserId}, Email: {Email}",
+                result.Data?.Id,
+                command.Email);
 
-            _db.SaveChanges();
-
-            return Ok(ResponseDto<object>.SuccessResult(new
-            {
-                Message = "User status updated successfully",
-                User = new UserManagementResponse(
-                    user.Id,
-                    user.Email,
-                    user.FullName,
-                    user.Role,
-                    user.IsActive ? AccountStatus.Active : AccountStatus.Inactive)
-            }));
+            return Ok(result);
         }
 
+        #endregion
+
+        #region Helper APIs
+
+        /// <summary>
+        /// Get list of available roles for filter
+        /// </summary>
         [HttpGet("roles")]
-        public IActionResult GetRoles()
+        public async Task<IActionResult> GetRoles(CancellationToken cancellationToken = default)
         {
-            var roles = Enum.GetValues<UserRole>()
-                .Select(role => new { Value = (int)role, Name = role.ToString() })
-                .ToList();
-
-            return Ok(ResponseDto<object>.SuccessResult(roles));
+            var result = await _sender.Send(new GetRolesQuery(), cancellationToken);
+            return Ok(result);
         }
+
+        #endregion
     }
 }
