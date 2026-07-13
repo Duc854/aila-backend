@@ -76,5 +76,25 @@ namespace AILA.Domain.Entities
             IsPublished = true;
             UpdateTimestamp();
         }
+
+        public void UpdateSystemTag(string name, string code)
+        {
+            if (CreatedById != null)
+                throw new InvalidOperationException(
+                    "Chỉ System Tag mới được cập nhật.");
+
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException(
+                    "Tên tag không được để trống.");
+
+            if (string.IsNullOrWhiteSpace(code))
+                throw new ArgumentException(
+                    "Code tag không được để trống.");
+
+            Name = name.Trim();
+            Code = code.Trim().ToLower().Replace(" ", "-");
+
+            UpdateTimestamp();
+        }
     }
 }
