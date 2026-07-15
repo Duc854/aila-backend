@@ -137,6 +137,36 @@ namespace AILA.Api.Controllers
             var exists = await _sender.Send(new CheckTagCodeQuery(code), ct);
             return Ok(ResponseDto<bool>.SuccessResult(exists));
         }
+
+        /// <summary>
+        /// Expert xóa tag do mình tạo, chưa được publish và không đang được gán vào khóa học nào.
+        /// </summary>
+        [HttpDelete("{tagId}")]
+        [Authorize(Roles = "Expert")]
+        public async Task<IActionResult> DeleteCustomTag(
+            Guid tagId,
+            CancellationToken ct)
+        {
+            var identity = HttpContext.GetUserIdentity();
+            if (identity is null)
+                return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực người dùng thất bại."));
+
+            try
+            {
+                var command = new DeleteCustomTagCommand(tagId, identity.UserId);
+                var result = await _sender.Send(command, ct);
+                return Ok(result);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden,
+                    ResponseDto<object>.FailResult("FORBIDDEN", ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ResponseDto<object>.FailResult("DELETE_TAG_FAILED", ex.Message));
+            }
+        }
     }
 
     // Request models
