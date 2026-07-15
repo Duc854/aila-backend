@@ -11,12 +11,13 @@ namespace AILA.Infrastructure.Persistence.Repositories
         {
         }
 
-        public async Task<bool> HasPendingCourseReportAsync(Guid learnerId, Guid courseId, CancellationToken cancellationToken = default)
+        public async Task<bool> HasPendingReportAsync(Guid learnerId, Guid? courseId, Guid? materialId, CancellationToken cancellationToken = default)
         {
             return await _context.Set<ContentReport>()
                 .AsNoTracking()
                 .AnyAsync(r => r.LearnerId == learnerId
                                && r.CourseId == courseId
+                               && r.MaterialId == materialId
                                && r.Status == ReportStatus.Pending,
                     cancellationToken);
         }
