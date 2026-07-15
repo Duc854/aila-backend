@@ -44,8 +44,7 @@ namespace AILA.Api.Controllers
             return Ok(ResponseDto<object>.SuccessResult(result));
         }
 
-        
-        /// Expert tạo tag tùy chỉnh. Tag sẽ ở trạng thái chưa duyệt (IsPublished = false).       
+        /// Expert tạo tag tùy chỉnh. Tag sẽ ở trạng thái chưa duyệt (IsPublished = false).
         [HttpPost("custom")]
         [Authorize(Roles = "Expert")]
         public async Task<IActionResult> CreateCustomTag(
@@ -68,7 +67,6 @@ namespace AILA.Api.Controllers
             }
         }
 
-        
         /// Expert gửi yêu cầu xét duyệt (publish) một tag do mình tạo.
         [HttpPost("{tagId}/request-verification")]
         [Authorize(Roles = "Expert")]
@@ -96,6 +94,48 @@ namespace AILA.Api.Controllers
             {
                 return BadRequest(ResponseDto<object>.FailResult("REQUEST_FAILED", ex.Message));
             }
+        }
+
+        /// Expert hủy yêu cầu xét duyệt đang Pending của một tag do mình tạo.
+        [HttpDelete("{tagId}/publish-request")]
+        [Authorize(Roles = "Expert")]
+        public async Task<IActionResult> DeletePublishRequest(
+            Guid tagId,
+            CancellationToken ct)
+        {
+            var identity = HttpContext.GetUserIdentity();
+            if (identity is null)
+                return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực người dùng thất bại."));
+
+            try
+            {
+                var command = new DeleteTagPublishRequestCommand(tagId, identity.UserId);
+                var result = await _sender.Send(command, ct);
+                return Ok(ResponseDto<ExpertTagDto>.SuccessResult(result));
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden,
+                    ResponseDto<object>.FailResult("FORBIDDEN", ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ResponseDto<object>.FailResult("DELETE_REQUEST_FAILED", ex.Message));
+            }
+        }
+
+        /// Kiểm tra code tag đã tồn tại trong hệ thống chưa.      
+        [HttpGet("check-code")]
+        [Authorize(Roles = "Expert")]
+        public async Task<IActionResult> CheckCode(
+            [FromQuery] string code,
+            CancellationToken ct)
+        {
+            if (string.IsNullOrWhiteSpace(code))
+                return BadRequest(ResponseDto<object>.FailResult("INVALID_CODE", "Code tag không được để trống."));
+
+            var exists = await _sender.Send(new CheckTagCodeQuery(code), ct);
+            return Ok(ResponseDto<bool>.SuccessResult(exists));
         }
     }
 
