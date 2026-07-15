@@ -21,7 +21,6 @@ namespace AILA.Infrastructure.Persistence.Repositories
                 .Include(m => m.Materials)
                 .Where(m => m.CourseId == courseId)
                 .OrderBy(m => m.OrderIndex)
-                .AsNoTracking()
                 .ToListAsync(ct);
         }
 
