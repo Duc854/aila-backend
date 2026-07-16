@@ -27,7 +27,7 @@ namespace AILA.Application.Features.Reports.Commands.ReportCourse
                 return ResponseDto<ReportCourseResponseDto>.FailResult(
                     "VALIDATION_ERROR", $"Mô tả không được vượt quá {MaxDescriptionLength} ký tự.");
 
-            // Khóa học phải tồn tại.
+            // Khóa học phải tồn tại (dù báo cáo cả khóa hay một học liệu, đều đi qua route khóa học này).
             var course = await uow.Courses.GetByIdAsync(request.CourseId);
             if (course == null)
                 return ResponseDto<ReportCourseResponseDto>.FailResult(
@@ -39,14 +39,36 @@ namespace AILA.Application.Features.Reports.Commands.ReportCourse
                 return ResponseDto<ReportCourseResponseDto>.FailResult(
                     "NOT_ENROLLED", "Bạn cần tham gia khóa học này trước khi báo cáo.");
 
-            // Edge case: chống nộp trùng — đã có báo cáo đang chờ xử lý cho cùng khóa học.
-            if (await uow.ContentReports.HasPendingCourseReportAsync(request.LearnerId, request.CourseId, ct))
-                return ResponseDto<ReportCourseResponseDto>.FailResult(
-                    "ALREADY_REPORTED", "Bạn đã báo cáo khóa học này và đang chờ xử lý.");
+            // Xác định đối tượng bị báo cáo: một học liệu cụ thể (nếu có MaterialId) hoặc cả khóa học.
+            // ContentReport chỉ gắn với đúng một đối tượng (XOR) nên chỉ một trong hai ID được set.
+            Guid? reportCourseId;
+            Guid? reportMaterialId;
+            if (request.MaterialId is { } materialId)
+            {
+                // Học liệu phải tồn tại và thuộc đúng khóa học đang báo cáo.
+                if (!await uow.Materials.IsMaterialInCourseAsync(materialId, request.CourseId, ct))
+                    return ResponseDto<ReportCourseResponseDto>.FailResult(
+                        "MATERIAL_NOT_FOUND", "Không tìm thấy học liệu trong khóa học này.");
 
-            // AC-3 / AC-4: tạo report ở trạng thái Pending (moderation queue) gắn với khóa học.
-            // materialId = null vì đây là báo cáo cấp khóa học.
-            var report = new ContentReport(request.LearnerId, request.CourseId, null, request.Reason, description);
+                reportCourseId = null;
+                reportMaterialId = materialId;
+            }
+            else
+            {
+                reportCourseId = request.CourseId;
+                reportMaterialId = null;
+            }
+
+            // Edge case: chống nộp trùng — đã có báo cáo đang chờ xử lý cho cùng đối tượng.
+            if (await uow.ContentReports.HasPendingReportAsync(request.LearnerId, reportCourseId, reportMaterialId, ct))
+                return ResponseDto<ReportCourseResponseDto>.FailResult(
+                    "ALREADY_REPORTED",
+                    reportMaterialId != null
+                        ? "Bạn đã báo cáo học liệu này và đang chờ xử lý."
+                        : "Bạn đã báo cáo khóa học này và đang chờ xử lý.");
+
+            // AC-3 / AC-4: tạo report ở trạng thái Pending (moderation queue).
+            var report = new ContentReport(request.LearnerId, reportCourseId, reportMaterialId, request.Reason, description);
 
             await uow.ContentReports.AddAsync(report);
             await uow.SaveChangesAsync(ct);

@@ -53,7 +53,7 @@ namespace AILA.Api.Controllers
                     "VALIDATION_ERROR", "Nội dung báo cáo không được để trống."));
 
             var command = new ReportCourseCommand(
-                courseId, identity.UserId, request.Reason, request.Description);
+                courseId, request.MaterialId, identity.UserId, request.Reason, request.Description);
 
             var result = await _sender.Send(command, ct);
 
@@ -63,6 +63,7 @@ namespace AILA.Api.Controllers
         private IActionResult MapError<T>(string? errorCode, ResponseDto<T> result) => errorCode switch
         {
             "COURSE_NOT_FOUND" => NotFound(result),
+            "MATERIAL_NOT_FOUND" => NotFound(result),
             "NOT_ENROLLED" => StatusCode(StatusCodes.Status403Forbidden, result),
             "ALREADY_REPORTED" => Conflict(result),
             "INVALID_REASON" => BadRequest(result),
