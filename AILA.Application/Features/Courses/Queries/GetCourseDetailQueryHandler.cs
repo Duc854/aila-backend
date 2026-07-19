@@ -31,7 +31,6 @@ namespace AILA.Application.Features.Courses.Queries
                     Title = m.Title,
                     Description = m.Description,
                     OrderIndex = m.OrderIndex,
-                    IsPublished = m.IsPublished,
                     Materials = m.Materials
                         .OrderBy(mat => mat.OrderIndex)
                         .Select(mat => new MaterialDetailDto
