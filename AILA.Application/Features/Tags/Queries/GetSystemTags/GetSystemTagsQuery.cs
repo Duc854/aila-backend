@@ -13,5 +13,5 @@ namespace AILA.Application.Features.Tags.Queries.GetSystemTags
 {
     public record GetSystemTagsQuery(
         string? SearchKeyword = null
-    ) : IRequest<ResponseDto<List<TagDto>>>;
+    ) : IRequest<ResponseDto<List<SystemTagDto>>>;
 }

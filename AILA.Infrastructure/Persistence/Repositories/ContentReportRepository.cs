@@ -58,11 +58,12 @@ namespace AILA.Infrastructure.Persistence.Repositories
             CancellationToken cancellationToken = default)
         {
             return await _context.Set<ContentReport>()
-                .AsNoTracking()
-                .Include(r => r.Learner)
-                .Include(r => r.Course)
-                .Include(r => r.Material)
-                .FirstOrDefaultAsync(r => r.Id == reportId, cancellationToken);
+             .AsNoTracking()
+             .Include(r => r.Learner)
+             .ThenInclude(l => l.User)
+             .Include(r => r.Course)
+             .Include(r => r.Material)
+             .FirstOrDefaultAsync(r => r.Id == reportId, cancellationToken);
         }
     }
 }

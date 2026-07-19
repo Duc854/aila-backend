@@ -24,16 +24,19 @@ namespace AILA.Application.Features.Reports.Queries.GetReportById
             }
 
             var dto = new ReportDetailDto(
-                report.Id,
-                report.LearnerId,
-                report.CourseId,
-                report.MaterialId,
-                report.ReportType,
-                report.Description,
-                report.Status,
-                report.CreatedAt,
-                report.ResolvedAt
-            );
+              report.Id,
+              report.LearnerId,
+              report.Learner.User.FullName,
+              report.CourseId,
+              report.Course?.Name,
+              report.MaterialId,
+              report.Material?.Title,
+              report.ReportType,
+              report.Description,
+              report.Status,
+              report.CreatedAt,
+              report.ResolvedAt
+          );
 
             return ResponseDto<ReportDetailDto>.SuccessResult(dto);
         }

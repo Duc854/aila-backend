@@ -1,12 +1,13 @@
-﻿using System;
+﻿using AILA.Application.Common.Interfaces;
+using AILA.Application.Features.Tags.Dtos;
+using AILA.Domain.Entities;
+using MediatR;
+using Shared.Wrappers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AILA.Application.Common.Interfaces;
-using AILA.Application.Features.Tags.Dtos;
-using MediatR;
-using Shared.Wrappers;
 
 namespace AILA.Application.Features.Tags.Queries.GetPendingTagDetail
 {
@@ -14,11 +15,10 @@ namespace AILA.Application.Features.Tags.Queries.GetPendingTagDetail
         : IRequestHandler<GetPendingTagDetailQuery, ResponseDto<TagDto>>
     {
         public async Task<ResponseDto<TagDto>> Handle(
-            GetPendingTagDetailQuery request,
-            CancellationToken ct)
+      GetPendingTagDetailQuery request,
+      CancellationToken ct)
         {
-            var tag = await uow.Tags.GetByIdAsync(request.TagId);
-
+            var tag = await uow.Tags.GetVerificationRequestByIdAsync(request.TagId, ct);
 
             if (tag == null)
             {
@@ -27,22 +27,12 @@ namespace AILA.Application.Features.Tags.Queries.GetPendingTagDetail
                     "Không tìm thấy tag.");
             }
 
+            User? user = null;
 
-            if (tag.IsPublished)
+            if (tag.CreatedById.HasValue)
             {
-                return ResponseDto<TagDto>.FailResult(
-                    "NOT_PENDING",
-                    "Tag không ở trạng thái chờ duyệt.");
+                user = await uow.Users.GetByIdAsync(tag.CreatedById.Value);
             }
-
-
-            if (tag.PublishRequest == null)
-            {
-                return ResponseDto<TagDto>.FailResult(
-                    "NO_REQUEST",
-                    "Tag chưa có yêu cầu xuất bản.");
-            }
-
 
             var result = new TagDto
             {
@@ -51,13 +41,17 @@ namespace AILA.Application.Features.Tags.Queries.GetPendingTagDetail
                 Code = tag.Code,
                 IsPublished = tag.IsPublished,
                 CreatedById = tag.CreatedById,
+
+                SubmittedBy = user?.FullName,
+                RequestStatus = tag.PublishRequest?.Status,
+                SubmittedAt = tag.PublishRequest?.CreatedAt,
+                Note = tag.PublishRequest?.Note,
+
                 Source = "Expert",
                 UsageCount = 0
             };
 
-
-            return ResponseDto<TagDto>
-                .SuccessResult(result);
+            return ResponseDto<TagDto>.SuccessResult(result);
         }
     }
 }
