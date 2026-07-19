@@ -40,47 +40,32 @@ namespace AILA.Application.Features.Tags.Commands
             // 5. Tạo TagPublishRequest mới và add trực tiếp vào repository.
             // Không dùng domain method Tag.CreatePublishRequest() vì navigation property
             // có UsePropertyAccessMode.Property khiến EF Core không track được thay đổi.
-            var publishRequest = new TagPublishRequest(tag.Id, request.Note);
-            await _uow.Repository<TagPublishRequest>().AddAsync(publishRequest);
+            //var publishRequest = new TagPublishRequest(tag.Id,Guid.NewGuid, request.Note);
+            //await _uow.Repository<TagPublishRequest>().AddAsync(publishRequest);
 
             // 6. Cập nhật UpdatedAt trên Tag
             tag.UpdateTimestamp();
 
             await _uow.SaveChangesAsync(cancellationToken);
 
-            return new ExpertTagDto
-            {
-                Id          = tag.Id,
-                Name        = tag.Name,
-                Code        = tag.Code,
-                IsPublished = tag.IsPublished,
-                CreatedAt   = tag.CreatedAt,
-                PublishRequest = new TagPublishRequestDto
-                {
-                    Id         = publishRequest.Id,
-                    Status     = publishRequest.Status.ToString(),
-                    Note       = publishRequest.Note,
-                    CreatedAt  = publishRequest.CreatedAt,
-                    ReviewedAt = publishRequest.ReviewedAt
-                }
-            };
+            return new ExpertTagDto();
         }
 
-        private static ExpertTagDto MapToDto(Domain.Entities.Tag tag) => new()
-        {
-            Id          = tag.Id,
-            Name        = tag.Name,
-            Code        = tag.Code,
-            IsPublished = tag.IsPublished,
-            CreatedAt   = tag.CreatedAt,
-            PublishRequest = tag.PublishRequest is null ? null : new TagPublishRequestDto
-            {
-                Id         = tag.PublishRequest.Id,
-                Status     = tag.PublishRequest.Status.ToString(),
-                Note       = tag.PublishRequest.Note,
-                CreatedAt  = tag.PublishRequest.CreatedAt,
-                ReviewedAt = tag.PublishRequest.ReviewedAt
-            }
-        };
+        //private static ExpertTagDto MapToDto(Domain.Entities.Tag tag) => new()
+        //{
+        //    Id          = tag.Id,
+        //    Name        = tag.Name,
+        //    Code        = tag.Code,
+        //    IsPublished = tag.IsPublished,
+        //    CreatedAt   = tag.CreatedAt,
+        //    PublishRequest = tag.PublishRequest is null ? null : new TagPublishRequestDto
+        //    {
+        //        Id         = tag.PublishRequest.Id,
+        //        Status     = tag.PublishRequest.Status.ToString(),
+        //        Note       = tag.PublishRequest.Note,
+        //        CreatedAt  = tag.PublishRequest.CreatedAt,
+        //        ReviewedAt = tag.PublishRequest.ReviewedAt
+        //    }
+        //};
     }
 }

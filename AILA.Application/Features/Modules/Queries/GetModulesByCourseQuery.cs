@@ -42,7 +42,6 @@ namespace AILA.Application.Features.Modules.Queries
                 Title         = m.Title,
                 Description   = m.Description,
                 OrderIndex    = m.OrderIndex,
-                IsPublished   = m.IsPublished,
                 CreatedAt     = m.CreatedAt,
                 UpdatedAt     = m.UpdatedAt,
                 MaterialCount = m.Materials.Count,

@@ -31,7 +31,6 @@ namespace AILA.Application.Features.Tags.Queries
                 {
                     Id         = t.PublishRequest.Id,
                     Status     = t.PublishRequest.Status.ToString(),
-                    Note       = t.PublishRequest.Note,
                     CreatedAt  = t.PublishRequest.CreatedAt,
                     ReviewedAt = t.PublishRequest.ReviewedAt
                 }
