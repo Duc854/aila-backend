@@ -81,13 +81,6 @@ namespace AILA.Domain.Entities
         {
             if (tags == null) throw new ArgumentNullException(nameof(tags));
 
-            // Domain Rule đã thống nhất: Expert chỉ được dùng Tag hệ thống (Published) hoặc Tag do chính họ tự tạo
-            var invalidTags = tags.Where(t => !t.IsPublished && t.CreatedById != ExpertId).ToList();
-            if (invalidTags.Any())
-            {
-                throw new InvalidOperationException("Không thể gắn các tag chưa được duyệt của người khác vào khóa học của bạn.");
-            }
-
             _courseTags.Clear();
             _courseTags.AddRange(tags);
             UpdateTimestamp();
