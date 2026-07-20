@@ -11,7 +11,6 @@ namespace AILA.Infrastructure.Persistence.Repositories
         /// <summary>
         /// Lấy tất cả Module của Course, kèm Materials để tính MaterialCount.
         /// Sắp xếp theo OrderIndex tăng dần.
-        /// AsNoTracking vì đây là query đọc thuần túy.
         /// </summary>
         public async Task<List<Module>> GetByCourseIdAsync(
             Guid courseId,
