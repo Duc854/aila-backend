@@ -66,5 +66,48 @@ namespace AILA.Infrastructure.Persistence.Repositories
 
             return (items, totalCount);
         }
+
+        public async Task<bool> ExistsSlugAsync(
+            string slug,
+            Guid? excludeId = null,
+            CancellationToken ct = default)
+        {
+            slug = slug.Trim().ToLower();
+
+            return await _context.BlogPosts.AnyAsync(
+                b =>
+                    b.Slug == slug &&
+                    (!excludeId.HasValue || b.Id != excludeId.Value),
+                ct);
+        }
+
+        public async Task<(IEnumerable<BlogPost> Items, int TotalCount)> GetPagedAdminBlogsAsync(
+            string? search,
+            int pageNumber,
+            int pageSize,
+            CancellationToken cancellationToken)
+        {
+            var query = _context.BlogPosts
+                .AsNoTracking();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var keyword = search.Trim().ToLower();
+
+                query = query.Where(b =>
+                    b.Title.ToLower().Contains(keyword) ||
+                    b.Content.ToLower().Contains(keyword));
+            }
+
+            var totalCount = await query.CountAsync(cancellationToken);
+
+            var items = await query
+                .OrderByDescending(x => x.CreatedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken);
+
+            return (items, totalCount);
+        }
     }
 }
