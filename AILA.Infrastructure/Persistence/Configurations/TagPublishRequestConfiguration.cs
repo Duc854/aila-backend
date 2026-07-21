@@ -14,10 +14,20 @@ namespace AILA.Infrastructure.Persistence.Configurations
     {
         public void Configure(EntityTypeBuilder<TagPublishRequest> builder)
         {
-
             builder.HasKey(x => x.Id);
 
-            builder.Property(x => x.Note)
+            builder.HasOne(x => x.RequestedBy)
+                   .WithMany()
+                   .HasForeignKey(x => x.RequestedById)
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Property(x => x.RequestedById)
+                   .IsRequired();
+
+            builder.Property(x => x.RequestNote)
+                   .HasMaxLength(1000);
+
+            builder.Property(x => x.ReviewComment)
                    .HasMaxLength(1000);
 
             builder.Property(x => x.Status)
@@ -25,9 +35,6 @@ namespace AILA.Infrastructure.Persistence.Configurations
                    .HasMaxLength(20);
 
             builder.Property(x => x.ReviewedAt);
-
-            builder.Property(x => x.CreatedAt)
-                   .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             builder.HasIndex(x => x.TagId)
                    .IsUnique();

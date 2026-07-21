@@ -49,15 +49,41 @@ public sealed class ReorderQuestionsCommandHandler
 
         var map = questions.ToDictionary(x => x.Id);
 
-        foreach (var item in request.Items)
+        await _uow.BeginTransactionAsync(ct);
+        try
         {
-            if (map.TryGetValue(item.QuestionId, out var question))
-            {
-                question.ChangeOrder(item.NewOrderIndex);
-            }
-        }
+            // Pha 1: đẩy toàn bộ OrderIndex đang bị đổi sang dải tạm
+            // (không trùng với bất kỳ OrderIndex hiện có nào trong quiz này)
+            // để giải phóng chỗ trước khi gán giá trị thật.
+            const int tempOffset = 1_000_000;
 
-        await _uow.SaveChangesAsync(ct);
+            foreach (var item in request.Items)
+            {
+                if (map.TryGetValue(item.QuestionId, out var question))
+                {
+                    question.ChangeOrder(question.OrderIndex + tempOffset);
+                }
+            }
+
+            await _uow.SaveChangesAsync(ct);
+
+            // Pha 2: gán OrderIndex thật theo yêu cầu.
+            foreach (var item in request.Items)
+            {
+                if (map.TryGetValue(item.QuestionId, out var question))
+                {
+                    question.ChangeOrder(item.NewOrderIndex);
+                }
+            }
+
+            await _uow.SaveChangesAsync(ct);
+            await _uow.CommitTransactionAsync(ct);
+        }
+        catch
+        {
+            await _uow.RollbackTransactionAsync(ct);
+            throw;
+        }
 
         return ResponseDto<object>
             .SuccessResult(null!);

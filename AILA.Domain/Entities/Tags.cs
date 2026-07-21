@@ -12,8 +12,17 @@ namespace AILA.Domain.Entities
     {
         public string Name { get; private set; }
         public string Code { get; private set; }
+
+        /// <summary>
+        /// Chỉ Recommendation, Search và Taxonomy sử dụng các Tag đã publish.
+        /// </summary>
         public bool IsPublished { get; private set; }
-        public Guid? CreatedById { get; private set; } // Null nếu do Hệ thống/Admin tạo, có giá trị nếu do Expert tạo
+
+        /// <summary>
+        /// Null nếu là System Tag.
+        /// Có giá trị nếu là Custom Tag do Expert tạo.
+        /// </summary>
+        public Guid? CreatedById { get; private set; }
 
         public virtual TagPublishRequest? PublishRequest { get; private set; }
 
@@ -28,7 +37,8 @@ namespace AILA.Domain.Entities
 
             Id = Guid.NewGuid();
             Name = name.Trim();
-            Code = code.Trim().ToLower().Replace(" ", "-"); // Chuẩn hóa dạng slug nếu cần
+            Code = NormalizeCode(code);
+
             IsPublished = isPublished;
             CreatedById = createdById;
         }
@@ -52,28 +62,24 @@ namespace AILA.Domain.Entities
             return new Tag(name, code, isPublished: true, createdById: null);
         }
 
-        public void CreatePublishRequest(string? note)
+        private static string NormalizeCode(string code)
         {
-            if (IsPublished)
-                throw new InvalidOperationException("Tag đã được xuất bản.");
-
-            if (PublishRequest != null &&
-                PublishRequest.Status == TagPublishRequestStatus.Pending)
-                throw new InvalidOperationException("Đã tồn tại yêu cầu chờ duyệt.");
-
-            PublishRequest = new TagPublishRequest(Id, note);
-
-            UpdateTimestamp();
+            return code
+                .Trim()
+                .ToLowerInvariant()
+                .Replace(" ", "-");
         }
 
         /// <summary>
-        /// Admin duyệt các Tag do Expert đề xuất
+        /// Được gọi sau khi có Publish Request được duyệt.
         /// </summary>
         public void Publish()
         {
-            if (IsPublished) return; // Đã duyệt rồi thì bỏ qua
+            if (IsPublished)
+                return;
 
             IsPublished = true;
+
             UpdateTimestamp();
         }
 

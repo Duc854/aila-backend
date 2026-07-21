@@ -138,22 +138,28 @@ namespace AILA.Application.Features.Quizzes.Commands.SubmitQuiz
 
                 // attempt được nạp ở chế độ tracking nên thay đổi (Score/Status) và các
                 // QuizAnswer mới thêm sẽ được EF lưu khi commit — không cần gọi Update tường minh.
+                // Luôn đánh dấu đã nộp, kể cả khi trượt.
                 attempt.Submit(score, isPassed);
 
-                // Cập nhật tiến độ khóa học (idempotent), giống luồng đánh dấu hoàn thành học liệu.
-                var progress = await _uow.LearningProgresses.GetByCompositeKeyAsync(
-                    enrollment.Id, request.MaterialId, cancellationToken);
-                if (progress == null)
+                // CHỈ đánh dấu học liệu hoàn thành & cộng tiến độ khi ĐẠT (score >= passingScore).
+                // Trượt: attempt vẫn Submitted nhưng KHÔNG hoàn thành học liệu, KHÔNG đổi tiến độ.
+                if (isPassed)
                 {
-                    progress = new LearningProgress(enrollment.Id, request.MaterialId);
-                    await _uow.LearningProgresses.AddAsync(progress, cancellationToken);
-                }
+                    var progress = await _uow.LearningProgresses.GetByCompositeKeyAsync(
+                        enrollment.Id, request.MaterialId, cancellationToken);
+                    if (progress == null)
+                    {
+                        progress = new LearningProgress(enrollment.Id, request.MaterialId);
+                        await _uow.LearningProgresses.AddAsync(progress, cancellationToken);
+                    }
 
-                if (!progress.IsCompleted)
-                {
-                    progress.Complete();
-                    enrollment.CompleteMaterial();
-                    _uow.Enrollments.Update(enrollment);
+                    // Idempotent: chỉ cộng tiến độ lần đầu học liệu này được hoàn thành.
+                    if (!progress.IsCompleted)
+                    {
+                        progress.Complete();
+                        enrollment.CompleteMaterial();
+                        _uow.Enrollments.Update(enrollment);
+                    }
                 }
 
                 await _uow.CommitTransactionAsync(cancellationToken);

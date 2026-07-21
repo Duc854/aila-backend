@@ -140,9 +140,6 @@ namespace AILA.Application.Features.Modules.Commands
             if (module.Course.ExpertId != request.ExpertId)
                 return ResponseDto<ModuleDto>.FailResult("FORBIDDEN", "Bạn không có quyền thay đổi trạng thái chương học này.");
 
-            if (request.Publish) module.Publish();
-            else                 module.Unpublish();
-
             await _uow.SaveChangesAsync(ct);
 
             return ResponseDto<ModuleDto>.SuccessResult(ModuleMapper.MapToDto(module));
@@ -201,7 +198,6 @@ namespace AILA.Application.Features.Modules.Commands
             Title         = m.Title,
             Description   = m.Description,
             OrderIndex    = m.OrderIndex,
-            IsPublished   = m.IsPublished,
             CreatedAt     = m.CreatedAt,
             UpdatedAt     = m.UpdatedAt,
             MaterialCount = m.Materials.Count,

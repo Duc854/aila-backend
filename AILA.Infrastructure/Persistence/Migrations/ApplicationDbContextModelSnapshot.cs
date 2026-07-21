@@ -207,7 +207,7 @@ namespace AILA.Infrastructure.Persistence.Migrations
                     b.HasIndex("LearnerId", "CourseId", "MaterialId")
                         .IsUnique();
 
-                    b.ToTable("ContentReport", t =>
+                    b.ToTable("ContentReport", null, t =>
                         {
                             t.HasCheckConstraint("CK_ContentReport_Target", "(\r\n                    (\"CourseId\" IS NOT NULL AND \"MaterialId\" IS NULL)\r\n                    OR\r\n                    (\"CourseId\" IS NULL AND \"MaterialId\" IS NOT NULL)\r\n                )");
                         });
@@ -234,6 +234,9 @@ namespace AILA.Infrastructure.Persistence.Migrations
 
                     b.Property<Guid>("ExpertId")
                         .HasColumnType("uuid");
+
+                    b.Property<bool>("IsPublicationLocked")
+                        .HasColumnType("boolean");
 
                     b.Property<bool>("IsPublished")
                         .HasColumnType("boolean");
@@ -455,9 +458,6 @@ namespace AILA.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Description")
                         .HasColumnType("text");
-
-                    b.Property<bool>("IsPublished")
-                        .HasColumnType("boolean");
 
                     b.Property<int>("OrderIndex")
                         .HasColumnType("integer");
@@ -769,11 +769,16 @@ namespace AILA.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                        .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Note")
+                    b.Property<string>("RequestNote")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<Guid>("RequestedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ReviewComment")
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
 
@@ -792,6 +797,8 @@ namespace AILA.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("RequestedById");
 
                     b.HasIndex("TagId")
                         .IsUnique();
@@ -1212,11 +1219,19 @@ namespace AILA.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("AILA.Domain.Entities.TagPublishRequest", b =>
                 {
+                    b.HasOne("AILA.Domain.Entities.User", "RequestedBy")
+                        .WithMany()
+                        .HasForeignKey("RequestedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("AILA.Domain.Entities.Tag", "Tag")
                         .WithOne("PublishRequest")
                         .HasForeignKey("AILA.Domain.Entities.TagPublishRequest", "TagId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("RequestedBy");
 
                     b.Navigation("Tag");
                 });
@@ -1333,6 +1348,7 @@ namespace AILA.Infrastructure.Persistence.Migrations
 
                     b.Navigation("UserTokens");
                 });
+#pragma warning restore 612, 618
         }
     }
 }
