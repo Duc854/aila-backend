@@ -69,7 +69,7 @@ namespace AILA.Application.Features.Tags.Commands.ReviewTagVerifications
                             "MISSING_REJECTION_REASON",
                             "Lý do từ chối là bắt buộc.");
                     }
-                    tag.PublishRequest.Reject(request.Note);
+                    tag.PublishRequest.Reject(request.Note!);
                     break;
 
                 default:
