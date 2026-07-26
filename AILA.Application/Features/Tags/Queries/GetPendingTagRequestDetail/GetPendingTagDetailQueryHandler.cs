@@ -45,7 +45,7 @@ namespace AILA.Application.Features.Tags.Queries.GetPendingTagDetail
                 SubmittedBy = user?.FullName,
                 RequestStatus = tag.PublishRequest?.Status,
                 SubmittedAt = tag.PublishRequest?.CreatedAt,
-                Note = tag.PublishRequest?.Note,
+                Note = tag.PublishRequest?.RequestNote,
 
                 Source = "Expert",
                 UsageCount = 0

@@ -1,4 +1,4 @@
-﻿using AILA.Domain.Common;
+using AILA.Domain.Common;
 using AILA.Domain.Enums;
 using System;
 using System.Collections.Generic;
@@ -33,33 +33,88 @@ namespace AILA.Domain.Entities
 
         private ContentReport() { }
 
-        public ContentReport(
+        // ✅ Factory Method - Create Course Report
+        public static ContentReport CreateCourseReport(
             Guid learnerId,
-            Guid? courseId,
-            Guid? materialId,
+            Guid courseId,
             ReportType reportType,
             string? description)
         {
+            // Validate
             if (learnerId == Guid.Empty)
                 throw new ArgumentException("Người báo cáo không hợp lệ.");
 
-            if (courseId == null && materialId == null)
-                throw new ArgumentException("Báo cáo phải thuộc một khóa học hoặc một học liệu.");
+            if (courseId == Guid.Empty)
+                throw new ArgumentException("Course ID không hợp lệ.");
 
-            if (courseId != null && materialId != null)
-                throw new ArgumentException("Chỉ được báo cáo một đối tượng mỗi lần.");
+            if (!Enum.IsDefined(typeof(ReportType), reportType))
+                throw new ArgumentException("Loại báo cáo không hợp lệ.");
 
-            Id = Guid.NewGuid();
+            if (description?.Length > 1000)
+                throw new ArgumentException("Mô tả không được vượt quá 1000 ký tự.");
 
-            LearnerId = learnerId;
-            CourseId = courseId;
-            MaterialId = materialId;
-            ReportType = reportType;
-            Description = description?.Trim();
-
-            Status = ReportStatus.Pending;
+            return new ContentReport
+            {
+                Id = Guid.NewGuid(),
+                LearnerId = learnerId,
+                CourseId = courseId,
+                MaterialId = null,
+                ReportType = reportType,
+                Description = description?.Trim(),
+                Status = ReportStatus.Pending,
+                ResolvedAt = DateTime.UtcNow
+            };
         }
 
+        // ✅ Factory Method - Create Material Report
+        public static ContentReport CreateMaterialReport(
+            Guid learnerId,
+            Guid courseId,
+            Guid materialId,
+            ReportType reportType,
+            string? description)
+        {
+            // Validate
+            if (learnerId == Guid.Empty)
+                throw new ArgumentException("Người báo cáo không hợp lệ.");
+
+            if (courseId == Guid.Empty)
+                throw new ArgumentException("Course ID không hợp lệ.");
+
+            if (materialId == Guid.Empty)
+                throw new ArgumentException("Material ID không hợp lệ.");
+
+            if (!Enum.IsDefined(typeof(ReportType), reportType))
+                throw new ArgumentException("Loại báo cáo không hợp lệ.");
+
+            if (description?.Length > 1000)
+                throw new ArgumentException("Mô tả không được vượt quá 1000 ký tự.");
+
+            return new ContentReport
+            {
+                Id = Guid.NewGuid(),
+                LearnerId = learnerId,
+                CourseId = courseId,
+                MaterialId = materialId,
+                ReportType = reportType,
+                Description = description?.Trim(),
+                Status = ReportStatus.Pending,
+                ResolvedAt = DateTime.UtcNow
+            };
+        }
+
+        // ✅ Domain Method - Mark as Resolved (UC-79)
+        public void MarkAsResolved()
+        {
+            // ✅ BR-04: Only Pending can be marked as Resolved
+            if (Status != ReportStatus.Pending)
+                throw new InvalidOperationException($"Không thể xử lý báo cáo ở trạng thái '{Status}'.");
+
+            Status = ReportStatus.Resolved;
+            ResolvedAt = DateTime.UtcNow;
+            UpdateTimestamp();
+        }
+    
         public void UpdateDescription(string? description)
         {
             if (Status == ReportStatus.Resolved)
@@ -69,19 +124,6 @@ namespace AILA.Domain.Entities
             UpdateTimestamp();
         }
 
-        /// <summary>
-        /// Admin đánh dấu báo cáo đã xử lý.
-        /// </summary>
-        public void Resolve()
-        {
-            if (Status == ReportStatus.Resolved)
-                throw new InvalidOperationException("Báo cáo đã được xử lý.");
-
-            Status = ReportStatus.Resolved;
-            ResolvedAt = DateTime.UtcNow;
-
-            UpdateTimestamp();
-        }
 
 
         /// <summary>
