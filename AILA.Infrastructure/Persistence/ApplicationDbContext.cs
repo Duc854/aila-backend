@@ -33,6 +33,9 @@ namespace AILA.Infrastructure.Persistence
         public DbSet<PromptTemplate> PromptTemplates => Set<PromptTemplate>();
         public DbSet<StepGuidance> StepGuidances => Set<StepGuidance>();
         public DbSet<ScoringCriteria> ScoringCriterias => Set<ScoringCriteria>();
+        public DbSet<SubscriptionPlan> SubscriptionPlans => Set<SubscriptionPlan>();
+        public DbSet<Subscription> Subscriptions => Set<Subscription>();
+        public DbSet<Payment> Payments => Set<Payment>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
