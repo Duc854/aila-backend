@@ -18,6 +18,7 @@ namespace AILA.Domain.Entities
         public KnowledgeLevel Level { get; private set; }
         public decimal DurationHours { get; private set; }
         public bool IsPublished { get; private set; }
+        public bool IsPublicationLocked { get; private set; }
 
         // Navigation Properties
         public virtual Category Category { get; private set; }
@@ -50,7 +51,8 @@ namespace AILA.Domain.Entities
             Description = description?.Trim();
             ThumbnailUrl = thumbnailUrl;
             DurationHours = 0.00m; // Ban đầu tạo mới thời lượng bằng 0
-            IsPublished = false;   // Mặc định tạo xong ở dạng Bản nháp (Draft)
+            IsPublished = false;
+            IsPublicationLocked = false;// Mặc định tạo xong ở dạng Bản nháp (Draft)
         }
 
         // --- CÁC HÀNH VI NGHIỆP VỤ (METHODS) ---
@@ -103,10 +105,18 @@ namespace AILA.Domain.Entities
         public void Publish()
         {
             if (IsPublished) return;
+
+            if (IsPublicationLocked)
+                throw new InvalidOperationException(
+                    "Khóa học này cần được admin phê duyệt lại để publish do đã bị tố cáo");
+
             if (!_modules.Any())
                 throw new InvalidOperationException(
                     "Khóa học phải có ít nhất một học phần trước khi xuất bản.");
-            // Có thể chèn thêm business rule tại đây sau này: Ví dụ khóa học phải có ít nhất 1 bài học mới cho Publish
+            foreach (var module in _modules)
+            {
+                module.ValidateBeforeCoursePublish();
+            }
             IsPublished = true;
             UpdateTimestamp();
         }
@@ -140,6 +150,21 @@ namespace AILA.Domain.Entities
                 ?? throw new ArgumentException("Không tìm thấy học phần.", nameof(moduleId));
 
             _modules.Remove(module);
+
+            UpdateTimestamp();
+        }
+
+        public void LockVisibility()
+        {
+            IsPublished = false;
+            IsPublicationLocked = true;
+
+            UpdateTimestamp();
+        }
+
+        public void UnlockVisibility()
+        {
+            IsPublicationLocked = false;
 
             UpdateTimestamp();
         }

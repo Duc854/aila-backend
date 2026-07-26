@@ -9,9 +9,9 @@ namespace AILA.Domain.Entities
 {
     public class BlogPost : BaseEntity
     {
-        public string Title { get; private set; }
-        public string Slug { get; private set; }
-        public string Content { get; private set; }
+        public string Title { get; private set; } = string.Empty;
+        public string Slug { get; private set; } = string.Empty;
+        public string Content { get; private set; } = string.Empty;
         public string? ThumbnailUrl { get; private set; }
         public bool IsPublished { get; private set; }
         public DateTime? PublishedAt { get; private set; }

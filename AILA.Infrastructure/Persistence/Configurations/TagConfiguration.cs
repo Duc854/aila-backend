@@ -15,27 +15,27 @@ namespace AILA.Infrastructure.Persistence.Configurations
         {
             builder.HasKey(x => x.Id);
 
-            builder.HasOne(t => t.PublishRequest)
-                   .WithOne(r => r.Tag)
-                   .HasForeignKey<TagPublishRequest>(r => r.TagId)
-                   .OnDelete(DeleteBehavior.Cascade);
-
-            builder.Navigation(t => t.PublishRequest)
-                   .UsePropertyAccessMode(PropertyAccessMode.Property);
-
             builder.Property(x => x.Name)
-                .IsRequired()
-                .HasMaxLength(100);
+                   .IsRequired()
+                   .HasMaxLength(100);
 
             builder.Property(x => x.Code)
-                .IsRequired()
-                .HasMaxLength(100);
+                   .IsRequired()
+                   .HasMaxLength(100);
 
             builder.HasIndex(x => x.Code)
-                .IsUnique();
+                   .IsUnique();
 
             builder.Property(x => x.IsPublished)
-                .IsRequired();
+                   .IsRequired();
+
+            builder.Property(x => x.CreatedById)
+                   .IsRequired(false);
+
+            builder.HasOne(x => x.PublishRequest)
+                   .WithOne(x => x.Tag)
+                   .HasForeignKey<TagPublishRequest>(x => x.TagId)
+                   .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
