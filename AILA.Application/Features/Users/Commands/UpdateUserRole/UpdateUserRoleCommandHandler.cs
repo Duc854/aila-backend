@@ -42,17 +42,6 @@ namespace AILA.Application.Features.Users.Commands.UpdateUserRole
                     "Không tìm thấy tài khoản người dùng.");
             }
 
-            // Cannot update Admin role
-            if (user.Role == UserRole.Admin)
-            {
-                return ResponseDto<UserDetailDto>.FailResult(
-                    "ACCESS_DENIED",
-                    "Không thể thay đổi role của tài khoản Admin.");
-            }
-
-            // Update role using entity method
-            user.UpdateRole(request.Role);
-
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             var result = new UserDetailDto

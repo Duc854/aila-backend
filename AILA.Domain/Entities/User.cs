@@ -26,6 +26,12 @@ namespace AILA.Domain.Entities
         private readonly List<UserToken> _userTokens = new();
         public virtual IReadOnlyCollection<UserToken> UserTokens => _userTokens.AsReadOnly();
 
+        private readonly List<Payment> _payments = new();
+        public IReadOnlyCollection<Payment> Payments => _payments.AsReadOnly();
+
+        private readonly List<Subscription> _subscriptions = new();
+        public IReadOnlyCollection<Subscription> Subscriptions => _subscriptions.AsReadOnly();
+
         // Constructor rỗng bắt buộc cho EF Core khi mapping dữ liệu từ DB lên
         private User() { }
 
@@ -94,20 +100,6 @@ namespace AILA.Domain.Entities
         public void Activate()
         {
             IsActive = true;
-            UpdateTimestamp();
-        }
-
-        /// <summary>
-        /// Cập nhật role của user
-        /// </summary>
-        public void UpdateRole(UserRole newRole)
-        {
-            if (Role == UserRole.Admin && newRole != UserRole.Admin)
-            {
-                throw new InvalidOperationException("Không thể thay đổi role của Admin.");
-            }
-
-            Role = newRole;
             UpdateTimestamp();
         }
     }
