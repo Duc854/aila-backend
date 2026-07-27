@@ -17,7 +17,9 @@ namespace AILA.Domain.Entities
 
         public string Scenario { get; private set; }
 
-        public string TaskDescription { get; private set; }
+        public string AITask { get; private set; }
+
+        public string LearnerTask { get; private set; }
 
         public PracticeDifficulty Difficulty { get; private set; }
 
@@ -39,7 +41,7 @@ namespace AILA.Domain.Entities
 
         public AIPracticeMaterial(
             Guid materialId,
-            string scenario, string taskDescription,
+            string scenario,string aiTask, string learnerTask,
             PracticeDifficulty difficulty,
             int maxPromptAttempts)
         {
@@ -48,7 +50,9 @@ namespace AILA.Domain.Entities
 
             if (string.IsNullOrWhiteSpace(scenario))
                 throw new ArgumentException("Mô tả kịch bản không được để trống.");
-            if (string.IsNullOrWhiteSpace(taskDescription))
+            if (string.IsNullOrWhiteSpace(aiTask))
+                throw new ArgumentException("Mô tả nhiệm vụ của AI trong kịch bản không được để trống.");
+            if (string.IsNullOrWhiteSpace(learnerTask))
                 throw new ArgumentException("Mô tả mục tiêu của người học trong kịch bản không được để trống.");
 
             if (maxPromptAttempts <= 0)
@@ -56,26 +60,30 @@ namespace AILA.Domain.Entities
 
             MaterialId = materialId;
             Scenario = scenario.Trim();
-            TaskDescription = taskDescription.Trim();
+            AITask = aiTask.Trim();
+            LearnerTask = learnerTask.Trim();
             Difficulty = difficulty;
             MaxPromptAttempts = maxPromptAttempts;
         }
 
         public void Update(
-            string scenario, string taskDescription,
+            string scenario, string aiTask, string learnerTask,
             int maxPromptAttempts)
         {
 
             if (string.IsNullOrWhiteSpace(scenario))
                 throw new ArgumentException("Mô tả kịch bản không được để trống.");
-            if (string.IsNullOrWhiteSpace(taskDescription))
+            if (string.IsNullOrWhiteSpace(aiTask))
+                throw new ArgumentException("Mô tả nhiệm vụ của AI trong kịch bản không được để trống.");
+            if (string.IsNullOrWhiteSpace(learnerTask))
                 throw new ArgumentException("Mô tả mục tiêu của người học trong kịch bản không được để trống.");
 
             if (maxPromptAttempts <= 0)
                 throw new ArgumentException("Số lượt prompt tối đa phải lớn hơn 0.");
 
             Scenario = scenario.Trim();
-            TaskDescription = taskDescription.Trim();
+            AITask = aiTask.Trim();
+            LearnerTask = learnerTask.Trim();
             MaxPromptAttempts = maxPromptAttempts;
         }
 
