@@ -10,21 +10,25 @@ namespace AILA.Application.Common.Interfaces.Repositories
         /// (khóa học nếu materialId = null, hoặc học liệu cụ thể nếu materialId có giá trị).
         /// Dùng để chặn nộp trùng/double-submit (UC-33, edge case). Lọc theo learnerId (BR-02).
         /// </summary>
-        Task<bool> HasPendingReportAsync(Guid learnerId, Guid? courseId, Guid? materialId, CancellationToken cancellationToken = default);
+        Task<bool> HasPendingReportAsync(
+            Guid learnerId,
+            Guid? courseId,
+            Guid? materialId,
+            CancellationToken cancellationToken = default);
         /// <summary>
         /// UC-79
         /// Lấy danh sách báo cáo.
         /// </summary>
         Task<IEnumerable<ContentReport>> GetReportsAsync(
-            ReportStatus? status,
-            bool? isCourseReport,
-            CancellationToken cancellationToken = default);
+             ReportStatus? filterByStatus,
+             bool? isCourseReport,  // ✅ true = Course, false = Material, null = All
+             CancellationToken cancellationToken = default);
 
         /// <summary>
         /// UC-79
         /// Lấy chi tiết báo cáo.
         /// </summary>
-        Task<ContentReport?> GetReportByIdAsync(
+        Task<ContentReport?> GetReportWithDetailsAsync(
             Guid reportId,
             CancellationToken cancellationToken = default);
     }

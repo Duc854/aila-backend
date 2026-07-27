@@ -1,20 +1,38 @@
-﻿using AILA.Application.Common.Interfaces;
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
+using AILA.Application.Common.Interfaces;
 using AILA.Application.Features.Reports.Dtos;
 using MediatR;
 using Shared.Wrappers;
 
 namespace AILA.Application.Features.Reports.Queries.GetReportById
 {
-    public class GetReportByIdQueryHandler(IUnitOfWork uow)
-        : IRequestHandler<GetReportByIdQuery, ResponseDto<ReportDetailDto>>
+    public class GetReportByIdQueryHandler : IRequestHandler<GetReportByIdQuery, ResponseDto<ReportDetailDto>>
     {
+        private readonly IUnitOfWork _unitOfWork;
+
+        public GetReportByIdQueryHandler(IUnitOfWork unitOfWork)
+        {
+            _unitOfWork = unitOfWork;
+        }
+
         public async Task<ResponseDto<ReportDetailDto>> Handle(
             GetReportByIdQuery request,
-            CancellationToken ct)
+            CancellationToken cancellationToken)
         {
-            var report = await uow.ContentReports.GetReportByIdAsync(
+            // ✅ Validate Report ID
+            if (request.ReportId == Guid.Empty)
+            {
+                return ResponseDto<ReportDetailDto>.FailResult(
+                    "INVALID_REPORT_ID",
+                    "Report ID không hợp lệ.");
+            }
+
+            // ✅ Get report with details
+            var report = await _unitOfWork.ContentReports.GetReportWithDetailsAsync(
                 request.ReportId,
-                ct);
+                cancellationToken);
 
             if (report == null)
             {
@@ -23,19 +41,21 @@ namespace AILA.Application.Features.Reports.Queries.GetReportById
                     "Không tìm thấy báo cáo.");
             }
 
-            var dto = new ReportDetailDto(
-                report.Id,
-                report.LearnerId,
-                report.CourseId,
-                report.MaterialId,
-                report.ReportType,
-                report.Description,
-                report.Status,
-                report.CreatedAt,
-                report.ResolvedAt
-            );
-
-            return ResponseDto<ReportDetailDto>.SuccessResult(dto);
+            // ✅ BR-03: Report references exactly one content item
+            return ResponseDto<ReportDetailDto>.SuccessResult(new ReportDetailDto
+            {
+                Id = report.Id,
+                CourseName = report.Course?.Name,
+                MaterialName = report.Material?.Title,
+                ContentType = report.MaterialId.HasValue ? "Learning Material" : "Course",
+                LearnerName = report.Learner?.User.FullName,
+                LearnerEmail = report.Learner?.User?.Email,
+                Reason = report.ReportType.ToString(),
+                Description = report.Description,
+                Status = report.Status.ToString(),
+                CreatedAt = report.CreatedAt,
+                ResolvedAt = report.ResolvedAt
+            });
         }
     }
 }

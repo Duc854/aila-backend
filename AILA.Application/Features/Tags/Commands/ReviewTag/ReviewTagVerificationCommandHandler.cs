@@ -28,8 +28,8 @@ namespace AILA.Application.Features.Tags.Commands.ReviewTagVerifications
                     "Tag ID không hợp lệ.");
             }
 
-            var tagRepository = _unitOfWork.Repository<Tag>();
-            var tag = await tagRepository.GetByIdAsync(request.TagId);
+            var tag = await _unitOfWork.Tags
+       .GetVerificationRequestByIdAsync(request.TagId, cancellationToken);
 
             if (tag == null)
             {

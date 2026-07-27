@@ -2,7 +2,7 @@
 
 namespace AILA.Application.Features.Tags.Dtos;
 
-public record TagPublishRequestStatus(
+public record VerifyTagRequest(
     VerifyDecision Decision,
     string? RejectionReason
 );

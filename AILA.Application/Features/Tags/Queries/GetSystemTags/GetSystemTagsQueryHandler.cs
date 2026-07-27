@@ -1,18 +1,12 @@
 ﻿using AILA.Application.Common.Interfaces;
 using AILA.Application.Features.Tags.Dtos;
-using AILA.Domain.Entities;
 using MediatR;
 using Shared.Wrappers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace AILA.Application.Features.Tags.Queries.GetSystemTags
 {
     public class GetSystemTagsQueryHandler
-        : IRequestHandler<GetSystemTagsQuery, ResponseDto<List<TagDto>>>
+        : IRequestHandler<GetSystemTagsQuery, ResponseDto<List<SystemTagDto>>>
     {
         private readonly IUnitOfWork _unitOfWork;
 
@@ -21,35 +15,45 @@ namespace AILA.Application.Features.Tags.Queries.GetSystemTags
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<ResponseDto<List<TagDto>>> Handle(
+        public async Task<ResponseDto<List<SystemTagDto>>> Handle(
             GetSystemTagsQuery request,
             CancellationToken cancellationToken)
         {
-            // Dùng method có sẵn trong ITagRepository
-            var tags = await _unitOfWork.Tags.GetSystemTagsAsync(cancellationToken);
+            var tags = await _unitOfWork.Tags
+                .GetSystemTagsAsync(cancellationToken);
 
-            // Apply search filter if provided (filter in memory)
             if (!string.IsNullOrWhiteSpace(request.SearchKeyword))
             {
                 var keyword = request.SearchKeyword.Trim().ToLower();
+
                 tags = tags
                     .Where(t => t.Name.ToLower().Contains(keyword) ||
                                 t.Code.ToLower().Contains(keyword))
                     .ToList();
             }
 
-            var result = tags.Select(tag => new TagDto
-            {
-                Id = tag.Id,
-                Name = tag.Name,
-                Code = tag.Code,
-                IsPublished = tag.IsPublished,
-                CreatedById = tag.CreatedById,
-                Source = "System",
-                UsageCount = 0 // TODO: Tính usage count từ CourseTag
-            }).ToList();
+            var result = new List<SystemTagDto>();
 
-            return ResponseDto<List<TagDto>>.SuccessResult(result);
+            foreach (var tag in tags)
+            {
+                var usageCount = await _unitOfWork.Tags.GetUsageCountAsync(
+                    tag.Id,
+                    cancellationToken);
+
+                result.Add(new SystemTagDto
+                {
+                    Id = tag.Id,
+                    Name = tag.Name,
+                    Code = tag.Code,
+                    IsPublished = tag.IsPublished,
+                    Source = "System",
+                    UsageCount = usageCount,
+                    CreatedAt = tag.CreatedAt
+                });
+            }
+
+            return ResponseDto<List<SystemTagDto>>
+                .SuccessResult(result);
         }
     }
 }

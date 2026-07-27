@@ -37,18 +37,32 @@ namespace AILA.Application.Features.Tags.Queries.GetPendingTags
                     .ToList();
             }
 
-            var result = tags.Select(tag => new PendingTagVerificationDto
-            {
-                Id = tag.Id,
-                Name = tag.Name,
-                Code = tag.Code,
-                CreatedById = tag.CreatedById,
-                SubmittedBy = tag.CreatedById != null ? "Expert" : "System",
-                RequestStatus = tag.PublishRequest?.Status,  // Gán trực tiếp enum, không dùng ToString()
-                SubmittedAt = tag.PublishRequest?.CreatedAt   // Sửa từ No -> CreatedAt
-            }).ToList();
+            var result = new List<PendingTagVerificationDto>();
 
-            return ResponseDto<List<PendingTagVerificationDto>>.SuccessResult(result);
+            foreach (var tag in tags)
+            {
+                string submittedBy = "System";
+
+                if (tag.CreatedById.HasValue)
+                {
+                    var user = await _unitOfWork.Users.GetByIdAsync(tag.CreatedById.Value);
+                    submittedBy = user?.FullName ?? "Unknown";
+                }
+
+                result.Add(new PendingTagVerificationDto
+                {
+                    Id = tag.Id,
+                    Name = tag.Name,
+                    Code = tag.Code,
+                    CreatedById = tag.CreatedById,
+                    SubmittedBy = submittedBy,
+                    RequestStatus = tag.PublishRequest?.Status,
+                    SubmittedAt = tag.PublishRequest?.CreatedAt
+                });
+            }
+
+            return ResponseDto<List<PendingTagVerificationDto>>
+                .SuccessResult(result);
         }
     }
 }

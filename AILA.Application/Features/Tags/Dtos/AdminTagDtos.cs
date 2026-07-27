@@ -9,6 +9,4 @@ namespace AILA.Application.Features.Tags.Dtos
         Approve,
         Reject
     }
-
-    public record VerifyTagRequest(VerifyDecision Decision, string? RejectionReason);
 }

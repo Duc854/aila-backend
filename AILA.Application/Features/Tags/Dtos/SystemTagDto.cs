@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AILA.Application.Features.Tags.Dtos;
 
@@ -14,5 +10,11 @@ public class SystemTagDto
 
     public string Code { get; init; } = string.Empty;
 
+    public bool IsPublished { get; init; }
+
+    public string Source { get; init; } = string.Empty;
+
     public int UsageCount { get; init; }
+
+    public DateTime CreatedAt { get; init; }
 }
