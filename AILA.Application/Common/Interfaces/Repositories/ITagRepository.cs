@@ -17,6 +17,8 @@ namespace AILA.Application.Common.Interfaces.Repositories
        
         Task<bool> CodeExistsAsync(string code, CancellationToken ct = default);
 
+        Task<Tag?> GetByCodeAsync(string code, CancellationToken ct = default);
+
        
         /// Lấy danh sách tag do Expert tạo, kèm trạng thái PublishRequest.
        
@@ -39,6 +41,8 @@ namespace AILA.Application.Common.Interfaces.Repositories
         Task<bool> IsAssignedToCourseAsync(
             Guid tagId,
             CancellationToken ct = default);
-
+        Task<int> GetUsageCountAsync(
+    Guid tagId,
+    CancellationToken ct = default);
     }
 }

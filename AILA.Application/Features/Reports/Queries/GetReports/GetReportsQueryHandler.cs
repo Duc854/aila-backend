@@ -1,35 +1,57 @@
-﻿using AILA.Application.Common.Interfaces;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using AILA.Application.Common.Interfaces;
 using AILA.Application.Features.Reports.Dtos;
+using AILA.Domain.Enums;
 using MediatR;
 using Shared.Wrappers;
 
 namespace AILA.Application.Features.Reports.Queries.GetReports
 {
-    public class GetReportsQueryHandler(IUnitOfWork uow)
-        : IRequestHandler<GetReportsQuery, ResponseDto<IEnumerable<ReportListItemDto>>>
+    public class GetReportsQueryHandler : IRequestHandler<GetReportsQuery, ResponseDto<List<ReportDto>>>
     {
-        public async Task<ResponseDto<IEnumerable<ReportListItemDto>>> Handle(
-            GetReportsQuery request,
-            CancellationToken ct)
+        private readonly IUnitOfWork _unitOfWork;
+
+        public GetReportsQueryHandler(IUnitOfWork unitOfWork)
         {
-            var reports = await uow.ContentReports.GetReportsAsync(
-                request.Status,
-                request.IsCourseReport,
-                ct);
+            _unitOfWork = unitOfWork;
+        }
 
-            var result = reports.Select(r => new ReportListItemDto(
-                r.Id,
-                r.LearnerId,
-                r.CourseId,
-                r.MaterialId,
-                r.ReportType,
-                r.Description,
-                r.Status,
-                r.CreatedAt
-            ));
+        public async Task<ResponseDto<List<ReportDto>>> Handle(
+            GetReportsQuery request,
+            CancellationToken cancellationToken)
+        {
+            // ✅ Get all reports with filter (BR-01, BR-02)
+            var reports = await _unitOfWork.ContentReports.GetReportsAsync(
+                  request.Status,
+                  request.IsCourseReport,
+                  cancellationToken);
 
-            return ResponseDto<IEnumerable<ReportListItemDto>>
-                .SuccessResult(result);
+            // ✅ AF-01: No matching reports
+            if (reports == null || !reports.Any())
+            {
+                return ResponseDto<List<ReportDto>>.SuccessResult(
+                    new List<ReportDto>());
+            }
+
+               // ✅ Map to DTO
+            var result = reports.Select(r => new ReportDto
+            {
+                Id = r.Id,
+                CourseName = r.Course?.Name,
+                MaterialName = r.Material?.Title,
+                ContentType = r.MaterialId.HasValue ? "Learning Material" : "Course",
+                LearnerName = r.Learner?.User?.FullName,
+                Reason = r.ReportType.ToString(),
+                Description = r.Description,
+                Status = r.Status.ToString(),
+                CreatedAt = r.CreatedAt,
+                ResolvedAt = r.ResolvedAt
+            }).ToList();
+
+            return ResponseDto<List<ReportDto>>.SuccessResult(result);
         }
     }
 }
