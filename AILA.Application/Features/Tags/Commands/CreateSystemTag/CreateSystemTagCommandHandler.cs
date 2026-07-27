@@ -48,7 +48,6 @@ namespace AILA.Application.Features.Tags.Commands.CreateSystemTag
                 }
 
                 // Custom tag -> System tag
-                existingTag.ConvertToSystemTag();
 
                 uow.Tags.Update(existingTag);
                 await uow.SaveChangesAsync(ct);

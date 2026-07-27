@@ -63,7 +63,6 @@ namespace AILA.Domain.Entities
 
         public void Update(
             string scenario, string taskDescription,
-            PracticeDifficulty difficulty,
             int maxPromptAttempts)
         {
 
@@ -77,7 +76,6 @@ namespace AILA.Domain.Entities
 
             Scenario = scenario.Trim();
             TaskDescription = taskDescription.Trim();
-            Difficulty = difficulty;
             MaxPromptAttempts = maxPromptAttempts;
         }
 

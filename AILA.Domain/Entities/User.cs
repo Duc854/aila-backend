@@ -96,19 +96,5 @@ namespace AILA.Domain.Entities
             IsActive = true;
             UpdateTimestamp();
         }
-
-        /// <summary>
-        /// Cập nhật role của user
-        /// </summary>
-        public void UpdateRole(UserRole newRole)
-        {
-            if (Role == UserRole.Admin && newRole != UserRole.Admin)
-            {
-                throw new InvalidOperationException("Không thể thay đổi role của Admin.");
-            }
-
-            Role = newRole;
-            UpdateTimestamp();
-        }
     }
 }

@@ -48,7 +48,7 @@ namespace AILA.Application.Features.Reports.Commands.ResolveReport
             }
 
             // ✅ Mark as Resolved (Domain method)
-            report.MarkAsResolved();
+            report.Resolve();
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

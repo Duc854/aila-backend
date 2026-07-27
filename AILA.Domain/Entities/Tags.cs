@@ -1,4 +1,4 @@
-using AILA.Domain.Common;
+﻿using AILA.Domain.Common;
 using AILA.Domain.Enums;
 using System;
 using System.Collections.Generic;
@@ -100,13 +100,6 @@ namespace AILA.Domain.Entities
             Name = name.Trim();
             Code = code.Trim().ToLower().Replace(" ", "-");
 
-            UpdateTimestamp();
-        }
-
-        public void ConvertToSystemTag()
-        {
-            IsPublished = true;
-            CreatedById = null;
             UpdateTimestamp();
         }
     }
