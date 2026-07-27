@@ -1,21 +1,14 @@
-using System;
+﻿using System;
 
 namespace AILA.Application.Features.Reports.Dtos
 {
-    public class ReportDetailDto
+    public class ReportDto
     {
         public Guid Id { get; set; }
-
-        // Reported Content (BR-03)
         public string? CourseName { get; set; }
         public string? MaterialName { get; set; }
-        public string? ContentType { get; set; }
-
-        // Reporter
+        public string? ContentType { get; set; } // "Course" hoặc "Learning Material" (BR-03)
         public string? LearnerName { get; set; }
-        public string? LearnerEmail { get; set; }
-
-        // Report Details
         public string? Reason { get; set; }
         public string? Description { get; set; }
         public string? Status { get; set; }

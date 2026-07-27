@@ -1,4 +1,4 @@
-﻿using AILA.Application.Common.Interfaces.Repositories;
+using AILA.Application.Common.Interfaces.Repositories;
 using AILA.Domain.Entities;
 using AILA.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +11,11 @@ namespace AILA.Infrastructure.Persistence.Repositories
         {
         }
 
-        public async Task<bool> HasPendingReportAsync(Guid learnerId, Guid? courseId, Guid? materialId, CancellationToken cancellationToken = default)
+        public async Task<bool> HasPendingReportAsync(
+            Guid learnerId,
+            Guid? courseId,
+            Guid? materialId,
+            CancellationToken cancellationToken = default)
         {
             return await _context.Set<ContentReport>()
                 .AsNoTracking()
@@ -21,28 +25,31 @@ namespace AILA.Infrastructure.Persistence.Repositories
                                && r.Status == ReportStatus.Pending,
                     cancellationToken);
         }
-        /// <summary>
-        /// UC-79
-        /// Lấy danh sách báo cáo, hỗ trợ lọc theo trạng thái và loại nội dung.
-        /// </summary>
+
         public async Task<IEnumerable<ContentReport>> GetReportsAsync(
-            ReportStatus? status,
+            ReportStatus? filterByStatus,
             bool? isCourseReport,
             CancellationToken cancellationToken = default)
         {
             IQueryable<ContentReport> query = _context.Set<ContentReport>()
-                .AsNoTracking();
+                .AsNoTracking()
+                .Include(r => r.Course)
+                .Include(r => r.Material)
+                .Include(r => r.Learner)
+                    .ThenInclude(l => l.User);
 
-            if (status.HasValue)
+            // BR-02: Filter by status
+            if (filterByStatus.HasValue)
             {
-                query = query.Where(r => r.Status == status.Value);
+                query = query.Where(r => r.Status == filterByStatus.Value);
             }
 
+            // BR-01: Filter by content type (Course or Material)
             if (isCourseReport.HasValue)
             {
                 query = isCourseReport.Value
-                    ? query.Where(r => r.CourseId != null)
-                    : query.Where(r => r.MaterialId != null);
+                    ? query.Where(r => r.MaterialId == null) // Course reports have no material
+                    : query.Where(r => r.MaterialId != null); // Material reports have a material
             }
 
             return await query
@@ -50,23 +57,17 @@ namespace AILA.Infrastructure.Persistence.Repositories
                 .ToListAsync(cancellationToken);
         }
 
-        /// <summary>
-        /// UC-79
-        /// Lấy chi tiết một báo cáo.
-        /// </summary>
-        public async Task<ContentReport?> GetReportByIdAsync(
+        public async Task<ContentReport?> GetReportWithDetailsAsync(
             Guid reportId,
             CancellationToken cancellationToken = default)
         {
             return await _context.Set<ContentReport>()
                 .AsNoTracking()
                 .Include(r => r.Learner)
+                    .ThenInclude(l => l.User)
                 .Include(r => r.Course)
                 .Include(r => r.Material)
                 .FirstOrDefaultAsync(r => r.Id == reportId, cancellationToken);
         }
     }
 }
-
-
-

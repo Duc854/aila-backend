@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using AILA.Domain.Enums;
 
 namespace AILA.Application.Features.Tags.Dtos;
-
 public class TagDto
 {
     public Guid Id { get; init; }
@@ -17,6 +12,14 @@ public class TagDto
     public bool IsPublished { get; init; }
 
     public Guid? CreatedById { get; init; }
+
+    public string? SubmittedBy { get; init; }
+
+    public TagPublishRequestStatus? RequestStatus { get; init; }
+
+    public DateTime? SubmittedAt { get; init; }
+
+    public string? Note { get; init; }
 
     public string Source { get; init; } = string.Empty;
 

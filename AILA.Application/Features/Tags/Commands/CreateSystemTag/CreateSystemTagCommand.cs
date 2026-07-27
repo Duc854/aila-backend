@@ -11,5 +11,5 @@ namespace AILA.Application.Features.Tags.Commands.CreateSystemTag
 {
     public record CreateSystemTagCommand(
         string Name
-    ) : IRequest<ResponseDto<TagDto>>;
+    ) : IRequest<ResponseDto<SystemTagDto>>;
 }
