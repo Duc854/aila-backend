@@ -174,5 +174,12 @@ namespace AILA.Domain.Entities
                     break;
             }
         }
+
+        public void ClearConfiguration()
+        {
+            _promptTemplates.Clear();
+            _stepGuidances.Clear();
+            _scoringCriterias.Clear();
+        }
     }
 }

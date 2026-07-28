@@ -1,5 +1,7 @@
 ﻿using AILA.Api.Extensions;
-using AILA.Application.Features.AIPracticeMaterial.CreateAIPracticeMaterials;
+using AILA.Application.Features.AIPracticeMaterials.Commands.CreateAIPracticeMaterial;
+using AILA.Application.Features.AIPracticeMaterials.Commands.UpdateAIPracticeMaterial;
+using AILA.Application.Features.AIPracticeMaterials.Queries.GetAIPracticeMaterialDetail;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -52,6 +54,73 @@ namespace AILA.Api.Controllers
             {
                 return BadRequest(result);
             }
+
+            return Ok(result);
+        }
+
+
+        /// <summary>
+        /// Lấy thông tin chi tiết AI Practice Scenario để chỉnh sửa.
+        /// </summary>
+        /// <param name="materialId">Mã Material của AI Practice Scenario.</param>
+        [HttpGet("{materialId}/edit")]
+        public async Task<IActionResult> GetDetailForEdit(
+            [FromRoute] Guid materialId)
+        {
+            var identity = HttpContext.GetUserIdentity();
+
+            if (identity == null)
+            {
+                return Unauthorized(
+                    ResponseDto<object>.FailResult(
+                        "UNAUTHORIZED",
+                        "Xác thực người dùng thất bại hoặc mã token không hợp lệ."));
+            }
+
+            var query = new GetAIPracticeMaterialDetailQuery(
+                identity.UserId,
+                materialId);
+
+            var result = await _sender.Send(
+                query,
+                HttpContext.RequestAborted);
+
+            if (!result.Success)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Cập nhật AI Practice Scenario.
+        /// </summary>
+        [HttpPut("{materialId}")]
+        [Authorize(Roles = "Expert")]
+        public async Task<IActionResult> Update(
+            [FromRoute] Guid materialId,
+            [FromBody] UpdateAIPracticeMaterialDto request)
+        {
+            var identity = HttpContext.GetUserIdentity();
+
+            if (identity == null)
+            {
+                return Unauthorized(
+                    ResponseDto<object>.FailResult(
+                        "UNAUTHORIZED",
+                        "Xác thực người dùng thất bại hoặc mã token không hợp lệ."));
+            }
+
+            var command = new UpdateAIPracticeMaterialCommand(
+                identity.UserId,
+                materialId,
+                request);
+
+            var result = await _sender.Send(
+                command,
+                HttpContext.RequestAborted);
+
+            if (!result.Success)
+                return BadRequest(result);
 
             return Ok(result);
         }

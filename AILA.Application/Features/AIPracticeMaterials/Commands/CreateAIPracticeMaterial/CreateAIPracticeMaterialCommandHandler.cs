@@ -1,5 +1,4 @@
 ﻿using AILA.Application.Common.Interfaces;
-using AILA.Application.Features.AIPracticeMaterial.CreateAIPracticeMaterials;
 using AILA.Domain.Entities;
 using MediatR;
 using Shared.Wrappers;
@@ -9,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AILA.Application.Features.AIPracticeMaterials.CreateAIPracticeMaterial
+namespace AILA.Application.Features.AIPracticeMaterials.Commands.CreateAIPracticeMaterial
 {
     public sealed class CreateAIPracticeMaterialCommandHandler
         : IRequestHandler<CreateAIPracticeMaterialCommand,
@@ -125,13 +124,26 @@ namespace AILA.Application.Features.AIPracticeMaterials.CreateAIPracticeMaterial
                         MaxPromptAttempts = aiPractice.MaxPromptAttempts
                     });
             }
-            catch (Exception ex)
+            catch (ArgumentException ex)
             {
                 await _uow.RollbackTransactionAsync(ct);
 
                 return ResponseDto<AIPracticeMaterialDto>.FailResult(
-                    "CREATE_AI_PRACTICE_FAILED",
+                    "INVALID_ARGUMENT",
                     ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                await _uow.RollbackTransactionAsync(ct);
+
+                return ResponseDto<AIPracticeMaterialDto>.FailResult(
+                    "INVALID_OPERATION",
+                    ex.Message);
+            }
+            catch
+            {
+                await _uow.RollbackTransactionAsync(ct);
+                throw;
             }
         }
     }

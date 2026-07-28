@@ -1,4 +1,5 @@
 using AILA.Api.Configurations;
+using AILA.Api.Extensions;
 using AILA.Application;
 using AILA.Infrastructure;
 using AILA.Infrastructure.Persistence;
@@ -78,6 +79,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseExceptionMiddleware();
 app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors("AllowAll");
