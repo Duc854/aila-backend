@@ -124,13 +124,26 @@ namespace AILA.Application.Features.AIPracticeMaterials.Commands.CreateAIPractic
                         MaxPromptAttempts = aiPractice.MaxPromptAttempts
                     });
             }
-            catch (Exception ex)
+            catch (ArgumentException ex)
             {
                 await _uow.RollbackTransactionAsync(ct);
 
                 return ResponseDto<AIPracticeMaterialDto>.FailResult(
-                    "CREATE_AI_PRACTICE_FAILED",
+                    "INVALID_ARGUMENT",
                     ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                await _uow.RollbackTransactionAsync(ct);
+
+                return ResponseDto<AIPracticeMaterialDto>.FailResult(
+                    "INVALID_OPERATION",
+                    ex.Message);
+            }
+            catch
+            {
+                await _uow.RollbackTransactionAsync(ct);
+                throw;
             }
         }
     }
