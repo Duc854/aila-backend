@@ -19,7 +19,7 @@ internal static class LearningMaterialMapper
                 MaterialType.Video => "Video",
                 MaterialType.Document => "Tài liệu",
                 MaterialType.Quiz => "Bài kiểm tra",
-                MaterialType.AiPractice => "AI Practice",
+                MaterialType.AiPractice => "Thực hành AI",
                 _ => material.MaterialType.ToString()
             },
             OrderIndex = material.OrderIndex

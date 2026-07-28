@@ -31,6 +31,12 @@ internal static class LearningMaterialFactory
                     title,
                     orderIndex),
 
+            MaterialType.AiPractice =>
+                Material.CreateAiPractice(
+                    moduleId,
+                    title,
+                    orderIndex),
+
             _ =>
                 throw new NotSupportedException(
                     $"MaterialType '{type}' hiện chưa được hỗ trợ.")
