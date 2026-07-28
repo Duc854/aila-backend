@@ -1,5 +1,5 @@
 ﻿using AILA.Api.Extensions;
-using AILA.Application.Features.AIPracticeMaterial.CreateAIPracticeMaterials;
+using AILA.Application.Features.AIPracticeMaterials.Commands.CreateAIPracticeMaterial;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;

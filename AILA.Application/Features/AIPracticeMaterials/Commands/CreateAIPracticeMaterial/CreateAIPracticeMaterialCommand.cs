@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AILA.Application.Features.AIPracticeMaterial.CreateAIPracticeMaterials
+namespace AILA.Application.Features.AIPracticeMaterials.Commands.CreateAIPracticeMaterial
 {
     public sealed record CreateAIPracticeMaterialCommand(
         Guid ExpertId,

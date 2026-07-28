@@ -1,5 +1,4 @@
 ﻿using AILA.Application.Common.Interfaces;
-using AILA.Application.Features.AIPracticeMaterial.CreateAIPracticeMaterials;
 using AILA.Domain.Entities;
 using MediatR;
 using Shared.Wrappers;
@@ -9,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AILA.Application.Features.AIPracticeMaterials.CreateAIPracticeMaterial
+namespace AILA.Application.Features.AIPracticeMaterials.Commands.CreateAIPracticeMaterial
 {
     public sealed class CreateAIPracticeMaterialCommandHandler
         : IRequestHandler<CreateAIPracticeMaterialCommand,
