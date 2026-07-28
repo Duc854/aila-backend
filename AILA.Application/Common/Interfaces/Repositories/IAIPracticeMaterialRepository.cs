@@ -10,5 +10,8 @@ namespace AILA.Application.Common.Interfaces.Repositories
     public interface IAIPracticeMaterialRepository
         : IGenericRepository<AIPracticeMaterial>
     {
+        Task<AIPracticeMaterial?> GetDetailForExpertAsync(
+        Guid materialId,
+        CancellationToken cancellationToken = default);
     }
 }
