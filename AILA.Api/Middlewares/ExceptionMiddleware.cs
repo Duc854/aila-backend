@@ -25,29 +25,13 @@ namespace AILA.Api.Middlewares
             {
                 await HandleValidationException(context, ex);
             }
-            catch (ArgumentException ex)
-            {
-                await WriteError(
-                    context,
-                    HttpStatusCode.BadRequest,
-                    "BAD_REQUEST",
-                    ex.Message);
-            }
-            catch (InvalidOperationException ex)
-            {
-                await WriteError(
-                    context,
-                    HttpStatusCode.BadRequest,
-                    "INVALID_OPERATION",
-                    ex.Message);
-            }
-            catch (Exception ex)
+            catch (Exception)
             {
                 await WriteError(
                     context,
                     HttpStatusCode.InternalServerError,
                     "INTERNAL_SERVER_ERROR",
-                    ex.Message);
+                    "Đã xảy ra lỗi hệ thống.");
             }
         }
 
