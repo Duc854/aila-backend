@@ -39,9 +39,6 @@ namespace AILA.Infrastructure.Persistence.Repositories
             => await _context.Tags
                 .AsNoTracking()
                 .FirstOrDefaultAsync(t => t.Code == code.ToLower().Trim(), ct);
-        public async Task<Tag?> GetByCodeAsync(string code, CancellationToken ct = default)
-            => await _context.Tags
-                .FirstOrDefaultAsync(t => t.Code == code.ToLower().Trim().Replace(" ", "-"), ct);
 
        
         /// Lấy toàn bộ Tag do Expert tạo, kèm trạng thái PublishRequest, mới nhất trước.
