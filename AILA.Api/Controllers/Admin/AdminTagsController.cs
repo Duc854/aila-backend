@@ -207,7 +207,7 @@ namespace AILA.Api.Controllers.Admin
         /// <summary>
         /// UC-86~88: Get list of system tags
         /// </summary>
-        [HttpGet("system")]
+        [HttpGet("system/search")]
         public async Task<IActionResult> GetSystemTags(
             [FromQuery] string? searchKeyword = null,
             CancellationToken cancellationToken = default)
@@ -218,6 +218,21 @@ namespace AILA.Api.Controllers.Admin
 
             return Ok(result);
         }
+
+        /// <summary>
+        /// Get all system tags
+        /// </summary>
+        [HttpGet("system/all")]
+        public async Task<IActionResult> GetAllSystemTags(
+            CancellationToken cancellationToken = default)
+        {
+            var result = await _sender.Send(
+                new GetSystemTagsQuery(null),
+                cancellationToken);
+
+            return Ok(result);
+        }
+
 
         #endregion
     }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,9 +12,9 @@ using Shared.Wrappers;
 namespace AILA.Application.Features.Tags.Commands.CreateSystemTag
 {
     public class CreateSystemTagCommandHandler(IUnitOfWork uow)
-        : IRequestHandler<CreateSystemTagCommand, ResponseDto<TagDto>>
+        : IRequestHandler<CreateSystemTagCommand, ResponseDto<SystemTagDto>>
     {
-        public async Task<ResponseDto<TagDto>> Handle(
+        public async Task<ResponseDto<SystemTagDto>> Handle(
             CreateSystemTagCommand request,
             CancellationToken ct)
         {
@@ -22,36 +22,68 @@ namespace AILA.Application.Features.Tags.Commands.CreateSystemTag
                 request.Name.Trim().Length < 2 ||
                 request.Name.Trim().Length > 100)
             {
-                return ResponseDto<TagDto>.FailResult(
+                return ResponseDto<SystemTagDto>.FailResult(
                     "INVALID_NAME",
                     "Tên tag phải từ 2 đến 100 ký tự.");
             }
 
             var normalizedName = request.Name.Trim();
-            var code = normalizedName.ToLower().Replace(" ", "-");
 
-            // BR-01
-            if (await uow.Tags.CodeExistsAsync(code, ct))
+            var code = normalizedName
+                .ToLower()
+                .Replace(" ", "-");
+
+            // BR-01:
+            // Nếu custom tag cùng code tồn tại thì reuse và convert thành system tag
+            var existingTag = await uow.Tags.GetByCodeAsync(code, ct);
+
+            if (existingTag != null)
             {
-                return ResponseDto<TagDto>.FailResult(
-                    "DUPLICATE_TAG",
-                    "Tag đã tồn tại.");
+                // System tag đã tồn tại
+                if (existingTag.CreatedById == null)
+                {
+                    return ResponseDto<SystemTagDto>.FailResult(
+                        "DUPLICATE_TAG",
+                        "Tag hệ thống này đã tồn tại.");
+                }
+
+                // Custom tag -> System tag
+
+                uow.Tags.Update(existingTag);
+                await uow.SaveChangesAsync(ct);
+
+                return ResponseDto<SystemTagDto>.SuccessResult(new SystemTagDto
+                {
+                    Id = existingTag.Id,
+                    Name = existingTag.Name,
+                    Code = existingTag.Code,
+                    IsPublished = existingTag.IsPublished,
+                    Source = "System",
+                    UsageCount = 0,
+                    CreatedAt = existingTag.CreatedAt
+                });
             }
 
-            var tag = Tag.CreateByAdmin(normalizedName, code);
+
+            // Create new system tag
+            var tag = Tag.CreateByAdmin(
+                normalizedName,
+                code
+            );
 
             await uow.Tags.AddAsync(tag);
             await uow.SaveChangesAsync(ct);
 
-            return ResponseDto<TagDto>.SuccessResult(new TagDto
+
+            return ResponseDto<SystemTagDto>.SuccessResult(new SystemTagDto
             {
                 Id = tag.Id,
                 Name = tag.Name,
                 Code = tag.Code,
                 IsPublished = tag.IsPublished,
-                CreatedById = tag.CreatedById,
-                Source = "Admin",
-                UsageCount = 0
+                Source = "System",
+                UsageCount = 0,
+                CreatedAt = tag.CreatedAt
             });
         }
     }

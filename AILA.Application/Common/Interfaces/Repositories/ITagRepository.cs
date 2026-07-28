@@ -41,6 +41,8 @@ namespace AILA.Application.Common.Interfaces.Repositories
         Task<bool> IsAssignedToCourseAsync(
             Guid tagId,
             CancellationToken ct = default);
-
+        Task<int> GetUsageCountAsync(
+    Guid tagId,
+    CancellationToken ct = default);
     }
 }

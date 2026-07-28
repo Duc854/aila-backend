@@ -39,6 +39,9 @@ namespace AILA.Infrastructure.Persistence.Repositories
             => await _context.Tags
                 .AsNoTracking()
                 .FirstOrDefaultAsync(t => t.Code == code.ToLower().Trim(), ct);
+        public async Task<Tag?> GetByCodeAsync(string code, CancellationToken ct = default)
+            => await _context.Tags
+                .FirstOrDefaultAsync(t => t.Code == code.ToLower().Trim().Replace(" ", "-"), ct);
 
        
         /// Lấy toàn bộ Tag do Expert tạo, kèm trạng thái PublishRequest, mới nhất trước.
@@ -65,16 +68,15 @@ namespace AILA.Infrastructure.Persistence.Repositories
                 .ToListAsync(ct);
 
         public async Task<Tag?> GetVerificationRequestByIdAsync(
-            Guid tagId,
-            CancellationToken ct = default)
-            => await _context.Tags
-                .Include(t => t.PublishRequest)
-                .Include(t => t.CreatedById)
-                .FirstOrDefaultAsync(
-                    t => t.Id == tagId
-                      && !t.IsPublished
-                      && t.PublishRequest != null,
-                    ct);
+     Guid tagId,
+     CancellationToken ct = default)
+     => await _context.Tags
+         .Include(t => t.PublishRequest)
+         .FirstOrDefaultAsync(
+             t => t.Id == tagId
+               && !t.IsPublished
+               && t.PublishRequest != null,
+             ct);
 
         // ===========================
         // UC-86 ~ UC-88
@@ -93,6 +95,15 @@ namespace AILA.Infrastructure.Persistence.Repositories
             CancellationToken ct = default)
             => await _context.Courses
                 .AnyAsync(c => c.CourseTags.Any(t => t.Id == tagId), ct);
+
+
+        public async Task<int> GetUsageCountAsync(
+    Guid tagId,
+    CancellationToken ct = default)
+        {
+            return await _context.Courses
+                .CountAsync(c => c.CourseTags.Any(t => t.Id == tagId), ct);
+        }
     }
 }
 
