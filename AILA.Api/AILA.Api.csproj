@@ -16,10 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Middlewares\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\AILA.Application\AILA.Application.csproj" />
     <ProjectReference Include="..\AILA.Infrastructure\AILA.Infrastructure.csproj" />
     <ProjectReference Include="..\Shared\Shared.csproj" />
