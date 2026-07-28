@@ -69,5 +69,15 @@ namespace AILA.Infrastructure.Persistence.Repositories
                 .Include(r => r.Material)
                 .FirstOrDefaultAsync(r => r.Id == reportId, cancellationToken);
         }
+
+        public async Task<ContentReport?> GetReportWithCourseForUpdateAsync(
+            Guid reportId,
+            CancellationToken cancellationToken = default)
+        {
+            // Dùng AsTracking (mặc định) để EF Core track thay đổi trên Course
+            return await _context.Set<ContentReport>()
+                .Include(r => r.Course)
+                .FirstOrDefaultAsync(r => r.Id == reportId, cancellationToken);
+        }
     }
 }

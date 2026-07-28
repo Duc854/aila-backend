@@ -31,6 +31,13 @@ namespace AILA.Application.Common.Interfaces.Repositories
         Task<ContentReport?> GetReportWithDetailsAsync(
             Guid reportId,
             CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Lấy report kèm Course (tracked) để admin có thể gọi LockVisibility / UnlockVisibility.
+        /// </summary>
+        Task<ContentReport?> GetReportWithCourseForUpdateAsync(
+            Guid reportId,
+            CancellationToken cancellationToken = default);
     }
 }
 

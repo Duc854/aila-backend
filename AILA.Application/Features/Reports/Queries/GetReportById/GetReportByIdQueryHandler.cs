@@ -44,17 +44,20 @@ namespace AILA.Application.Features.Reports.Queries.GetReportById
             // ✅ BR-03: Report references exactly one content item
             return ResponseDto<ReportDetailDto>.SuccessResult(new ReportDetailDto
             {
-                Id = report.Id,
-                CourseName = report.Course?.Name,
+                Id           = report.Id,
+                CourseId     = report.CourseId,
+                MaterialId   = report.MaterialId,
+                CourseName   = report.Course?.Name,
                 MaterialName = report.Material?.Title,
-                ContentType = report.MaterialId.HasValue ? "Learning Material" : "Course",
-                LearnerName = report.Learner?.User.FullName,
+                ContentType  = report.MaterialId.HasValue ? "Learning Material" : "Course",
+                IsCourseLocked = report.Course?.IsPublicationLocked,
+                LearnerName  = report.Learner?.User.FullName,
                 LearnerEmail = report.Learner?.User?.Email,
-                Reason = report.ReportType.ToString(),
-                Description = report.Description,
-                Status = report.Status.ToString(),
-                CreatedAt = report.CreatedAt,
-                ResolvedAt = report.ResolvedAt
+                Reason       = report.ReportType.ToString(),
+                Description  = report.Description,
+                Status       = report.Status.ToString(),
+                CreatedAt    = report.CreatedAt,
+                ResolvedAt   = report.ResolvedAt
             });
         }
     }
