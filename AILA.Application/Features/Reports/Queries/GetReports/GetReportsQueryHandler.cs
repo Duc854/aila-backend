@@ -36,19 +36,21 @@ namespace AILA.Application.Features.Reports.Queries.GetReports
                     new List<ReportDto>());
             }
 
-               // ✅ Map to DTO
             var result = reports.Select(r => new ReportDto
             {
-                Id = r.Id,
-                CourseName = r.Course?.Name,
+                Id          = r.Id,
+                CourseId    = r.CourseId,
+                MaterialId  = r.MaterialId,
+                CourseName  = r.Course?.Name,
                 MaterialName = r.Material?.Title,
-                ContentType = r.MaterialId.HasValue ? "Learning Material" : "Course",
-                LearnerName = r.Learner?.User?.FullName,
-                Reason = r.ReportType.ToString(),
-                Description = r.Description,
-                Status = r.Status.ToString(),
-                CreatedAt = r.CreatedAt,
-                ResolvedAt = r.ResolvedAt
+                ContentType  = r.MaterialId.HasValue ? "Learning Material" : "Course",
+                IsCourseLocked = r.Course?.IsPublicationLocked,
+                LearnerName  = r.Learner?.User?.FullName,
+                Reason       = r.ReportType.ToString(),
+                Description  = r.Description,
+                Status       = r.Status.ToString(),
+                CreatedAt    = r.CreatedAt,
+                ResolvedAt   = r.ResolvedAt
             }).ToList();
 
             return ResponseDto<List<ReportDto>>.SuccessResult(result);

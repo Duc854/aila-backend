@@ -29,10 +29,12 @@ namespace AILA.Application.Features.Tags.Queries
                 CreatedAt   = t.CreatedAt,
                 PublishRequest = t.PublishRequest is null ? null : new TagPublishRequestDto
                 {
-                    Id         = t.PublishRequest.Id,
-                    Status     = t.PublishRequest.Status.ToString(),
-                    CreatedAt  = t.PublishRequest.CreatedAt,
-                    ReviewedAt = t.PublishRequest.ReviewedAt
+                    Id            = t.PublishRequest.Id,
+                    Status        = t.PublishRequest.Status.ToString(),
+                    RequestNote   = t.PublishRequest.RequestNote,
+                    ReviewComment = t.PublishRequest.ReviewComment,
+                    CreatedAt     = t.PublishRequest.CreatedAt,
+                    ReviewedAt    = t.PublishRequest.ReviewedAt
                 }
             }).ToList();
         }
