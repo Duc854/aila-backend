@@ -36,6 +36,7 @@ namespace AILA.Infrastructure.Persistence
         public DbSet<SubscriptionPlan> SubscriptionPlans => Set<SubscriptionPlan>();
         public DbSet<Subscription> Subscriptions => Set<Subscription>();
         public DbSet<Payment> Payments => Set<Payment>();
+        public DbSet<CourseReviewRequest> CourseReviewRequests => Set<CourseReviewRequest>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
