@@ -264,6 +264,31 @@ namespace AILA.Api.Controllers
 
             return Ok(result);
         }
+
+        /// <summary>
+        /// Lấy toàn bộ thông tin chi tiết khóa học để xem trước (kể cả draft, tất cả modules).
+        /// Chỉ Expert sở hữu khóa học mới được gọi.
+        /// </summary>
+        [HttpGet("me/courses/{courseId}/preview")]
+        [Authorize(Roles = "Expert")]
+        public async Task<IActionResult> PreviewCourse(Guid courseId, CancellationToken ct)
+        {
+            var identity = HttpContext.GetUserIdentity();
+            if (identity is null)
+                return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực người dùng thất bại."));
+
+            var query = new GetCourseDetailQuery(courseId);
+            var course = await _sender.Send(query, ct);
+
+            if (course is null)
+                return NotFound(ResponseDto<object>.FailResult("COURSE_NOT_FOUND", "Không tìm thấy khóa học."));
+
+            if (course.Author?.UserId != identity.UserId)
+                return StatusCode(StatusCodes.Status403Forbidden,
+                    ResponseDto<object>.FailResult("FORBIDDEN", "Bạn không có quyền xem trước khóa học này."));
+
+            return Ok(ResponseDto<CourseDetailDto>.SuccessResult(course));
+        }
     }
 
   

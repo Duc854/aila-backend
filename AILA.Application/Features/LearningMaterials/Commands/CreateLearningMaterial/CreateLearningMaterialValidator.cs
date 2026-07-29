@@ -17,8 +17,9 @@ public class CreateLearningMaterialValidator
             .Must(x =>
                 x == MaterialType.Video ||
                 x == MaterialType.Document ||
-                x == MaterialType.Quiz)
+                x == MaterialType.Quiz ||
+                x == MaterialType.AiPractice)
             .WithMessage(
-                "Chỉ hỗ trợ Video, Document và Quiz.");
+                "Chỉ hỗ trợ Video, Document, Quiz và AiPractice.");
     }
 }

@@ -1,4 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using AILA.Application.Common.Behaviours;
+using FluentValidation;
+using MediatR;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +17,14 @@ namespace AILA.Application
         {
             // Tự động quét và đăng ký tất cả Handlers của MediatR trong tầng Application
             services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+
+            // FluentValidation
+            services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+
+            // Validation Pipeline
+            services.AddTransient(typeof(IPipelineBehavior<,>),
+                typeof(ValidationBehavior<,>));
+
 
             // Nếu bạn có các Service nghiệp vụ thông thường (không dùng MediatR), đăng ký ở đây:
             // services.AddScoped<IAuthService, AuthService>();

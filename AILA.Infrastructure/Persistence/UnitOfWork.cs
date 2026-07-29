@@ -1,6 +1,7 @@
 using AILA.Application.Common.Exceptions;
 using AILA.Application.Common.Interfaces;
 using AILA.Application.Common.Interfaces.Repositories;
+using AILA.Domain.Entities;
 using AILA.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -38,6 +39,7 @@ namespace AILA.Infrastructure.Persistence
         public IQuestionRepository Questions { get; private set; }
         public IAnswerOptionRepository AnswerOptions { get; private set; }
         public ISubscriptionPlanRepository SubscriptionPlans { get; private set; }
+        public IAIPracticeMaterialRepository AIPracticeMaterials { get; private set; }
 
         public UnitOfWork(ApplicationDbContext context)
         {
@@ -59,6 +61,7 @@ namespace AILA.Infrastructure.Persistence
             Questions = new QuestionRepository(_context);
             AnswerOptions = new AnswerOptionRepository(_context);
             SubscriptionPlans = new SubscriptionPlanRepository(_context);
+            AIPracticeMaterials = new AIPracticeMaterialRepository(_context);
         }
         public IGenericRepository<T> Repository<T>() where T : class
         {

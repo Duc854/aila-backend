@@ -27,6 +27,7 @@ namespace AILA.Application.Common.Interfaces
         IQuestionRepository Questions { get; }
         IAnswerOptionRepository AnswerOptions { get; }
         ISubscriptionPlanRepository SubscriptionPlans { get; }
+        IAIPracticeMaterialRepository AIPracticeMaterials { get; }
         IGenericRepository<T> Repository<T>() where T : class;
 
         /// <summary>

@@ -45,6 +45,9 @@ namespace AILA.Infrastructure
             // 5. Đăng ký Seeder cho tài khoản hệ thống (Admin)
             services.AddScoped<AdminSeeder>();
 
+            // 6. Đăng ký các Application services
+            services.AddScoped<IQuestionExcelService, QuestionExcelService>();
+
             return services;
         }
     }
