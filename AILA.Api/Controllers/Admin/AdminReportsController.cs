@@ -1,4 +1,6 @@
+using AILA.Application.Features.Reports.Commands.LockCourseFromReport;
 using AILA.Application.Features.Reports.Commands.ResolveReport;
+using AILA.Application.Features.Reports.Commands.UnlockCourse;
 using AILA.Application.Features.Reports.Queries.GetReportById;
 using AILA.Application.Features.Reports.Queries.GetReports;
 using AILA.Domain.Enums;
@@ -55,6 +57,54 @@ namespace AILA.Api.Controllers.Admin
                     return NotFound(result);
 
                 return BadRequest(result);
+            }
+
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Admin lock course liên quan đến report và resolve report cùng lúc.
+        /// PATCH /api/admin/reports/{reportId}/lock-course
+        /// </summary>
+        [HttpPatch("{reportId:guid}/lock-course")]
+        public async Task<IActionResult> LockCourseFromReport(Guid reportId)
+        {
+            var result = await _sender.Send(
+                new LockCourseFromReportCommand(reportId));
+
+            if (!result.Success)
+            {
+                return result.ErrorCode switch
+                {
+                    "REPORT_NOT_FOUND"  => NotFound(result),
+                    "NOT_COURSE_REPORT" => BadRequest(result),
+                    "ALREADY_RESOLVED"  => BadRequest(result),
+                    _                   => BadRequest(result)
+                };
+            }
+
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Admin gỡ khoá course để expert có thể publish lại.
+        /// PATCH /api/admin/courses/{courseId}/unlock
+        /// Route nằm ở đây (AdminReportsController) vì unlock là action moderation.
+        /// </summary>
+        [HttpPatch("/api/admin/courses/{courseId:guid}/unlock")]
+        public async Task<IActionResult> UnlockCourse(Guid courseId)
+        {
+            var result = await _sender.Send(
+                new UnlockCourseCommand(courseId));
+
+            if (!result.Success)
+            {
+                return result.ErrorCode switch
+                {
+                    "COURSE_NOT_FOUND" => NotFound(result),
+                    "NOT_LOCKED"       => BadRequest(result),
+                    _                  => BadRequest(result)
+                };
             }
 
             return Ok(result);

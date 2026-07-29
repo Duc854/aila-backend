@@ -14,9 +14,9 @@ namespace AILA.Application.Common.Interfaces.Repositories
 
       
         /// Kiểm tra code tag đã tồn tại chưa (tránh trùng slug).
-       
         Task<bool> CodeExistsAsync(string code, CancellationToken ct = default);
 
+        /// Lấy thông tin tag theo code slug. Trả về null nếu không tìm thấy.
         Task<Tag?> GetByCodeAsync(string code, CancellationToken ct = default);
 
        

@@ -139,6 +139,24 @@ namespace AILA.Api.Controllers
         }
 
         /// <summary>
+        /// Lấy thông tin đầy đủ của tag theo code slug.
+        /// Trả về tag nếu tìm thấy (kể cả chưa published), null nếu không tồn tại.
+        /// Dùng để khi expert nhập code trùng, frontend có đủ dữ liệu hiển thị confirm "dùng tag này".
+        /// </summary>
+        [HttpGet("by-code")]
+        [Authorize(Roles = "Expert")]
+        public async Task<IActionResult> GetTagByCode(
+            [FromQuery] string code,
+            CancellationToken ct)
+        {
+            if (string.IsNullOrWhiteSpace(code))
+                return BadRequest(ResponseDto<object>.FailResult("INVALID_CODE", "Code tag không được để trống."));
+
+            var tag = await _sender.Send(new GetTagByCodeQuery(code), ct);
+            return Ok(ResponseDto<AILA.Application.Features.Tags.Dtos.TagDto?>.SuccessResult(tag));
+        }
+
+        /// <summary>
         /// Expert xóa tag do mình tạo, chưa được publish và không đang được gán vào khóa học nào.
         /// </summary>
         [HttpDelete("{tagId}")]
