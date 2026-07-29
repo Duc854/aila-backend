@@ -1,8 +1,12 @@
+using AILA.Application.Features.Authentication.Commands;
 using AILA.Application.Features.Authentication.Commands.AdminLogin;
+using AILA.Application.Features.Authentication.Commands.ConfirmPasswordReset;
 using AILA.Application.Features.Authentication.Commands.ExpertLogin;
 using AILA.Application.Features.Authentication.Commands.GoogleCallback;
 using AILA.Application.Features.Authentication.Commands.GoogleLogin;
 using AILA.Application.Features.Authentication.Commands.Register;
+using AILA.Application.Features.Authentication.Commands.RequestPasswordReset;
+using AILA.Application.Features.Authentication.Commands.VerifyPasswordResetOtp;
 using AILA.Application.Features.Authentication.Dtos;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -69,6 +73,80 @@ namespace AILA.Api.Controllers
 
             return CreatedAtAction(nameof(Register), result);
         }
+
+        #region UC-08: Reset Password
+
+        /// <summary>
+        /// Bước 1 — xin OTP đặt lại mật khẩu.
+        /// Luôn trả về cùng một nội dung dù email có tồn tại hay không (chống user enumeration).
+        /// </summary>
+        [HttpPost("password-reset/request")]
+        public async Task<IActionResult> RequestPasswordReset(
+            [FromBody] RequestPasswordResetRequestDto request,
+            CancellationToken cancellationToken)
+        {
+            var command = new RequestPasswordResetCommand(request.Email, GetClientIpAddress());
+            var result = await _sender.Send(command, cancellationToken);
+
+            return result.Success ? Ok(result) : MapPasswordResetError(result.ErrorCode, result);
+        }
+
+        /// <summary>
+        /// Bước 2 — xác thực OTP, đổi lấy reset token dùng một lần.
+        /// </summary>
+        [HttpPost("password-reset/verify")]
+        public async Task<IActionResult> VerifyPasswordResetOtp(
+            [FromBody] VerifyPasswordResetOtpRequestDto request,
+            CancellationToken cancellationToken)
+        {
+            var command = new VerifyPasswordResetOtpCommand(request.Email, request.Otp);
+            var result = await _sender.Send(command, cancellationToken);
+
+            return result.Success ? Ok(result) : MapPasswordResetError(result.ErrorCode, result);
+        }
+
+        /// <summary>
+        /// Bước 3 — đặt mật khẩu mới bằng reset token.
+        /// </summary>
+        [HttpPost("password-reset/confirm")]
+        public async Task<IActionResult> ConfirmPasswordReset(
+            [FromBody] ConfirmPasswordResetRequestDto request,
+            CancellationToken cancellationToken)
+        {
+            var command = new ConfirmPasswordResetCommand(
+                request.ResetToken,
+                request.NewPassword,
+                request.ConfirmPassword);
+
+            var result = await _sender.Send(command, cancellationToken);
+
+            return result.Success ? Ok(result) : MapPasswordResetError(result.ErrorCode, result);
+        }
+
+        private IActionResult MapPasswordResetError(string? errorCode, object body) => errorCode switch
+        {
+            PasswordResetErrorCodes.RateLimitExceeded  => StatusCode(StatusCodes.Status429TooManyRequests, body),
+            PasswordResetErrorCodes.ServiceUnavailable => StatusCode(StatusCodes.Status503ServiceUnavailable, body),
+            _                                          => BadRequest(body)
+        };
+
+        /// <summary>
+        /// IP dùng cho rate limit. Ưu tiên X-Forwarded-For khi API chạy sau reverse proxy,
+        /// nếu không thì lấy IP kết nối trực tiếp.
+        /// </summary>
+        private string? GetClientIpAddress()
+        {
+            if (Request.Headers.TryGetValue("X-Forwarded-For", out var forwarded))
+            {
+                var firstHop = forwarded.ToString().Split(',').FirstOrDefault()?.Trim();
+                if (!string.IsNullOrWhiteSpace(firstHop))
+                    return firstHop;
+            }
+
+            return HttpContext.Connection.RemoteIpAddress?.ToString();
+        }
+
+        #endregion
 
         private string GetCurrentGoogleRedirectUri()
         {

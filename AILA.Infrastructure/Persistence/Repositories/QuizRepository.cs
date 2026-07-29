@@ -25,12 +25,14 @@ namespace AILA.Infrastructure.Persistence.Repositories
 
         public async Task<QuizAttempt?> GetInProgressAttemptAsync(Guid enrollmentId, Guid quizMaterialId, CancellationToken cancellationToken = default)
         {
+            // Lấy lượt InProgress MỚI NHẤT: sau khi mở lượt mới (vì lượt cũ hết hạn),
+            // luôn trả về lượt mới nhất, không vô tình bốc lại lượt cũ đã hết giờ.
             return await _context.QuizAttempts
-                .FirstOrDefaultAsync(
-                    a => a.EnrollmentId == enrollmentId
-                         && a.QuizMaterialId == quizMaterialId
-                         && a.Status == QuizAttemptStatus.InProgress,
-                    cancellationToken);
+                .Where(a => a.EnrollmentId == enrollmentId
+                            && a.QuizMaterialId == quizMaterialId
+                            && a.Status == QuizAttemptStatus.InProgress)
+                .OrderByDescending(a => a.StartedAt)
+                .FirstOrDefaultAsync(cancellationToken);
         }
 
         public async Task<QuizAttempt?> GetAttemptWithAnswersAsync(Guid attemptId, CancellationToken cancellationToken = default)
