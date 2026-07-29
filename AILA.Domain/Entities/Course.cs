@@ -30,6 +30,11 @@ namespace AILA.Domain.Entities
         // --- CẤU HÌNH QUAN HỆ 1-NHIỀU VỚI MODULE
         private readonly List<Module> _modules = new();
         public virtual IReadOnlyCollection<Module> Modules => _modules.AsReadOnly();
+        //--- CẤU HÌNH QUAN HỆ 1-NHIỀU VỚI Request Review
+        private readonly List<CourseReviewRequest> _reviewRequests = new();
+
+        public virtual IReadOnlyCollection<CourseReviewRequest> ReviewRequests
+            => _reviewRequests.AsReadOnly();
 
         // Constructor phục vụ EF Core
         private Course() { }
@@ -162,9 +167,15 @@ namespace AILA.Domain.Entities
             UpdateTimestamp();
         }
 
-        public void UnlockVisibility()
+        public void RestorePublication()
         {
+            if (!IsPublicationLocked)
+                throw new InvalidOperationException("Khóa học không bị khóa.");
+            if (IsPublished)
+                return;
+
             IsPublicationLocked = false;
+            IsPublished = true;
 
             UpdateTimestamp();
         }
