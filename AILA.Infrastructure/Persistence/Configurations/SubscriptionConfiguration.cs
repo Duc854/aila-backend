@@ -9,8 +9,7 @@ using System.Threading.Tasks;
 
 namespace AILA.Infrastructure.Persistence.Configurations
 {
-    public class SubscriptionConfiguration
-        : IEntityTypeConfiguration<Subscription>
+    public class SubscriptionConfiguration : IEntityTypeConfiguration<Subscription>
     {
         public void Configure(EntityTypeBuilder<Subscription> builder)
         {
@@ -21,28 +20,36 @@ namespace AILA.Infrastructure.Persistence.Configurations
                 .HasMaxLength(30)
                 .IsRequired();
 
+            builder.HasIndex(x => x.Status);
+
             builder.Property(x => x.ActivatedAt)
                 .IsRequired();
 
             builder.Property(x => x.ExpiredAt)
                 .IsRequired();
 
-            builder.Property(x => x.TierLevel)
-                .IsRequired();
+            builder.ComplexProperty(x => x.PlanSnapshot, snapshot =>
+            {
+                snapshot.Property(x => x.TierLevel)
+                    .HasColumnName("TierLevel")
+                    .IsRequired();
 
-            builder.Property(x => x.DurationInDays)
-                .IsRequired();
+                snapshot.Property(x => x.DurationInDays)
+                    .HasColumnName("DurationInDays")
+                    .IsRequired();
 
-            builder.Property(x => x.AiTokenLimit)
-                .IsRequired();
+                snapshot.Property(x => x.AiTokenLimit)
+                    .HasColumnName("AiTokenLimit")
+                    .IsRequired();
 
-            builder.Property(x => x.AiPracticeScenarioLimit)
-                .IsRequired();
+                snapshot.Property(x => x.AiPracticeScenarioLimit)
+                    .HasColumnName("AiPracticeScenarioLimit")
+                    .IsRequired();
 
-            builder.Property(x => x.ExpertEvaluationLimit)
-                .IsRequired();
-            builder.HasIndex(x => x.PaymentId)
-                .IsUnique();
+                snapshot.Property(x => x.ExpertEvaluationLimit)
+                    .HasColumnName("ExpertEvaluationLimit")
+                    .IsRequired();
+            });
 
             builder.Property(x => x.CreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");

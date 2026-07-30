@@ -32,7 +32,9 @@ namespace AILA.Infrastructure.Persistence.Configurations
             builder.Property(x => x.TransactionCode)
                 .HasMaxLength(100);
 
-            builder.HasIndex(x => x.TransactionCode);
+            builder.HasIndex(x => x.TransactionCode)
+                .IsUnique()
+                .HasFilter("\"TransactionCode\" IS NOT NULL");
 
             builder.Property(x => x.Status)
                 .HasConversion<string>()
@@ -40,6 +42,29 @@ namespace AILA.Infrastructure.Persistence.Configurations
                 .IsRequired();
 
             builder.HasIndex(x => x.Status);
+
+            builder.Property(x => x.PaidAt);
+
+            builder.Property(x => x.ExpiredAt)
+                .IsRequired();
+
+            builder.ComplexProperty(x => x.PlanSnapshot, snapshot =>
+            {
+                snapshot.Property(x => x.TierLevel)
+                    .HasColumnName("TierLevel");
+
+                snapshot.Property(x => x.DurationInDays)
+                    .HasColumnName("DurationInDays");
+
+                snapshot.Property(x => x.AiTokenLimit)
+                    .HasColumnName("AiTokenLimit");
+
+                snapshot.Property(x => x.AiPracticeScenarioLimit)
+                    .HasColumnName("AiPracticeScenarioLimit");
+
+                snapshot.Property(x => x.ExpertEvaluationLimit)
+                    .HasColumnName("ExpertEvaluationLimit");
+            });
 
             builder.Property(x => x.CreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
