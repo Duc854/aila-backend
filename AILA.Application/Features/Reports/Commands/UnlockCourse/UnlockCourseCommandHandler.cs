@@ -32,7 +32,7 @@ public sealed class UnlockCourseCommandHandler
                 "NOT_LOCKED", "Khóa học này không đang bị khoá.");
 
         // 3. Domain action
-        course.UnlockVisibility();
+        course.RestorePublication();
 
         await _uow.SaveChangesAsync(ct);
 
@@ -43,7 +43,7 @@ public sealed class UnlockCourseCommandHandler
                 CourseName          = course.Name,
                 IsPublished         = course.IsPublished,
                 IsPublicationLocked = course.IsPublicationLocked,
-                Message             = "Khóa học đã được gỡ khoá. Expert có thể publish lại."
+                Message             = "Khóa học đã được phục hồi."
             });
     }
 }

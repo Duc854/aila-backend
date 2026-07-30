@@ -1,8 +1,11 @@
+using AILA.Application.Common.Exceptions;
 using AILA.Application.Common.Interfaces;
 using AILA.Application.Common.Interfaces.Repositories;
 using AILA.Domain.Entities;
 using AILA.Infrastructure.Persistence.Repositories;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Npgsql;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -35,6 +38,7 @@ namespace AILA.Infrastructure.Persistence
         public IContentReportRepository ContentReports { get; private set; }
         public IQuestionRepository Questions { get; private set; }
         public IAnswerOptionRepository AnswerOptions { get; private set; }
+        public ISubscriptionPlanRepository SubscriptionPlans { get; private set; }
         public IAIPracticeMaterialRepository AIPracticeMaterials { get; private set; }
 
         public UnitOfWork(ApplicationDbContext context)
@@ -56,6 +60,7 @@ namespace AILA.Infrastructure.Persistence
             ContentReports = new ContentReportRepository(_context);
             Questions = new QuestionRepository(_context);
             AnswerOptions = new AnswerOptionRepository(_context);
+            SubscriptionPlans = new SubscriptionPlanRepository(_context);
             AIPracticeMaterials = new AIPracticeMaterialRepository(_context);
         }
         public IGenericRepository<T> Repository<T>() where T : class
@@ -76,7 +81,17 @@ namespace AILA.Infrastructure.Persistence
 
         public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
-            return await _context.SaveChangesAsync(cancellationToken);
+            try
+            {
+                return await _context.SaveChangesAsync(cancellationToken);
+            }
+            catch (DbUpdateException ex)
+                when (ex.InnerException is PostgresException { SqlState: "23505" } pgEx)
+            {
+                // Vi phạm unique index (mã 23505 của PostgreSQL) — dịch sang exception của tầng
+                // Application để handler map thành lỗi validation, thay vì để lộ lỗi hạ tầng.
+                throw new DuplicateKeyException(pgEx.ConstraintName ?? string.Empty, ex);
+            }
         }
 
         public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)

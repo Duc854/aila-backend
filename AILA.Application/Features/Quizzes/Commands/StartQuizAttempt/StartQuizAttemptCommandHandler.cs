@@ -51,13 +51,24 @@ namespace AILA.Application.Features.Quizzes.Commands.StartQuizAttempt
                     "QUIZ_NOT_CONFIGURED", "Bài kiểm tra chưa được cấu hình đầy đủ câu hỏi hoặc đáp án.");
             }
 
-            // 4. Idempotent: nếu đang có attempt dở dang thì tiếp tục nó thay vì tạo mới
-            //    (xử lý nhất quán khi Learner refresh/đóng tab giữa chừng).
+            // 4. Idempotent: chỉ TIẾP TỤC lượt đang dở khi nó CHƯA hết giờ
+            //    (refresh/đóng tab giữa chừng). Nếu lượt gần nhất đã hết hạn (hoặc chưa có),
+            //    "Làm lại" phải mở lượt MỚI với deadline tương lai — không trả deadline quá khứ.
             var attempt = await _uow.Quizzes.GetInProgressAttemptAsync(
                 enrollment.Id, request.MaterialId, cancellationToken);
 
-            if (attempt == null)
+            var now = DateTime.UtcNow;
+            var isExpired = attempt != null
+                && attempt.StartedAt.AddMinutes(quiz.TimeLimitMinutes) <= now;
+
+            if (attempt == null || isExpired)
             {
+                if (isExpired)
+                {
+                    _logger.LogInformation(
+                        "QuizAttempt {AttemptId} đã hết giờ (bỏ dở), mở lượt làm mới.", attempt!.Id);
+                }
+
                 attempt = new QuizAttempt(enrollment.Id, request.MaterialId);
                 await _uow.Quizzes.AddAttemptAsync(attempt, cancellationToken);
                 await _uow.SaveChangesAsync(cancellationToken);

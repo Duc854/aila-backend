@@ -14,7 +14,7 @@ namespace AILA.Application.Features.Profile.Commands.ChangePassword
                 return ResponseDto<object>.FailResult("VALIDATION_ERROR", "Mật khẩu mới không được để trống.");
 
             if (!IsPasswordStrong(request.NewPassword))
-                return ResponseDto<object>.FailResult("VALIDATION_ERROR", "Mật khẩu mới không đáp ứng yêu cầu bảo mật.");
+                return ResponseDto<object>.FailResult("VALIDATION_ERROR", "Mật khẩu mới phải có ít nhất 8 ký tự.");
 
             // --- Load user ---
             var user = await uow.Repository<AILA.Domain.Entities.User>().GetByIdAsync(request.UserId);
@@ -49,10 +49,8 @@ namespace AILA.Application.Features.Profile.Commands.ChangePassword
             return ResponseDto<object>.SuccessResult(null!);
         }
 
+        // Policy đổi mật khẩu: chỉ yêu cầu tối thiểu 8 ký tự.
         private static bool IsPasswordStrong(string password)
-            => password.Length >= 8
-               && password.Any(char.IsUpper)
-               && password.Any(char.IsLower)
-               && password.Any(char.IsDigit);
+            => password.Length >= 8;
     }
 }

@@ -1,5 +1,6 @@
 ﻿using AILA.Domain.Common;
 using AILA.Domain.Enums;
+using AILA.Domain.ValueObjects;
 
 namespace AILA.Domain.Entities
 {
@@ -8,6 +9,8 @@ namespace AILA.Domain.Entities
         public Guid LearnerId { get; private set; }
 
         public Guid SubscriptionPlanId { get; private set; }
+
+        #region Payment Information
 
         public decimal Amount { get; private set; }
 
@@ -22,13 +25,29 @@ namespace AILA.Domain.Entities
         public string PaymentContent { get; private set; }
 
         /// <summary>
-        /// Mã giao dịch trả về từ ngân hàng / Sepay.
+        /// Mã giao dịch trả về từ ngân hàng / SePay.
         /// </summary>
         public string? TransactionCode { get; private set; }
 
         public PaymentStatus Status { get; private set; }
 
         public DateTime? PaidAt { get; private set; }
+
+        /// <summary>
+        /// Thời điểm giao dịch hết hiệu lực.
+        /// </summary>
+        public DateTime ExpiredAt { get; private set; }
+
+        #endregion
+
+        #region Subscription Snapshot
+
+        /// <summary>
+        /// Snapshot của Subscription Plan tại thời điểm tạo Payment.
+        /// </summary>
+        public SubscriptionPlanSnapshot PlanSnapshot { get; private set; } = null!;
+
+        #endregion
 
         #region Navigation Properties
 
@@ -47,12 +66,16 @@ namespace AILA.Domain.Entities
             Guid subscriptionPlanId,
             decimal amount,
             string orderCode,
-            string paymentContent)
+            string paymentContent,
+            DateTime expiredAt,
+            SubscriptionPlanSnapshot planSnapshot)
         {
             Validate(
                 amount,
                 orderCode,
-                paymentContent);
+                paymentContent,
+                expiredAt,
+                planSnapshot);
 
             Id = Guid.NewGuid();
 
@@ -66,14 +89,22 @@ namespace AILA.Domain.Entities
 
             PaymentContent = paymentContent.Trim();
 
+            ExpiredAt = expiredAt;
+
+            PlanSnapshot = planSnapshot;
+
             Status = PaymentStatus.Pending;
         }
 
         public void MarkAsSuccess(string transactionCode)
         {
             if (Status != PaymentStatus.Pending)
-                throw new ArgumentException(
+                throw new InvalidOperationException(
                     "Chỉ giao dịch đang chờ mới có thể xác nhận thanh toán.");
+
+            if (IsExpired())
+                throw new InvalidOperationException(
+                    "Giao dịch đã hết hạn.");
 
             if (string.IsNullOrWhiteSpace(transactionCode))
                 throw new ArgumentException(
@@ -89,13 +120,13 @@ namespace AILA.Domain.Entities
             UpdateTimestamp();
         }
 
-        public void MarkAsFailed()
+        public void MarkAsExpired()
         {
             if (Status != PaymentStatus.Pending)
-                throw new ArgumentException(
-                    "Chỉ giao dịch đang chờ mới có thể chuyển sang thất bại.");
+                throw new InvalidOperationException(
+                    "Chỉ giao dịch đang chờ mới có thể chuyển sang trạng thái hết hạn.");
 
-            Status = PaymentStatus.Failed;
+            Status = PaymentStatus.Expired;
 
             UpdateTimestamp();
         }
@@ -103,7 +134,7 @@ namespace AILA.Domain.Entities
         public void Cancel()
         {
             if (Status != PaymentStatus.Pending)
-                throw new ArgumentException(
+                throw new InvalidOperationException(
                     "Chỉ giao dịch đang chờ mới có thể hủy.");
 
             Status = PaymentStatus.Cancelled;
@@ -111,14 +142,25 @@ namespace AILA.Domain.Entities
             UpdateTimestamp();
         }
 
+        public bool IsPending()
+        {
+            return Status == PaymentStatus.Pending;
+        }
+
         public bool IsSuccessful()
         {
             return Status == PaymentStatus.Success;
         }
 
-        public bool IsPending()
+        public bool IsCancelled()
         {
-            return Status == PaymentStatus.Pending;
+            return Status == PaymentStatus.Cancelled;
+        }
+
+        public bool IsExpired()
+        {
+            return Status == PaymentStatus.Pending
+                && DateTime.UtcNow >= ExpiredAt;
         }
 
         #region Validation
@@ -126,7 +168,9 @@ namespace AILA.Domain.Entities
         private static void Validate(
             decimal amount,
             string orderCode,
-            string paymentContent)
+            string paymentContent,
+            DateTime expiredAt,
+            SubscriptionPlanSnapshot planSnapshot)
         {
             if (amount <= 0)
                 throw new ArgumentException(
@@ -142,6 +186,15 @@ namespace AILA.Domain.Entities
                 throw new ArgumentException(
                     "Nội dung chuyển khoản không được để trống.",
                     nameof(paymentContent));
+
+            if (expiredAt <= DateTime.UtcNow)
+                throw new ArgumentException(
+                    "Thời gian hết hạn thanh toán không hợp lệ.",
+                    nameof(expiredAt));
+            if(planSnapshot is null)
+                throw new ArgumentException(
+                    "Thiếu dữ liệu của gói đăng kí",
+                    nameof(planSnapshot));
         }
 
         #endregion
