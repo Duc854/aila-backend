@@ -48,7 +48,7 @@ namespace AILA.Application.Tests.Features.Reports
         // ------------------------------------------------------------ TC-011
         // Covers: Main Flow — khoá khoá học VÀ đóng báo cáo trong cùng một lần lưu.
         [Fact]
-        [Trait("TC", "TC-UNIT-ReportService-011")]
+        [Trait("TC", "TC-UNIT-ReportService-015")]
         [Trait("UC", "UC-75")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "Critical")]
@@ -75,7 +75,7 @@ namespace AILA.Application.Tests.Features.Reports
         // Covers: AF-01 — báo cáo không tồn tại, hoặc đã xử lý rồi (chống double-click:
         // lần bấm thứ hai không được khoá lại lần nữa).
         [Fact]
-        [Trait("TC", "TC-UNIT-ReportService-012")]
+        [Trait("TC", "TC-UNIT-ReportService-016")]
         [Trait("UC", "UC-75")]
         [Trait("Type", "Boundary & Negative")]
         [Trait("Priority", "High")]
@@ -105,7 +105,7 @@ namespace AILA.Application.Tests.Features.Reports
         // Covers: BR-01 — báo cáo nhắm vào learning material chứ không phải khoá học thì
         // không có gì để khoá ở mức khoá học.
         [Fact]
-        [Trait("TC", "TC-UNIT-ReportService-013")]
+        [Trait("TC", "TC-UNIT-ReportService-017")]
         [Trait("UC", "UC-75")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Boundary & Negative")]
@@ -139,12 +139,12 @@ namespace AILA.Application.Tests.Features.Reports
         // Bỏ Skip sau khi sửa handler. Xem TC-016 để biết vì sao việc sửa không chỉ là
         // đổi tên method: RestorePublication() còn TỰ PUBLISH LẠI, khác với thông điệp
         // "Expert có thể publish lại" mà chính handler này trả về.
-        [Fact(Skip = "DEF-RPT-01 - UnlockCourse is a silent no-op, the domain call is commented out")]
-        [Trait("TC", "TC-UNIT-ReportService-014")]
+        [Fact(Skip = "DEF-RPT-02 - UnlockCourse is a silent no-op, the domain call is commented out")]
+        [Trait("TC", "TC-UNIT-ReportService-018")]
         [Trait("UC", "UC-75")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "Critical")]
-        [Trait("Defect", "DEF-RPT-01")]
+        [Trait("Defect", "DEF-RPT-02")]
         public async Task Unlock_LockedCourse_ClearsLock()
         {
             var course = PublishedCourse();
@@ -163,7 +163,7 @@ namespace AILA.Application.Tests.Features.Reports
         // ------------------------------------------------------------ TC-015
         // Covers: AF-01 — khoá học không tồn tại, hoặc vốn không bị khoá.
         [Fact]
-        [Trait("TC", "TC-UNIT-ReportService-015")]
+        [Trait("TC", "TC-UNIT-ReportService-019")]
         [Trait("UC", "UC-75")]
         [Trait("Type", "Boundary & Negative")]
         [Trait("Priority", "High")]
@@ -225,7 +225,7 @@ namespace AILA.Application.Tests.Features.Reports
 
         // ------------------------------------------------------------ TC-017
         [Fact]
-        [Trait("TC", "TC-UNIT-ReportService-017")]
+        [Trait("TC", "TC-UNIT-ReportService-011")]
         [Trait("UC", "UC-74")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "High")]
@@ -250,7 +250,7 @@ namespace AILA.Application.Tests.Features.Reports
         // ------------------------------------------------------------ TC-018
         // Covers: BR-01 — ContentType suy ra từ việc có MaterialId hay không.
         [Fact]
-        [Trait("TC", "TC-UNIT-ReportService-018")]
+        [Trait("TC", "TC-UNIT-ReportService-012")]
         [Trait("UC", "UC-74")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Functional")]
@@ -272,7 +272,7 @@ namespace AILA.Application.Tests.Features.Reports
         // ------------------------------------------------------------ TC-019
         // Covers: AF-01 — id rỗng bị chặn TRƯỚC khi truy vấn, id lạ trả REPORT_NOT_FOUND.
         [Fact]
-        [Trait("TC", "TC-UNIT-ReportService-019")]
+        [Trait("TC", "TC-UNIT-ReportService-012")]
         [Trait("UC", "UC-74")]
         [Trait("Type", "Boundary & Negative")]
         [Trait("Priority", "Medium")]
@@ -297,7 +297,7 @@ namespace AILA.Application.Tests.Features.Reports
         // Covers: Main Flow — danh sách lý do lấy thẳng từ enum ReportType, không chạm DB.
         // Test khoá lại điều đó: thêm một ReportType mới sẽ tự xuất hiện ở dialog báo cáo.
         [Fact]
-        [Trait("TC", "TC-UNIT-ReportService-020")]
+        [Trait("TC", "TC-UNIT-ReportService-013")]
         [Trait("UC", "UC-33")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "Medium")]

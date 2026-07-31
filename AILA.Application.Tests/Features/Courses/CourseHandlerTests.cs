@@ -1,4 +1,4 @@
-﻿using AILA.Application.Common.Interfaces;
+using AILA.Application.Common.Interfaces;
 using AILA.Application.Common.Interfaces.Repositories;
 using AILA.Application.Features.Courses.Commands;
 using AILA.Application.Features.Courses.Queries;
@@ -93,7 +93,7 @@ namespace AILA.Application.Tests.Features.Courses
 
         // AF-01: không khớp gì là danh sách rỗng, KHÔNG phải lỗi.
         [Fact]
-        [Trait("TC", "TC-UNIT-CourseService-004")]
+        [Trait("TC", "TC-UNIT-CourseService-002")]
         [Trait("UC", "UC-03")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "Medium")]
@@ -319,7 +319,7 @@ namespace AILA.Application.Tests.Features.Courses
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        [Trait("TC", "TC-UNIT-CourseService-015")]
+        [Trait("TC", "TC-UNIT-CourseService-014")]
         [Trait("UC", "UC-35")]
         [Trait("BR", "BR-04")]
         [Trait("Type", "Functional")]
@@ -346,7 +346,7 @@ namespace AILA.Application.Tests.Features.Courses
         // Covers: PUBLISHED → HIDDEN. "Archive/HIDDEN" trong UCS = Unpublish trong code;
         // không có enum trạng thái riêng nên DRAFT và HIDDEN không phân biệt được.
         [Fact]
-        [Trait("TC", "TC-UNIT-CourseService-016")]
+        [Trait("TC", "TC-UNIT-CourseService-021")]
         [Trait("UC", "UC-36")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Functional")]
@@ -369,7 +369,7 @@ namespace AILA.Application.Tests.Features.Courses
         // ⚠ Không có nhánh chặn "chưa publish thì không cho archive". Unpublish() idempotent
         // (no-op khi IsPublished=false) và handler VẪN trả Success + VẪN gọi SaveChanges.
         [Fact]
-        [Trait("TC", "TC-UNIT-CourseService-017")]
+        [Trait("TC", "TC-UNIT-CourseService-022")]
         [Trait("UC", "UC-36")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Functional")]
@@ -389,7 +389,7 @@ namespace AILA.Application.Tests.Features.Courses
         }
 
         [Fact]
-        [Trait("TC", "TC-UNIT-CourseService-016")]
+        [Trait("TC", "TC-UNIT-CourseService-023")]
         [Trait("UC", "UC-36")]
         [Trait("Type", "Security (GBR)")]
         [Trait("Priority", "High")]
@@ -410,7 +410,7 @@ namespace AILA.Application.Tests.Features.Courses
         // ============================================================ TC-021
         // Covers: DRAFT → PUBLISHED.
         [Fact]
-        [Trait("TC", "TC-UNIT-CourseService-021")]
+        [Trait("TC", "TC-UNIT-CourseService-024")]
         [Trait("UC", "UC-38")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "Critical")]
@@ -432,7 +432,7 @@ namespace AILA.Application.Tests.Features.Courses
         }
 
         [Fact]
-        [Trait("TC", "TC-UNIT-CourseService-021")]
+        [Trait("TC", "TC-UNIT-CourseService-025")]
         [Trait("UC", "UC-38")]
         [Trait("Type", "Security (GBR)")]
         [Trait("Priority", "High")]
@@ -451,7 +451,7 @@ namespace AILA.Application.Tests.Features.Courses
         }
 
         [Fact]
-        [Trait("TC", "TC-UNIT-CourseService-021")]
+        [Trait("TC", "TC-UNIT-CourseService-026")]
         [Trait("UC", "UC-38")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "Medium")]
@@ -471,7 +471,7 @@ namespace AILA.Application.Tests.Features.Courses
         // Covers: BR-01 has module (FALSE). Domain ném InvalidOperationException, handler BẮT
         // và dịch thành mã lỗi — khác hẳn Create/Edit vốn để exception nổi ra ngoài.
         [Fact]
-        [Trait("TC", "TC-UNIT-CourseService-022")]
+        [Trait("TC", "TC-UNIT-CourseService-026")]
         [Trait("UC", "UC-38")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Functional")]
@@ -497,7 +497,7 @@ namespace AILA.Application.Tests.Features.Courses
         // Course.Publish() có vòng lặp gọi module.ValidateBeforeCoursePublish(), và method đó
         // ném lỗi khi module rỗng. Chương không có học liệu ⇒ ĐÚNG LÀ bị chặn như UCS mô tả.
         [Fact]
-        [Trait("TC", "TC-UNIT-CourseService-023")]
+        [Trait("TC", "TC-UNIT-CourseService-026")]
         [Trait("UC", "UC-38")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Functional")]
@@ -522,7 +522,7 @@ namespace AILA.Application.Tests.Features.Courses
         // ============================================================ TC-024  ⚠ DEFECT
         // BR-01 yêu cầu có tag mới được publish, nhưng Course.Publish() không hề đọc CourseTags.
         [Fact(Skip = "DEF-CRS-03 - A course can be published with no tag at all")]
-        [Trait("TC", "TC-UNIT-CourseService-024")]
+        [Trait("TC", "TC-UNIT-CourseService-026")]
         [Trait("UC", "UC-38")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Functional")]
@@ -547,7 +547,7 @@ namespace AILA.Application.Tests.Features.Courses
         // ============================================================ TC-025
         // Covers: BR-03 HIDDEN → PUBLISHED. Khoá đã ẩn có thể phát hành lại.
         [Fact]
-        [Trait("TC", "TC-UNIT-CourseService-025")]
+        [Trait("TC", "TC-UNIT-CourseService-026")]
         [Trait("UC", "UC-38")]
         [Trait("BR", "BR-03")]
         [Trait("Type", "Functional")]

@@ -79,7 +79,7 @@ namespace AILA.Application.Tests.Features.Quizzes
         // ------------------------------------------------------------ TC-024
         // Covers: Main Flow. OrderIndex mới = max hiện có + 1, nên đáp án luôn nối vào cuối.
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizService-024")]
+        [Trait("TC", "TC-UNIT-QuizService-037")]
         [Trait("UC", "UC-53")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "High")]
@@ -102,7 +102,7 @@ namespace AILA.Application.Tests.Features.Quizzes
         // ------------------------------------------------------------ TC-025
         // Covers: BR-01 — không tìm thấy câu hỏi / không phải chủ khoá học.
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizService-025")]
+        [Trait("TC", "TC-UNIT-QuizService-038")]
         [Trait("UC", "UC-53")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Security (GBR)")]
@@ -132,7 +132,7 @@ namespace AILA.Application.Tests.Features.Quizzes
         // Covers: BR-02 — câu hỏi SingleChoice phải có ĐÚNG một đáp án đúng. Thêm đáp án
         // đúng thứ hai làm câu hỏi không chấm được, phải bị chặn.
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizService-026")]
+        [Trait("TC", "TC-UNIT-QuizService-039")]
         [Trait("UC", "UC-53")]
         [Trait("BR", "BR-02")]
         [Trait("Type", "Functional")]
@@ -156,7 +156,7 @@ namespace AILA.Application.Tests.Features.Quizzes
         // ------------------------------------------------------------ TC-027
         // Covers: BR-02 với MultipleChoice — nhiều đáp án đúng là hợp lệ.
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizService-027")]
+        [Trait("TC", "TC-UNIT-QuizService-039")]
         [Trait("UC", "UC-53")]
         [Trait("BR", "BR-02")]
         [Trait("Type", "Functional")]
@@ -180,7 +180,7 @@ namespace AILA.Application.Tests.Features.Quizzes
 
         // ------------------------------------------------------------ TC-028
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizService-028")]
+        [Trait("TC", "TC-UNIT-QuizService-040")]
         [Trait("UC", "UC-54")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "High")]
@@ -207,7 +207,7 @@ namespace AILA.Application.Tests.Features.Quizzes
         // ------------------------------------------------------------ TC-029
         // Covers: BR-01 — không tìm thấy / không phải chủ sở hữu.
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizService-029")]
+        [Trait("TC", "TC-UNIT-QuizService-041")]
         [Trait("UC", "UC-54")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Security (GBR)")]
@@ -238,7 +238,7 @@ namespace AILA.Application.Tests.Features.Quizzes
         // ------------------------------------------------------------ TC-030
         // Covers: BR-02 — bỏ cờ đúng của đáp án đúng DUY NHẤT làm câu hỏi không còn chấm được.
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizService-030")]
+        [Trait("TC", "TC-UNIT-QuizService-041")]
         [Trait("UC", "UC-54")]
         [Trait("BR", "BR-02")]
         [Trait("Type", "Functional")]
@@ -267,7 +267,7 @@ namespace AILA.Application.Tests.Features.Quizzes
 
         // ------------------------------------------------------------ TC-031
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizService-031")]
+        [Trait("TC", "TC-UNIT-QuizService-042")]
         [Trait("UC", "UC-55")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "High")]
@@ -295,7 +295,7 @@ namespace AILA.Application.Tests.Features.Quizzes
         // Covers: BR-01 — xoá đáp án đúng duy nhất khiến câu hỏi không chấm được nữa,
         // đây là biên giữ cho bài kiểm tra còn dùng được.
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizService-032")]
+        [Trait("TC", "TC-UNIT-QuizService-043")]
         [Trait("UC", "UC-55")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Boundary & Negative")]
@@ -322,7 +322,7 @@ namespace AILA.Application.Tests.Features.Quizzes
 
         // ------------------------------------------------------------ TC-033
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizService-033")]
+        [Trait("TC", "TC-UNIT-QuizService-043")]
         [Trait("UC", "UC-55")]
         [Trait("Type", "Security (GBR)")]
         [Trait("Priority", "Critical")]
@@ -353,7 +353,7 @@ namespace AILA.Application.Tests.Features.Quizzes
 
         // ------------------------------------------------------------ TC-034
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizService-034")]
+        [Trait("TC", "TC-UNIT-QuizService-044")]
         [Trait("UC", "UC-56")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "Medium")]
@@ -387,7 +387,7 @@ namespace AILA.Application.Tests.Features.Quizzes
         // Covers: BR-01 — id lạ trong danh sách bị bỏ qua im lặng (map.TryGetValue).
         // Ghi nhận hành vi hiện tại: client gửi danh sách cũ/thiếu sẽ KHÔNG bị báo lỗi.
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizService-035")]
+        [Trait("TC", "TC-UNIT-QuizService-045")]
         [Trait("UC", "UC-56")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Boundary & Negative")]
@@ -417,7 +417,7 @@ namespace AILA.Application.Tests.Features.Quizzes
 
         // ------------------------------------------------------------ TC-036
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizService-036")]
+        [Trait("TC", "TC-UNIT-QuizService-045")]
         [Trait("UC", "UC-56")]
         [Trait("Type", "Security (GBR)")]
         [Trait("Priority", "Critical")]
@@ -445,7 +445,7 @@ namespace AILA.Application.Tests.Features.Quizzes
 
         // ------------------------------------------------------------ TC-037
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizService-037")]
+        [Trait("TC", "TC-UNIT-QuizService-046")]
         [Trait("UC", "UC-53")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "Medium")]
@@ -468,7 +468,7 @@ namespace AILA.Application.Tests.Features.Quizzes
         // ------------------------------------------------------------ TC-038
         // Covers: BR-03 — lộ cờ IsCorrect cho người không sở hữu là lộ đáp án của cả bài thi.
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizService-038")]
+        [Trait("TC", "TC-UNIT-QuizService-047")]
         [Trait("UC", "UC-53")]
         [Trait("BR", "BR-03")]
         [Trait("Type", "Security (GBR)")]

@@ -1,4 +1,4 @@
-﻿using AILA.Application.Common.Interfaces;
+using AILA.Application.Common.Interfaces;
 using AILA.Application.Common.Interfaces.Repositories;
 using AILA.Application.Features.DocumentMaterials.Commands.UpdateDocumentDetail;
 using AILA.Application.Features.LearningMaterials.Commands.CreateLearningMaterial;
@@ -111,7 +111,7 @@ namespace AILA.Application.Tests.Features.Materials
 
         // Module rỗng thì bắt đầu từ 1, không phải 0 (Material.OrderIndex bắt buộc > 0).
         [Fact]
-        [Trait("TC", "TC-UNIT-MaterialService-001")]
+        [Trait("TC", "TC-UNIT-MaterialService-002")]
         [Trait("UC", "UC-43")]
         [Trait("Type", "Boundary & Negative")]
         [Trait("Priority", "Medium")]
@@ -129,7 +129,7 @@ namespace AILA.Application.Tests.Features.Materials
         }
 
         [Fact]
-        [Trait("TC", "TC-UNIT-MaterialService-001")]
+        [Trait("TC", "TC-UNIT-MaterialService-009")]
         [Trait("UC", "UC-43")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "Medium")]
@@ -147,7 +147,7 @@ namespace AILA.Application.Tests.Features.Materials
         }
 
         [Fact]
-        [Trait("TC", "TC-UNIT-MaterialService-001")]
+        [Trait("TC", "TC-UNIT-MaterialService-010")]
         [Trait("UC", "UC-43")]
         [Trait("Type", "Security (GBR)")]
         [Trait("Priority", "High")]
@@ -177,7 +177,7 @@ namespace AILA.Application.Tests.Features.Materials
         [InlineData("")]
         [InlineData("   ")]
         [InlineData("abcd")]     // 4 ký tự — biên - 1
-        [Trait("TC", "TC-UNIT-MaterialService-002")]
+        [Trait("TC", "TC-UNIT-MaterialService-010")]
         [Trait("UC", "UC-43")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Input Validation")]
@@ -222,7 +222,7 @@ namespace AILA.Application.Tests.Features.Materials
         }
 
         [Fact]
-        [Trait("TC", "TC-UNIT-MaterialService-003")]
+        [Trait("TC", "TC-UNIT-MaterialService-004")]
         [Trait("UC", "UC-44")]
         [Trait("Type", "Security (GBR)")]
         [Trait("Priority", "High")]
@@ -250,7 +250,7 @@ namespace AILA.Application.Tests.Features.Materials
         [Theory]
         [InlineData("")]
         [InlineData("   ")]
-        [Trait("TC", "TC-UNIT-MaterialService-004")]
+        [Trait("TC", "TC-UNIT-MaterialService-005")]
         [Trait("UC", "UC-44")]
         [Trait("Type", "Input Validation")]
         [Trait("Priority", "Medium")]
@@ -332,7 +332,7 @@ namespace AILA.Application.Tests.Features.Materials
         }
 
         [Fact]
-        [Trait("TC", "TC-UNIT-MaterialService-006")]
+        [Trait("TC", "TC-UNIT-MaterialService-007")]
         [Trait("UC", "UC-45")]
         [Trait("Type", "Security (GBR)")]
         [Trait("Priority", "High")]
@@ -356,7 +356,7 @@ namespace AILA.Application.Tests.Features.Materials
         [Theory(Skip = "DEF-MAT-02 - Content can still be deleted while the course is published")]
         [InlineData(MaterialType.Document)]   // TC-007
         [InlineData(MaterialType.Video)]      // TC-016
-        [Trait("TC", "TC-UNIT-MaterialService-007")]
+        [Trait("TC", "TC-UNIT-MaterialService-008")]
         [Trait("UC", "UC-45")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Functional")]
@@ -436,7 +436,7 @@ namespace AILA.Application.Tests.Features.Materials
         // ============================================================ TC-014  ⚠ DEFECT
         // Giống TC-005 nhưng cho video: không kiểm Course.IsPublished.
         [Fact(Skip = "DEF-MAT-01 - Content can still be edited while the course is published")]
-        [Trait("TC", "TC-UNIT-MaterialService-014")]
+        [Trait("TC", "TC-UNIT-MaterialService-013")]
         [Trait("UC", "UC-47")]
         [Trait("BR", "BR-02")]
         [Trait("Type", "Functional")]
@@ -551,7 +551,7 @@ namespace AILA.Application.Tests.Features.Materials
         }
 
         [Fact]
-        [Trait("TC", "TC-UNIT-MaterialService-018")]
+        [Trait("TC", "TC-UNIT-MaterialService-020")]
         [Trait("UC", "UC-49")]
         [Trait("Type", "Security (GBR)")]
         [Trait("Priority", "High")]

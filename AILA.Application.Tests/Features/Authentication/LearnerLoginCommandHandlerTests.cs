@@ -1,4 +1,4 @@
-﻿using AILA.Application.Common.Interfaces;
+using AILA.Application.Common.Interfaces;
 using AILA.Application.Common.Interfaces.Repositories;
 using AILA.Application.Features.Authentication.Commands.LearnerLogin;
 using AILA.Application.Tests.Common.Builders;
@@ -110,7 +110,7 @@ namespace AILA.Application.Tests.Features.Authentication
         [Theory]
         [InlineData(UserRole.Expert)]
         [InlineData(UserRole.Admin)]
-        [Trait("TC", "TC-UNIT-AuthService-028")]
+        [Trait("TC", "TC-UNIT-AuthService-017")]
         [Trait("UC", "UC-10")]
         [Trait("BR", "BR-02")]
         [Trait("Type", "Security (GBR)")]
@@ -134,7 +134,7 @@ namespace AILA.Application.Tests.Features.Authentication
         // khoá (UC-77) vẫn đăng nhập được và vẫn nhận token hợp lệ.
         // Test khoá hành vi hiện tại; đảo lại thành assert INVALID_CREDENTIALS khi defect được fix.
         [Fact(Skip = "DEF-AUTH-03 - Learner login ignores IsActive, a locked account can sign in")]
-        [Trait("TC", "TC-UNIT-AuthService-017")]
+        [Trait("TC", "TC-UNIT-AuthService-028")]
         [Trait("UC", "UC-10")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Security (GBR)")]

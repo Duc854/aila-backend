@@ -1,4 +1,4 @@
-﻿using AILA.Application.Common.Interfaces;
+using AILA.Application.Common.Interfaces;
 using AILA.Application.Common.Interfaces.Repositories;
 using AILA.Application.Features.Modules.Commands;
 using AILA.Application.Features.Modules.Dtos;
@@ -80,7 +80,7 @@ namespace AILA.Application.Tests.Features.Modules
         }
 
         [Fact]
-        [Trait("TC", "TC-UNIT-ModuleService-001")]
+        [Trait("TC", "TC-UNIT-ModuleService-002")]
         [Trait("UC", "UC-39")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "Medium")]
@@ -98,7 +98,7 @@ namespace AILA.Application.Tests.Features.Modules
 
         // Ownership: expert khác không được thêm chương vào khoá học không phải của mình.
         [Fact]
-        [Trait("TC", "TC-UNIT-ModuleService-001")]
+        [Trait("TC", "TC-UNIT-ModuleService-002")]
         [Trait("UC", "UC-39")]
         [Trait("Type", "Security (GBR)")]
         [Trait("Priority", "High")]
@@ -209,7 +209,7 @@ namespace AILA.Application.Tests.Features.Modules
         }
 
         [Fact]
-        [Trait("TC", "TC-UNIT-ModuleService-003")]
+        [Trait("TC", "TC-UNIT-ModuleService-004")]
         [Trait("UC", "UC-40")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "Medium")]
@@ -226,7 +226,7 @@ namespace AILA.Application.Tests.Features.Modules
         }
 
         [Fact]
-        [Trait("TC", "TC-UNIT-ModuleService-003")]
+        [Trait("TC", "TC-UNIT-ModuleService-004")]
         [Trait("UC", "UC-40")]
         [Trait("Type", "Security (GBR)")]
         [Trait("Priority", "High")]
@@ -294,7 +294,7 @@ namespace AILA.Application.Tests.Features.Modules
         }
 
         [Fact]
-        [Trait("TC", "TC-UNIT-ModuleService-005")]
+        [Trait("TC", "TC-UNIT-ModuleService-006")]
         [Trait("UC", "UC-41")]
         [Trait("Type", "Security (GBR)")]
         [Trait("Priority", "High")]
@@ -321,7 +321,7 @@ namespace AILA.Application.Tests.Features.Modules
         // Hệ quả nặng nhất: expert xoá được chương của khoá ĐANG PHÁT HÀNH mà học viên đang học.
         // Test khoá hành vi hiện tại; khi rào chắn được thêm, test sẽ đỏ và phải viết lại.
         [Fact(Skip = "DEF-MOD-04 - DeleteModule has no material, enrolment or published-course guard")]
-        [Trait("TC", "TC-UNIT-ModuleService-006")]
+        [Trait("TC", "TC-UNIT-ModuleService-007")]
         [Trait("UC", "UC-41")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "High")]
@@ -425,7 +425,7 @@ namespace AILA.Application.Tests.Features.Modules
         // ⚠ Không có kiểm tra trùng OrderIndex: hai module cùng nhận index 1 vẫn được chấp nhận,
         // sinh ra thứ tự không xác định trên UI (xem DEF-MOD-05).
         [Fact(Skip = "DEF-MOD-05 - ReorderModules accepts duplicate order indexes")]
-        [Trait("TC", "TC-UNIT-ModuleService-010")]
+        [Trait("TC", "TC-UNIT-ModuleService-011")]
         [Trait("UC", "UC-42")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "Medium")]

@@ -1,4 +1,4 @@
-﻿using AILA.Application.Common.Interfaces;
+using AILA.Application.Common.Interfaces;
 using AILA.Application.Common.Interfaces.Repositories;
 using AILA.Application.Features.Courses.Commands;
 using AILA.Application.Features.Courses.Queries.GetCourseLearningView;
@@ -82,7 +82,7 @@ namespace AILA.Application.Tests.Features.Learning
         // ------------------------------------------------------------ TC-001 (nhánh chặn)
         // Ba lý do từ chối đều ném exception với thông điệp riêng.
         [Fact]
-        [Trait("TC", "TC-UNIT-LearningService-001")]
+        [Trait("TC", "TC-UNIT-LearningService-002")]
         [Trait("UC", "UC-22")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "High")]
@@ -100,7 +100,7 @@ namespace AILA.Application.Tests.Features.Learning
 
         // BR-02: chỉ khoá học đã công khai mới ghi danh được.
         [Fact]
-        [Trait("TC", "TC-UNIT-LearningService-001")]
+        [Trait("TC", "TC-UNIT-LearningService-002")]
         [Trait("UC", "UC-22")]
         [Trait("BR", "BR-02")]
         [Trait("Type", "Security (GBR)")]
@@ -149,7 +149,7 @@ namespace AILA.Application.Tests.Features.Learning
         // Covers: AF-01. Phần "course có nhưng 0 material" cần dựng đồ thị Course+Module+Material
         // → hoãn sang batch 4 (CourseService) khi đã có CourseBuilder dùng chung.
         [Fact]
-        [Trait("TC", "TC-UNIT-LearningService-005")]
+        [Trait("TC", "TC-UNIT-LearningService-003")]
         [Trait("UC", "UC-23")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "Medium")]
@@ -263,7 +263,7 @@ namespace AILA.Application.Tests.Features.Learning
         // ------------------------------------------------------------ TC-008 (nhánh chặn)
         // Hai lời chặn này chạy TRƯỚC khi mở transaction.
         [Fact]
-        [Trait("TC", "TC-UNIT-LearningService-008")]
+        [Trait("TC", "TC-UNIT-LearningService-009")]
         [Trait("UC", "UC-24")]
         [Trait("Type", "Security (GBR)")]
         [Trait("Priority", "High")]
@@ -284,7 +284,7 @@ namespace AILA.Application.Tests.Features.Learning
         }
 
         [Fact]
-        [Trait("TC", "TC-UNIT-LearningService-008")]
+        [Trait("TC", "TC-UNIT-LearningService-009")]
         [Trait("UC", "UC-24")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "Medium")]
@@ -357,7 +357,7 @@ namespace AILA.Application.Tests.Features.Learning
         // Lần đầu vào học, CurrentMaterialId mặc định = material đầu tiên theo
         // Module.OrderIndex → Material.OrderIndex.
         [Fact]
-        [Trait("TC", "TC-UNIT-LearningService-003")]
+        [Trait("TC", "TC-UNIT-LearningService-004")]
         [Trait("UC", "UC-23")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Functional")]
@@ -396,7 +396,7 @@ namespace AILA.Application.Tests.Features.Learning
         // Covers: BR-02 resume — có tiến độ đã lưu thì lấy đúng material đang học dở,
         // không quay về material đầu tiên.
         [Fact]
-        [Trait("TC", "TC-UNIT-LearningService-004")]
+        [Trait("TC", "TC-UNIT-LearningService-005")]
         [Trait("UC", "UC-23")]
         [Trait("BR", "BR-02")]
         [Trait("Type", "Functional")]

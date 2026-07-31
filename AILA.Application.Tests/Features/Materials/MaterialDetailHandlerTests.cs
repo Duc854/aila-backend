@@ -69,7 +69,7 @@ namespace AILA.Application.Tests.Features.Materials
 
         // ------------------------------------------------------------ TC-Material-021
         [Fact]
-        [Trait("TC", "TC-UNIT-MaterialService-021")]
+        [Trait("TC", "TC-UNIT-MaterialService-026")]
         [Trait("UC", "UC-44")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "High")]
@@ -93,7 +93,7 @@ namespace AILA.Application.Tests.Features.Materials
         // ------------------------------------------------------------ TC-Material-022
         // Covers: BR-01 — ba nhánh từ chối: sai chủ, không tồn tại, và sai loại học liệu.
         [Fact]
-        [Trait("TC", "TC-UNIT-MaterialService-022")]
+        [Trait("TC", "TC-UNIT-MaterialService-027")]
         [Trait("UC", "UC-44")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Security (GBR)")]
@@ -135,7 +135,7 @@ namespace AILA.Application.Tests.Features.Materials
 
         // ------------------------------------------------------------ TC-Material-023
         [Fact]
-        [Trait("TC", "TC-UNIT-MaterialService-023")]
+        [Trait("TC", "TC-UNIT-MaterialService-028")]
         [Trait("UC", "UC-47")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "High")]
@@ -158,7 +158,7 @@ namespace AILA.Application.Tests.Features.Materials
 
         // ------------------------------------------------------------ TC-Material-024
         [Fact]
-        [Trait("TC", "TC-UNIT-MaterialService-024")]
+        [Trait("TC", "TC-UNIT-MaterialService-029")]
         [Trait("UC", "UC-47")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Security (GBR)")]
@@ -193,7 +193,7 @@ namespace AILA.Application.Tests.Features.Materials
 
         // ------------------------------------------------------------ TC-Quiz-039
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizService-039")]
+        [Trait("TC", "TC-UNIT-QuizService-026")]
         [Trait("UC", "UC-51")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "High")]
@@ -217,7 +217,7 @@ namespace AILA.Application.Tests.Features.Materials
 
         // ------------------------------------------------------------ TC-Quiz-040
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizService-040")]
+        [Trait("TC", "TC-UNIT-QuizService-027")]
         [Trait("UC", "UC-51")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Security (GBR)")]
@@ -252,7 +252,7 @@ namespace AILA.Application.Tests.Features.Materials
 
         // ------------------------------------------------------------ TC-Material-025
         [Fact]
-        [Trait("TC", "TC-UNIT-MaterialService-025")]
+        [Trait("TC", "TC-UNIT-MaterialService-021")]
         [Trait("UC", "UC-44")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "High")]
@@ -273,7 +273,7 @@ namespace AILA.Application.Tests.Features.Materials
 
         // ------------------------------------------------------------ TC-Material-026
         [Fact]
-        [Trait("TC", "TC-UNIT-MaterialService-026")]
+        [Trait("TC", "TC-UNIT-MaterialService-022")]
         [Trait("UC", "UC-44")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Security (GBR)")]
@@ -304,7 +304,7 @@ namespace AILA.Application.Tests.Features.Materials
         // ------------------------------------------------------------ TC-Material-027
         // Covers: Main Flow — thứ tự lấy từ OrderIndex chứ không theo thứ tự chèn.
         [Fact]
-        [Trait("TC", "TC-UNIT-MaterialService-027")]
+        [Trait("TC", "TC-UNIT-MaterialService-024")]
         [Trait("UC", "UC-49")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "High")]
@@ -329,7 +329,7 @@ namespace AILA.Application.Tests.Features.Materials
 
         // ------------------------------------------------------------ TC-Material-028
         [Fact]
-        [Trait("TC", "TC-UNIT-MaterialService-028")]
+        [Trait("TC", "TC-UNIT-MaterialService-025")]
         [Trait("UC", "UC-49")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Security (GBR)")]
@@ -355,7 +355,7 @@ namespace AILA.Application.Tests.Features.Materials
 
         // ------------------------------------------------------------ TC-Material-029
         [Fact]
-        [Trait("TC", "TC-UNIT-MaterialService-029")]
+        [Trait("TC", "TC-UNIT-MaterialService-025")]
         [Trait("UC", "UC-49")]
         [Trait("Type", "Boundary & Negative")]
         [Trait("Priority", "Medium")]
@@ -377,7 +377,7 @@ namespace AILA.Application.Tests.Features.Materials
 
         // ------------------------------------------------------------ TC-Quiz-041
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizService-041")]
+        [Trait("TC", "TC-UNIT-QuizService-024")]
         [Trait("UC", "UC-56")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "High")]
@@ -411,7 +411,7 @@ namespace AILA.Application.Tests.Features.Materials
         // ------------------------------------------------------------ TC-Quiz-042
         // Covers: BR-01 — lộ câu hỏi ra ngoài là lộ luôn đáp án của cả bài kiểm tra.
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizService-042")]
+        [Trait("TC", "TC-UNIT-QuizService-025")]
         [Trait("UC", "UC-56")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Security (GBR)")]
@@ -445,7 +445,7 @@ namespace AILA.Application.Tests.Features.Materials
         // tempOffset 1_000_000 để né va chạm unique index (QuizMaterialId, OrderIndex)
         // khi hoán vị: nếu gán thẳng, bước trung gian sẽ có hai câu cùng OrderIndex.
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizService-043")]
+        [Trait("TC", "TC-UNIT-QuizService-021")]
         [Trait("UC", "UC-56")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "High")]
@@ -485,7 +485,7 @@ namespace AILA.Application.Tests.Features.Materials
 
         // ------------------------------------------------------------ TC-Quiz-044
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizService-044")]
+        [Trait("TC", "TC-UNIT-QuizService-022")]
         [Trait("UC", "UC-56")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Security (GBR)")]

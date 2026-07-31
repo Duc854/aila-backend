@@ -1,4 +1,4 @@
-﻿using AILA.Application.Common.Interfaces;
+using AILA.Application.Common.Interfaces;
 using AILA.Application.Common.Interfaces.Repositories;
 using AILA.Application.Features.Quizzes;
 using AILA.Application.Features.Quizzes.Commands.StartQuizAttempt;
@@ -117,7 +117,7 @@ namespace AILA.Application.Tests.Features.Quizzes
 
         // Ba nhánh chặn trước khi tạo lượt làm bài.
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizAttemptService-001")]
+        [Trait("TC", "TC-UNIT-QuizAttemptService-002")]
         [Trait("UC", "UC-25")]
         [Trait("Type", "Security (GBR)")]
         [Trait("Priority", "High")]
@@ -139,7 +139,7 @@ namespace AILA.Application.Tests.Features.Quizzes
         // Quiz chưa cấu hình đủ (0 câu hỏi, hoặc có câu hỏi không đáp án) thì không cho bắt đầu.
         // Đây chính là hệ quả trực tiếp của DEF-QZ-01 (CreateQuestion không ép tối thiểu 2 đáp án).
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizAttemptService-001")]
+        [Trait("TC", "TC-UNIT-QuizAttemptService-008")]
         [Trait("UC", "UC-25")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "High")]
@@ -160,7 +160,7 @@ namespace AILA.Application.Tests.Features.Quizzes
         // ============================================================ TC-002
         // Covers: resume — còn lượt In_Progress chưa hết giờ thì trả lại chính nó, không tạo mới.
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizAttemptService-002")]
+        [Trait("TC", "TC-UNIT-QuizAttemptService-012")]
         [Trait("UC", "UC-25")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "Medium")]
@@ -219,7 +219,7 @@ namespace AILA.Application.Tests.Features.Quizzes
         // Covers: BR-01 làm lại nhiều lần — lượt trước đã Submitted nên repo trả null cho
         // "in-progress", handler mở lượt mới. Không có giới hạn số lần.
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizAttemptService-008")]
+        [Trait("TC", "TC-UNIT-QuizAttemptService-012")]
         [Trait("UC", "UC-25")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Functional")]
@@ -281,7 +281,7 @@ namespace AILA.Application.Tests.Features.Quizzes
         // đã LỖI THỜI: handler hiện có `if (isPassed)` bao quanh phần cập nhật tiến độ.
         // Trượt ⇒ attempt vẫn Submitted nhưng KHÔNG hoàn thành học liệu — đúng như UCS.
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizAttemptService-007")]
+        [Trait("TC", "TC-UNIT-QuizAttemptService-005")]
         [Trait("UC", "UC-25")]
         [Trait("BR", "BR-05")]
         [Trait("Type", "Functional")]
@@ -351,7 +351,7 @@ namespace AILA.Application.Tests.Features.Quizzes
         // không bao giờ được nộp. Server chỉ tính cờ WasAutoSubmitted để ghi log, còn lại
         // xử lý y hệt submit thường — vẫn chấm, vẫn cho đạt.
         [Fact(Skip = "DEF-QA-01 - No server-side auto-submit when the time limit expires")]
-        [Trait("TC", "TC-UNIT-QuizAttemptService-005")]
+        [Trait("TC", "TC-UNIT-QuizAttemptService-007")]
         [Trait("UC", "UC-25")]
         [Trait("Type", "Boundary & Negative")]
         [Trait("Priority", "High")]
@@ -383,7 +383,7 @@ namespace AILA.Application.Tests.Features.Quizzes
 
         // ------------------------------------------------------------ Bảo mật: lượt của người khác
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizAttemptService-004")]
+        [Trait("TC", "TC-UNIT-QuizAttemptService-007")]
         [Trait("UC", "UC-25")]
         [Trait("Type", "Security (GBR)")]
         [Trait("Priority", "High")]
@@ -405,7 +405,7 @@ namespace AILA.Application.Tests.Features.Quizzes
 
         // Bài nộp chứa câu hỏi/đáp án không thuộc quiz → từ chối, không mở transaction.
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizAttemptService-004")]
+        [Trait("TC", "TC-UNIT-QuizAttemptService-007")]
         [Trait("UC", "UC-25")]
         [Trait("Type", "Input Validation")]
         [Trait("Priority", "High")]
@@ -432,7 +432,7 @@ namespace AILA.Application.Tests.Features.Quizzes
 
         // Quiz thiếu đáp án đúng → không chấm được, từ chối thay vì cho 0 điểm.
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizAttemptService-004")]
+        [Trait("TC", "TC-UNIT-QuizAttemptService-007")]
         [Trait("UC", "UC-25")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "High")]
@@ -457,7 +457,7 @@ namespace AILA.Application.Tests.Features.Quizzes
 
         // Double-submit: lượt đã nộp thì trả lại kết quả cũ, KHÔNG chấm đè.
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizAttemptService-004")]
+        [Trait("TC", "TC-UNIT-QuizAttemptService-007")]
         [Trait("UC", "UC-25")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "High")]

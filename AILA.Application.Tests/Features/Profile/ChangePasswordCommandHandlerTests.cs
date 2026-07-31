@@ -104,7 +104,7 @@ namespace AILA.Application.Tests.Features.Profile
         // ------------------------------------------------------------ TC-020b
         // Biên dưới của policy: đúng 8 ký tự và đủ 3 loại ký tự thì phải ĐƯỢC chấp nhận.
         [Fact]
-        [Trait("TC", "TC-UNIT-AuthService-020")]
+        [Trait("TC", "TC-UNIT-AuthService-021")]
         [Trait("UC", "UC-11")]
         [Trait("Type", "Boundary & Negative")]
         [Trait("Priority", "Medium")]
@@ -125,7 +125,7 @@ namespace AILA.Application.Tests.Features.Profile
         // ------------------------------------------------------------ TC-021
         // Covers: BR-03 must differ — mật khẩu mới trùng mật khẩu cũ thì từ chối, không lưu.
         [Fact]
-        [Trait("TC", "TC-UNIT-AuthService-021")]
+        [Trait("TC", "TC-UNIT-AuthService-029")]
         [Trait("UC", "UC-11")]
         [Trait("BR", "BR-03")]
         [Trait("Type", "Functional")]

@@ -105,7 +105,7 @@ namespace AILA.Application.Tests.Features.Categories
         [Theory]
         [InlineData(2)]     // min
         [InlineData(100)]   // max
-        [Trait("TC", "TC-UNIT-CategoryService-003")]
+        [Trait("TC", "TC-UNIT-CategoryService-004")]
         [Trait("UC", "UC-81")]
         [Trait("BR", "BR-02")]
         [Trait("Type", "Boundary & Negative")]
@@ -127,7 +127,7 @@ namespace AILA.Application.Tests.Features.Categories
         [InlineData("")]
         [InlineData("   ")]
         [InlineData(null)]
-        [Trait("TC", "TC-UNIT-CategoryService-003")]
+        [Trait("TC", "TC-UNIT-CategoryService-004")]
         [Trait("UC", "UC-81")]
         [Trait("Type", "Input Validation")]
         [Trait("Priority", "Medium")]
@@ -142,7 +142,7 @@ namespace AILA.Application.Tests.Features.Categories
 
         // Độ dài đo SAU Trim — khoảng trắng thừa không được tính là vi phạm.
         [Fact]
-        [Trait("TC", "TC-UNIT-CategoryService-003")]
+        [Trait("TC", "TC-UNIT-CategoryService-004")]
         [Trait("UC", "UC-81")]
         [Trait("Type", "Boundary & Negative")]
         [Trait("Priority", "Low")]
@@ -219,7 +219,7 @@ namespace AILA.Application.Tests.Features.Categories
         }
 
         [Fact]
-        [Trait("TC", "TC-UNIT-CategoryService-005")]
+        [Trait("TC", "TC-UNIT-CategoryService-006")]
         [Trait("UC", "UC-82")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "Medium")]
@@ -238,7 +238,7 @@ namespace AILA.Application.Tests.Features.Categories
         // Covers: BR-01 unique name khi cập nhật — so trùng phải LOẠI TRỪ chính nó, nếu không
         // thì đổi mô tả mà giữ nguyên tên sẽ bị chặn oan.
         [Fact]
-        [Trait("TC", "TC-UNIT-CategoryService-006")]
+        [Trait("TC", "TC-UNIT-CategoryService-007")]
         [Trait("UC", "UC-82")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Functional")]
@@ -306,7 +306,7 @@ namespace AILA.Application.Tests.Features.Categories
         }
 
         [Fact]
-        [Trait("TC", "TC-UNIT-CategoryService-008")]
+        [Trait("TC", "TC-UNIT-CategoryService-009")]
         [Trait("UC", "UC-83")]
         [Trait("BR", "BR-02")]
         [Trait("Type", "Functional")]
@@ -326,7 +326,7 @@ namespace AILA.Application.Tests.Features.Categories
         }
 
         [Fact]
-        [Trait("TC", "TC-UNIT-CategoryService-008")]
+        [Trait("TC", "TC-UNIT-CategoryService-009")]
         [Trait("UC", "UC-83")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "Medium")]

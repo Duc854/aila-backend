@@ -1,4 +1,4 @@
-﻿using AILA.Application.Common.Interfaces;
+using AILA.Application.Common.Interfaces;
 using AILA.Application.Common.Interfaces.Repositories;
 using AILA.Application.Features.Reports.Commands.ReportCourse;
 using AILA.Application.Features.Reports.Commands.ResolveReport;
@@ -84,7 +84,7 @@ namespace AILA.Application.Tests.Features.Reports
         // Covers: BR-01 XOR — báo cáo gắn Course HOẶC Material, không bao giờ cả hai.
         // Nhánh if/else của handler là nơi bảo đảm điều đó.
         [Fact]
-        [Trait("TC", "TC-UNIT-ReportService-004")]
+        [Trait("TC", "TC-UNIT-ReportService-002")]
         [Trait("UC", "UC-33")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Functional")]
@@ -114,7 +114,7 @@ namespace AILA.Application.Tests.Features.Reports
 
         // Học liệu không thuộc khoá học được nêu → từ chối, không tiết lộ nó có tồn tại hay không.
         [Fact]
-        [Trait("TC", "TC-UNIT-ReportService-004")]
+        [Trait("TC", "TC-UNIT-ReportService-003")]
         [Trait("UC", "UC-33")]
         [Trait("Type", "Security (GBR)")]
         [Trait("Priority", "Medium")]
@@ -138,7 +138,7 @@ namespace AILA.Application.Tests.Features.Reports
         // Nhưng AF-01 của UCS nói khi đã có report Pending thì cho phép CẬP NHẬT mô tả —
         // code chỉ từ chối, không có đường sửa. Người dùng bổ sung thông tin không được.
         [Fact(Skip = "DEF-RPT-01 - A pending report cannot be updated, only rejected")]
-        [Trait("TC", "TC-UNIT-ReportService-005")]
+        [Trait("TC", "TC-UNIT-ReportService-004")]
         [Trait("UC", "UC-33")]
         [Trait("BR", "BR-02")]
         [Trait("Type", "Functional")]
@@ -164,7 +164,7 @@ namespace AILA.Application.Tests.Features.Reports
         // Covers: AF-02. HasPendingReportAsync CHỈ xét trạng thái Pending, nên sau khi báo cáo
         // cũ đã Resolved, học viên báo cáo lại được — đúng ý "resolved không khoá vĩnh viễn".
         [Fact]
-        [Trait("TC", "TC-UNIT-ReportService-003")]
+        [Trait("TC", "TC-UNIT-ReportService-005")]
         [Trait("UC", "UC-33")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "Medium")]
@@ -186,7 +186,7 @@ namespace AILA.Application.Tests.Features.Reports
 
         // ------------------------------------------------------------ Nhánh chặn của UC-33
         [Fact]
-        [Trait("TC", "TC-UNIT-ReportService-001")]
+        [Trait("TC", "TC-UNIT-ReportService-005")]
         [Trait("UC", "UC-33")]
         [Trait("Type", "Security (GBR)")]
         [Trait("Priority", "High")]
@@ -208,7 +208,7 @@ namespace AILA.Application.Tests.Features.Reports
         }
 
         [Fact]
-        [Trait("TC", "TC-UNIT-ReportService-001")]
+        [Trait("TC", "TC-UNIT-ReportService-005")]
         [Trait("UC", "UC-33")]
         [Trait("Type", "Input Validation")]
         [Trait("Priority", "Medium")]
@@ -227,7 +227,7 @@ namespace AILA.Application.Tests.Features.Reports
         [Theory]
         [InlineData(1000, true)]
         [InlineData(1001, false)]
-        [Trait("TC", "TC-UNIT-ReportService-001")]
+        [Trait("TC", "TC-UNIT-ReportService-005")]
         [Trait("UC", "UC-33")]
         [Trait("Type", "Boundary & Negative")]
         [Trait("Priority", "Medium")]

@@ -57,7 +57,7 @@ namespace AILA.Application.Tests.Features.Authentication
         // Covers: Main Flow — người dùng mới. Handler tự tạo cả User lẫn Learner rồi mới
         // phát token, nên phải kiểm tra cả hai AddAsync chứ không chỉ token.
         [Fact]
-        [Trait("TC", "TC-UNIT-AuthService-037")]
+        [Trait("TC", "TC-UNIT-AuthService-036")]
         [Trait("UC", "UC-15")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "Critical")]
@@ -89,7 +89,7 @@ namespace AILA.Application.Tests.Features.Authentication
         // Covers: Main Flow — người dùng đã có. Lần đầu đăng nhập bằng Google thì GoogleId
         // được gắn vào tài khoản email/mật khẩu sẵn có.
         [Fact]
-        [Trait("TC", "TC-UNIT-AuthService-038")]
+        [Trait("TC", "TC-UNIT-AuthService-037")]
         [Trait("UC", "UC-15")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "High")]
@@ -119,7 +119,7 @@ namespace AILA.Application.Tests.Features.Authentication
         [Theory]
         [InlineData(UserRole.Expert)]
         [InlineData(UserRole.Admin)]
-        [Trait("TC", "TC-UNIT-AuthService-039")]
+        [Trait("TC", "TC-UNIT-AuthService-037")]
         [Trait("UC", "UC-15")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Security (GBR)")]
@@ -143,7 +143,7 @@ namespace AILA.Application.Tests.Features.Authentication
         // ------------------------------------------------------------ TC-040
         // Covers: AF-01 — ba nhánh lỗi trước khi chạm tới database.
         [Fact]
-        [Trait("TC", "TC-UNIT-AuthService-040")]
+        [Trait("TC", "TC-UNIT-AuthService-037")]
         [Trait("UC", "UC-15")]
         [Trait("Type", "Boundary & Negative")]
         [Trait("Priority", "High")]

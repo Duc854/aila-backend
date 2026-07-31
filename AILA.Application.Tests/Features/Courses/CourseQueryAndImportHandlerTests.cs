@@ -81,7 +81,7 @@ namespace AILA.Application.Tests.Features.Courses
         // Covers: Main Flow. Handler trả DTO gồm cả cây Module → Material, dùng cho trang
         // giới thiệu khoá học mà khách chưa ghi danh vẫn xem được.
         [Fact]
-        [Trait("TC", "TC-UNIT-CourseService-032")]
+        [Trait("TC", "TC-UNIT-CourseService-005")]
         [Trait("UC", "UC-04")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "High")]
@@ -118,7 +118,7 @@ namespace AILA.Application.Tests.Features.Courses
         // Covers: AF-01 — khoá học không tồn tại trả null (API dịch thành 404),
         // không ném ngoại lệ.
         [Fact]
-        [Trait("TC", "TC-UNIT-CourseService-033")]
+        [Trait("TC", "TC-UNIT-CourseService-006")]
         [Trait("UC", "UC-04")]
         [Trait("Type", "Boundary & Negative")]
         [Trait("Priority", "High")]
@@ -138,7 +138,7 @@ namespace AILA.Application.Tests.Features.Courses
         // ⚠ Handler đọc thẳng c.Category.Id mà KHÔNG null-check, nên khoá học thiếu navigation
         // Category sẽ ném NullReferenceException. Mock phải gắn Category vào.
         [Fact]
-        [Trait("TC", "TC-UNIT-CourseService-034")]
+        [Trait("TC", "TC-UNIT-CourseService-027")]
         [Trait("UC", "UC-65")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "High")]
@@ -168,7 +168,7 @@ namespace AILA.Application.Tests.Features.Courses
         [InlineData(true)]
         [InlineData(false)]
         [InlineData(null)]
-        [Trait("TC", "TC-UNIT-CourseService-035")]
+        [Trait("TC", "TC-UNIT-CourseService-028")]
         [Trait("UC", "UC-65")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Functional")]
@@ -195,7 +195,7 @@ namespace AILA.Application.Tests.Features.Courses
         // (GetCoursesQuery) dùng phân trang 1-based. Test khoá lại tham số thực tế đang gửi
         // xuống; nếu repository là 1-based thì trang 0 có thể trả rỗng — cần kiểm tra ở L2.
         [Fact]
-        [Trait("TC", "TC-UNIT-ContentService-023")]
+        [Trait("TC", "TC-UNIT-ContentService-019")]
         [Trait("UC", "UC-02")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "High")]
@@ -222,7 +222,7 @@ namespace AILA.Application.Tests.Features.Courses
         // Khoá học chưa gán danh mục vẫn phải hiển thị được (Category?.Name là null-safe ở đây,
         // khác GetExpertCoursesQueryHandler ở TC-034).
         [Fact]
-        [Trait("TC", "TC-UNIT-ContentService-024")]
+        [Trait("TC", "TC-UNIT-ContentService-020")]
         [Trait("UC", "UC-02")]
         [Trait("Type", "Boundary & Negative")]
         [Trait("Priority", "Medium")]
@@ -245,7 +245,7 @@ namespace AILA.Application.Tests.Features.Courses
         // ⚠ Bất đối xứng có chủ ý cần ghi nhận: blog dùng pageNumber = 1, còn khoá học ở
         // TC-023 dùng pageIndex = 0. Một trong hai chắc chắn sai quy ước.
         [Fact]
-        [Trait("TC", "TC-UNIT-ContentService-025")]
+        [Trait("TC", "TC-UNIT-ContentService-021")]
         [Trait("UC", "UC-02")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "High")]
@@ -273,7 +273,7 @@ namespace AILA.Application.Tests.Features.Courses
         // Covers: BR-01 — ba cổng gác chạy TRƯỚC khi mở transaction. Nếu một trong ba lọt,
         // expert khác có thể ghi đè toàn bộ ngân hàng câu hỏi của người ta.
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizService-045")]
+        [Trait("TC", "TC-UNIT-QuizService-028")]
         [Trait("UC", "UC-50")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Security (GBR)")]
@@ -310,7 +310,7 @@ namespace AILA.Application.Tests.Features.Courses
 
         // ------------------------------------------------------------ TC-QuizService-046
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizService-046")]
+        [Trait("TC", "TC-UNIT-QuizService-031")]
         [Trait("UC", "UC-67")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "Medium")]
@@ -331,7 +331,7 @@ namespace AILA.Application.Tests.Features.Courses
 
         // ------------------------------------------------------------ TC-QuizService-047
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizService-047")]
+        [Trait("TC", "TC-UNIT-QuizService-032")]
         [Trait("UC", "UC-67")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Security (GBR)")]
@@ -362,7 +362,7 @@ namespace AILA.Application.Tests.Features.Courses
         // Covers: AF-01 — file hỏng thì handler nuốt mọi Exception từ trình đọc Excel và
         // trả INVALID_FILE, không để lộ stack trace của thư viện ra API.
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizService-048")]
+        [Trait("TC", "TC-UNIT-QuizService-033")]
         [Trait("UC", "UC-68")]
         [Trait("Type", "Boundary & Negative")]
         [Trait("Priority", "High")]
@@ -386,7 +386,7 @@ namespace AILA.Application.Tests.Features.Courses
         // ------------------------------------------------------------ TC-QuizService-049
         // Covers: BR-01 — mọi dòng đều hỏng thì KHÔNG import gì cả.
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizService-049")]
+        [Trait("TC", "TC-UNIT-QuizService-034")]
         [Trait("UC", "UC-68")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Boundary & Negative")]
@@ -417,7 +417,7 @@ namespace AILA.Application.Tests.Features.Courses
         // Covers: UC-69 Review Imported Questions — chế độ DryRun chỉ ĐỌC và trả về kết quả
         // soát lỗi từng dòng để expert xem trước, tuyệt đối không ghi gì vào database.
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizService-050")]
+        [Trait("TC", "TC-UNIT-QuizService-035")]
         [Trait("UC", "UC-69")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "High")]
@@ -449,7 +449,7 @@ namespace AILA.Application.Tests.Features.Courses
 
         // ------------------------------------------------------------ TC-QuizService-051
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizService-051")]
+        [Trait("TC", "TC-UNIT-QuizService-036")]
         [Trait("UC", "UC-68")]
         [Trait("BR", "BR-02")]
         [Trait("Type", "Security (GBR)")]
@@ -478,7 +478,7 @@ namespace AILA.Application.Tests.Features.Courses
 
         // ------------------------------------------------------------ TC-AIPractice-018
         [Fact]
-        [Trait("TC", "TC-UNIT-AIPracticeService-018")]
+        [Trait("TC", "TC-UNIT-AIPracticeService-001")]
         [Trait("UC", "UC-57")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Security (GBR)")]
@@ -516,7 +516,7 @@ namespace AILA.Application.Tests.Features.Courses
 
         // ------------------------------------------------------------ TC-AIPractice-019
         [Fact]
-        [Trait("TC", "TC-UNIT-AIPracticeService-019")]
+        [Trait("TC", "TC-UNIT-AIPracticeService-004")]
         [Trait("UC", "UC-58")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Security (GBR)")]
@@ -551,7 +551,7 @@ namespace AILA.Application.Tests.Features.Courses
 
         // ------------------------------------------------------------ TC-AIPractice-020
         [Fact]
-        [Trait("TC", "TC-UNIT-AIPracticeService-020")]
+        [Trait("TC", "TC-UNIT-AIPracticeService-006")]
         [Trait("UC", "UC-58")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Security (GBR)")]

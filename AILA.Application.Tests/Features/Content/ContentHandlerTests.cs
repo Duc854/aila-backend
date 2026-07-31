@@ -93,7 +93,7 @@ namespace AILA.Application.Tests.Features.Content
         }
 
         [Fact]
-        [Trait("TC", "TC-UNIT-ContentService-004")]
+        [Trait("TC", "TC-UNIT-ContentService-005")]
         [Trait("UC", "UC-06")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "Medium")]

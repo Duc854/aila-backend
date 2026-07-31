@@ -1,4 +1,4 @@
-﻿using AILA.Application.Common.Interfaces;
+using AILA.Application.Common.Interfaces;
 using AILA.Application.Common.Interfaces.Repositories;
 using AILA.Application.Features.Tags.Commands;
 using AILA.Application.Features.Tags.Commands.CreateSystemTag;
@@ -129,7 +129,7 @@ namespace AILA.Application.Tests.Features.Tags
         }
 
         [Fact]
-        [Trait("TC", "TC-UNIT-TagService-001")]
+        [Trait("TC", "TC-UNIT-TagService-002")]
         [Trait("UC", "UC-70")]
         [Trait("Type", "Security (GBR)")]
         [Trait("Priority", "Medium")]
@@ -401,7 +401,7 @@ namespace AILA.Application.Tests.Features.Tags
         }
 
         [Fact]
-        [Trait("TC", "TC-UNIT-TagService-007")]
+        [Trait("TC", "TC-UNIT-TagService-010")]
         [Trait("UC", "UC-85")]
         [Trait("Type", "Input Validation")]
         [Trait("Priority", "Low")]
@@ -531,7 +531,7 @@ namespace AILA.Application.Tests.Features.Tags
 
         // Custom tag không sửa được qua UC-87.
         [Fact]
-        [Trait("TC", "TC-UNIT-TagService-013")]
+        [Trait("TC", "TC-UNIT-TagService-014")]
         [Trait("UC", "UC-87")]
         [Trait("Type", "Security (GBR)")]
         [Trait("Priority", "Medium")]
@@ -550,7 +550,7 @@ namespace AILA.Application.Tests.Features.Tags
 
         // ============================================================ TC-014
         [Fact]
-        [Trait("TC", "TC-UNIT-TagService-014")]
+        [Trait("TC", "TC-UNIT-TagService-015")]
         [Trait("UC", "UC-87")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "Medium")]
@@ -571,7 +571,7 @@ namespace AILA.Application.Tests.Features.Tags
         // Giữ nguyên code của chính nó thì KHÔNG bị coi là trùng — nếu không, đổi mỗi tên
         // mà giữ nguyên slug sẽ bị chặn oan.
         [Fact]
-        [Trait("TC", "TC-UNIT-TagService-014")]
+        [Trait("TC", "TC-UNIT-TagService-015")]
         [Trait("UC", "UC-87")]
         [Trait("Type", "Boundary & Negative")]
         [Trait("Priority", "Medium")]
@@ -656,7 +656,7 @@ namespace AILA.Application.Tests.Features.Tags
 
         // Custom tag không xoá được qua UC-88 (chỉ dành cho system tag).
         [Fact]
-        [Trait("TC", "TC-UNIT-TagService-016")]
+        [Trait("TC", "TC-UNIT-TagService-017")]
         [Trait("UC", "UC-88")]
         [Trait("Type", "Security (GBR)")]
         [Trait("Priority", "Medium")]

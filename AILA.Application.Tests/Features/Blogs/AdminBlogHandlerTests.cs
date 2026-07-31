@@ -123,7 +123,7 @@ namespace AILA.Application.Tests.Features.Blogs
         // ------------------------------------------------------------ TC-004
         // Covers: BR-02 biên trên 255 ký tự.
         [Fact]
-        [Trait("TC", "TC-UNIT-BlogService-004")]
+        [Trait("TC", "TC-UNIT-BlogService-003")]
         [Trait("UC", "UC-94")]
         [Trait("BR", "BR-02")]
         [Trait("Type", "Boundary & Negative")]
@@ -150,7 +150,7 @@ namespace AILA.Application.Tests.Features.Blogs
 
         // ------------------------------------------------------------ TC-005
         [Fact]
-        [Trait("TC", "TC-UNIT-BlogService-005")]
+        [Trait("TC", "TC-UNIT-BlogService-004")]
         [Trait("UC", "UC-96")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "High")]
@@ -174,7 +174,7 @@ namespace AILA.Application.Tests.Features.Blogs
 
         // ------------------------------------------------------------ TC-006
         [Fact]
-        [Trait("TC", "TC-UNIT-BlogService-006")]
+        [Trait("TC", "TC-UNIT-BlogService-005")]
         [Trait("UC", "UC-96")]
         [Trait("Type", "Boundary & Negative")]
         [Trait("Priority", "Medium")]
@@ -196,7 +196,7 @@ namespace AILA.Application.Tests.Features.Blogs
         // Covers: BR-01 — ExistsSlugAsync nhận excludeId để bài viết không "đụng chính nó".
         // Đây là nhánh gãy nếu ai đó bỏ tham số excludeId đi.
         [Fact]
-        [Trait("TC", "TC-UNIT-BlogService-007")]
+        [Trait("TC", "TC-UNIT-BlogService-006")]
         [Trait("UC", "UC-96")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Functional")]
@@ -233,7 +233,7 @@ namespace AILA.Application.Tests.Features.Blogs
 
         // ------------------------------------------------------------ TC-008
         [Fact]
-        [Trait("TC", "TC-UNIT-BlogService-008")]
+        [Trait("TC", "TC-UNIT-BlogService-007")]
         [Trait("UC", "UC-96")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "Medium")]
@@ -253,7 +253,7 @@ namespace AILA.Application.Tests.Features.Blogs
         // ------------------------------------------------------------ TC-009
         // Covers: AF-01 — chặn double-click / bấm xoá hai lần.
         [Fact]
-        [Trait("TC", "TC-UNIT-BlogService-009")]
+        [Trait("TC", "TC-UNIT-BlogService-008")]
         [Trait("UC", "UC-96")]
         [Trait("Type", "Boundary & Negative")]
         [Trait("Priority", "Medium")]
@@ -273,7 +273,7 @@ namespace AILA.Application.Tests.Features.Blogs
 
         // ------------------------------------------------------------ TC-010
         [Fact]
-        [Trait("TC", "TC-UNIT-BlogService-010")]
+        [Trait("TC", "TC-UNIT-BlogService-009")]
         [Trait("UC", "UC-97")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "High")]
@@ -296,7 +296,7 @@ namespace AILA.Application.Tests.Features.Blogs
         // xuất bản bị viết lại mỗi lần admin bấm nhầm. BlogPost.Publish() có guard
         // `if (IsPublished) return;` nên hành vi này đúng.
         [Fact]
-        [Trait("TC", "TC-UNIT-BlogService-011")]
+        [Trait("TC", "TC-UNIT-BlogService-010")]
         [Trait("UC", "UC-97")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Functional")]
@@ -317,7 +317,7 @@ namespace AILA.Application.Tests.Features.Blogs
 
         // ------------------------------------------------------------ TC-012
         [Fact]
-        [Trait("TC", "TC-UNIT-BlogService-012")]
+        [Trait("TC", "TC-UNIT-BlogService-011")]
         [Trait("UC", "UC-97")]
         [Trait("Type", "Boundary & Negative")]
         [Trait("Priority", "Medium")]
@@ -336,7 +336,7 @@ namespace AILA.Application.Tests.Features.Blogs
         // Covers: Main Flow — hạ bài. Lưu ý PublishedAt được GIỮ nguyên: bài từng công khai
         // vẫn còn dấu vết ngày xuất bản đầu tiên.
         [Fact]
-        [Trait("TC", "TC-UNIT-BlogService-013")]
+        [Trait("TC", "TC-UNIT-BlogService-012")]
         [Trait("UC", "UC-97")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "High")]
@@ -357,7 +357,7 @@ namespace AILA.Application.Tests.Features.Blogs
 
         // ------------------------------------------------------------ TC-014
         [Fact]
-        [Trait("TC", "TC-UNIT-BlogService-014")]
+        [Trait("TC", "TC-UNIT-BlogService-013")]
         [Trait("UC", "UC-97")]
         [Trait("Type", "Boundary & Negative")]
         [Trait("Priority", "Medium")]
@@ -377,7 +377,7 @@ namespace AILA.Application.Tests.Features.Blogs
         // ------------------------------------------------------------ TC-015
         // TotalCount phải lấy từ repository chứ không phải Items.Count, nếu không phân trang sai.
         [Fact]
-        [Trait("TC", "TC-UNIT-BlogService-015")]
+        [Trait("TC", "TC-UNIT-BlogService-014")]
         [Trait("UC", "UC-95")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "High")]
@@ -401,7 +401,7 @@ namespace AILA.Application.Tests.Features.Blogs
         // Covers: BR-01 — danh sách quản trị KHÔNG lọc IsPublished, khác hẳn danh mục công khai
         // GetBlogsWithFilterQuery (UC-06). Admin phải thấy cả bài nháp để còn sửa.
         [Fact]
-        [Trait("TC", "TC-UNIT-BlogService-016")]
+        [Trait("TC", "TC-UNIT-BlogService-015")]
         [Trait("UC", "UC-95")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Functional")]
@@ -426,7 +426,7 @@ namespace AILA.Application.Tests.Features.Blogs
         [Theory]
         [InlineData("ai")]
         [InlineData(null)]
-        [Trait("TC", "TC-UNIT-BlogService-017")]
+        [Trait("TC", "TC-UNIT-BlogService-016")]
         [Trait("UC", "UC-95")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "Medium")]

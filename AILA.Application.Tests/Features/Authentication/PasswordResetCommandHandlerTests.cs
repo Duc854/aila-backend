@@ -161,7 +161,7 @@ namespace AILA.Application.Tests.Features.Authentication
         [InlineData(4, false)]  // ngưỡng - 1 → chưa huỷ
         [InlineData(5, true)]   // đúng ngưỡng → huỷ
         [InlineData(6, true)]   // vượt ngưỡng → huỷ
-        [Trait("TC", "TC-UNIT-AuthService-009")]
+        [Trait("TC", "TC-UNIT-AuthService-010")]
         [Trait("UC", "UC-08")]
         [Trait("Type", "Boundary & Negative")]
         [Trait("Priority", "Medium")]
@@ -187,7 +187,7 @@ namespace AILA.Application.Tests.Features.Authentication
         // Biên 5 phút ±1s KHÔNG kiểm được ở L1 — thuộc integration test của IPasswordResetStore.
         // Ở L1 chỉ khẳng định: store trả null ⇒ coi như hết hạn, cùng mã lỗi chung với OTP sai.
         [Fact]
-        [Trait("TC", "TC-UNIT-AuthService-010")]
+        [Trait("TC", "TC-UNIT-AuthService-011")]
         [Trait("UC", "UC-08")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Boundary & Negative")]

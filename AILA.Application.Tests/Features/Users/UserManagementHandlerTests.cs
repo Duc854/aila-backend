@@ -97,7 +97,7 @@ namespace AILA.Application.Tests.Features.Users
         // ============================================================ TC-006
         // Covers: AF-01 empty result — không khớp gì là danh sách rỗng, KHÔNG phải lỗi.
         [Fact]
-        [Trait("TC", "TC-UNIT-UserService-006")]
+        [Trait("TC", "TC-UNIT-UserService-003")]
         [Trait("UC", "UC-76")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "Medium")]
@@ -122,7 +122,7 @@ namespace AILA.Application.Tests.Features.Users
         // Test này ghim ranh giới đó, để ai đó tưởng handler có lọc thì thấy ngay là không.
         // ⇒ Việc chứng minh BR-04 thật sự phải nằm ở L2 test của UserRepository.
         [Fact]
-        [Trait("TC", "TC-UNIT-UserService-007")]
+        [Trait("TC", "TC-UNIT-UserService-004")]
         [Trait("UC", "UC-76")]
         [Trait("BR", "BR-04")]
         [Trait("Type", "Security (GBR)")]
@@ -248,7 +248,7 @@ namespace AILA.Application.Tests.Features.Users
         // Ba nhánh chặn của UpdateUserStatus không có TC nào trong workbook phủ.
         // → cần thêm dòng TC-UNIT-UserService-016 vào sheet UserService.
         [Fact]
-        [Trait("TC", "TC-UNIT-UserService-016")]
+        [Trait("TC", "TC-UNIT-UserService-010")]
         [Trait("UC", "UC-77")]
         [Trait("Type", "Input Validation")]
         [Trait("Priority", "Medium")]
@@ -366,7 +366,7 @@ namespace AILA.Application.Tests.Features.Users
 
         // Biên dưới của policy password: đúng 6 ký tự phải được chấp nhận.
         [Fact]
-        [Trait("TC", "TC-UNIT-UserService-014")]
+        [Trait("TC", "TC-UNIT-UserService-015")]
         [Trait("UC", "UC-78")]
         [Trait("Type", "Boundary & Negative")]
         [Trait("Priority", "Medium")]

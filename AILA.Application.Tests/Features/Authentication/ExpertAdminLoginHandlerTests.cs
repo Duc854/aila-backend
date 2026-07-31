@@ -228,7 +228,7 @@ namespace AILA.Application.Tests.Features.Authentication
         // Handler gán cứng FullName = "Administrator" và Email = "adminEmail" (chuỗi literal,
         // không phải email của user). FE hiển thị sai và không có cách nào lấy email thật.
         [Fact(Skip = "DEF-AUTH-06 - AdminLogin returns the literal \"adminEmail\" instead of the real email")]
-        [Trait("TC", "TC-UNIT-AuthService-036")]
+        [Trait("TC", "TC-UNIT-AuthService-035")]
         [Trait("UC", "UC-10")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "Medium")]

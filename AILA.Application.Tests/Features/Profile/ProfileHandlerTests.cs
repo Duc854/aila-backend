@@ -1,4 +1,4 @@
-﻿using AILA.Application.Common.Interfaces;
+using AILA.Application.Common.Interfaces;
 using AILA.Application.Common.Interfaces.Repositories;
 using AILA.Application.Features.Onboarding.Commands.CompleteOnboarding;
 using AILA.Application.Features.Profile.Commands.UpdateExpertProfile;
@@ -98,7 +98,7 @@ namespace AILA.Application.Tests.Features.Profile
         }
 
         [Fact]
-        [Trait("TC", "TC-UNIT-ProfileService-002")]
+        [Trait("TC", "TC-UNIT-ProfileService-031")]
         [Trait("UC", "UC-05")]
         [Trait("Type", "Security (GBR)")]
         [Trait("Priority", "Medium")]
@@ -173,7 +173,7 @@ namespace AILA.Application.Tests.Features.Profile
         // ⚠ BR-03 nói "avatar chỉ lưu URL từ Cloudinary", nhưng code chỉ kiểm URI hợp lệ —
         // KHÔNG ràng buộc origin. URL của bất kỳ host nào cũng được chấp nhận.
         [Fact(Skip = "DEF-PRF-02 - Avatar URL origin is not restricted to Cloudinary")]
-        [Trait("TC", "TC-UNIT-ProfileService-008")]
+        [Trait("TC", "TC-UNIT-ProfileService-007")]
         [Trait("UC", "UC-13")]
         [Trait("BR", "BR-03")]
         [Trait("Type", "Functional")]
@@ -198,7 +198,7 @@ namespace AILA.Application.Tests.Features.Profile
         // Covers: BR-02 email immutable — command không có field Email, và User.UpdateProfile
         // chỉ đụng tới FullName + AvatarUrl. Test ghim rằng không có đường nào đổi được email.
         [Fact]
-        [Trait("TC", "TC-UNIT-ProfileService-007")]
+        [Trait("TC", "TC-UNIT-ProfileService-008")]
         [Trait("UC", "UC-13")]
         [Trait("BR", "BR-02")]
         [Trait("Type", "Security (GBR)")]
@@ -221,7 +221,7 @@ namespace AILA.Application.Tests.Features.Profile
         }
 
         [Fact]
-        [Trait("TC", "TC-UNIT-ProfileService-004")]
+        [Trait("TC", "TC-UNIT-ProfileService-008")]
         [Trait("UC", "UC-13")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "Medium")]
@@ -277,7 +277,7 @@ namespace AILA.Application.Tests.Features.Profile
         }
 
         [Fact]
-        [Trait("TC", "TC-UNIT-ProfileService-009")]
+        [Trait("TC", "TC-UNIT-ProfileService-010")]
         [Trait("UC", "UC-16")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "Medium")]
@@ -297,7 +297,7 @@ namespace AILA.Application.Tests.Features.Profile
         // ============================================================ TC-010
         // Covers: BR-02 required selections. Handler chỉ chặn khi repo trả VỀ RỖNG.
         [Fact]
-        [Trait("TC", "TC-UNIT-ProfileService-010")]
+        [Trait("TC", "TC-UNIT-ProfileService-011")]
         [Trait("UC", "UC-16")]
         [Trait("BR", "BR-02")]
         [Trait("Type", "Input Validation")]
@@ -323,7 +323,7 @@ namespace AILA.Application.Tests.Features.Profile
         // ⚠ Handler KHÔNG đối chiếu số lượng tag tìm được với số id gửi lên. Gửi 3 id mà chỉ
         // 1 id có thật thì vẫn đi tiếp với 1 tag — người dùng tưởng đã chọn 3 mục tiêu.
         [Fact(Skip = "DEF-PRF-03 - Onboarding silently accepts tag ids that do not exist")]
-        [Trait("TC", "TC-UNIT-ProfileService-010")]
+        [Trait("TC", "TC-UNIT-ProfileService-012")]
         [Trait("UC", "UC-16")]
         [Trait("BR", "BR-02")]
         [Trait("Type", "Functional")]
@@ -354,7 +354,7 @@ namespace AILA.Application.Tests.Features.Profile
         // Covers: BR-03 predefined only — tag chưa được admin duyệt bị domain chặn.
         // Handler KHÔNG bắt InvalidOperationException nên nó nổi ra ngoài.
         [Fact]
-        [Trait("TC", "TC-UNIT-ProfileService-011")]
+        [Trait("TC", "TC-UNIT-ProfileService-012")]
         [Trait("UC", "UC-16")]
         [Trait("BR", "BR-03")]
         [Trait("Type", "Functional")]
@@ -501,7 +501,7 @@ namespace AILA.Application.Tests.Features.Profile
         }
 
         [Fact]
-        [Trait("TC", "TC-UNIT-ProfileService-013")]
+        [Trait("TC", "TC-UNIT-ProfileService-014")]
         [Trait("UC", "UC-32")]
         [Trait("Type", "Security (GBR)")]
         [Trait("Priority", "Medium")]

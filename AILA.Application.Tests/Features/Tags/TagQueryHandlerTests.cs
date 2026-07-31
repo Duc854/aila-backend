@@ -103,7 +103,7 @@ namespace AILA.Application.Tests.Features.Tags
         // ------------------------------------------------------------ TC-021
         // Covers: Main Flow — Source suy ra từ CreatedById: null = tag hệ thống.
         [Fact]
-        [Trait("TC", "TC-UNIT-TagService-021")]
+        [Trait("TC", "TC-UNIT-TagService-035")]
         [Trait("UC", "UC-61")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "Medium")]
@@ -124,7 +124,7 @@ namespace AILA.Application.Tests.Features.Tags
         // ------------------------------------------------------------ TC-022
         // Covers: AF-01 — mã rỗng hoặc mã lạ đều trả null, không ném ngoại lệ.
         [Fact]
-        [Trait("TC", "TC-UNIT-TagService-022")]
+        [Trait("TC", "TC-UNIT-TagService-036")]
         [Trait("UC", "UC-61")]
         [Trait("Type", "Boundary & Negative")]
         [Trait("Priority", "Medium")]
@@ -146,7 +146,7 @@ namespace AILA.Application.Tests.Features.Tags
         // Covers: BR-01 — chỉ tag đã duyệt mới vào được bộ chọn khi soạn khoá học.
         // Việc lọc nằm ở repository, nên test khẳng định handler KHÔNG tự thêm/bớt gì.
         [Fact]
-        [Trait("TC", "TC-UNIT-TagService-023")]
+        [Trait("TC", "TC-UNIT-TagService-031")]
         [Trait("UC", "UC-61")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Functional")]
@@ -167,7 +167,7 @@ namespace AILA.Application.Tests.Features.Tags
 
         // ------------------------------------------------------------ TC-024
         [Fact]
-        [Trait("TC", "TC-UNIT-TagService-024")]
+        [Trait("TC", "TC-UNIT-TagService-032")]
         [Trait("UC", "UC-61")]
         [Trait("Type", "Boundary & Negative")]
         [Trait("Priority", "Low")]
@@ -186,7 +186,7 @@ namespace AILA.Application.Tests.Features.Tags
         // ------------------------------------------------------------ TC-025
         // Covers: Main Flow — hàng chờ duyệt kèm tên người gửi, tra thêm từ bảng User.
         [Fact]
-        [Trait("TC", "TC-UNIT-TagService-025")]
+        [Trait("TC", "TC-UNIT-TagService-027")]
         [Trait("UC", "UC-81")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "High")]
@@ -210,7 +210,7 @@ namespace AILA.Application.Tests.Features.Tags
         // Covers: AF-01 — người gửi đã bị xoá khỏi hệ thống thì hiển thị "Unknown"
         // chứ không được ném NullReferenceException làm hỏng cả hàng chờ.
         [Fact]
-        [Trait("TC", "TC-UNIT-TagService-026")]
+        [Trait("TC", "TC-UNIT-TagService-028")]
         [Trait("UC", "UC-81")]
         [Trait("Type", "Boundary & Negative")]
         [Trait("Priority", "Medium")]
@@ -235,7 +235,7 @@ namespace AILA.Application.Tests.Features.Tags
         [InlineData("ALPHA", 1)]
         [InlineData("beta-code", 1)]
         [InlineData("khong-khop", 0)]
-        [Trait("TC", "TC-UNIT-TagService-027")]
+        [Trait("TC", "TC-UNIT-TagService-028")]
         [Trait("UC", "UC-81")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Functional")]
@@ -257,7 +257,7 @@ namespace AILA.Application.Tests.Features.Tags
 
         // ------------------------------------------------------------ TC-028
         [Fact]
-        [Trait("TC", "TC-UNIT-TagService-028")]
+        [Trait("TC", "TC-UNIT-TagService-029")]
         [Trait("UC", "UC-81")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "High")]
@@ -280,7 +280,7 @@ namespace AILA.Application.Tests.Features.Tags
         // ------------------------------------------------------------ TC-029
         // Covers: AF-01 — yêu cầu đã được admin khác xử lý xong thì không còn tra thấy.
         [Fact]
-        [Trait("TC", "TC-UNIT-TagService-029")]
+        [Trait("TC", "TC-UNIT-TagService-030")]
         [Trait("UC", "UC-81")]
         [Trait("Type", "Boundary & Negative")]
         [Trait("Priority", "Medium")]
@@ -301,7 +301,7 @@ namespace AILA.Application.Tests.Features.Tags
         // ------------------------------------------------------------ TC-030
         // Covers: Main Flow — mỗi tag hệ thống kèm số lần đang được dùng, tra riêng từng tag.
         [Fact]
-        [Trait("TC", "TC-UNIT-TagService-030")]
+        [Trait("TC", "TC-UNIT-TagService-033")]
         [Trait("UC", "UC-84")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "Medium")]
@@ -324,7 +324,7 @@ namespace AILA.Application.Tests.Features.Tags
 
         // ------------------------------------------------------------ TC-031
         [Fact]
-        [Trait("TC", "TC-UNIT-TagService-031")]
+        [Trait("TC", "TC-UNIT-TagService-034")]
         [Trait("UC", "UC-84")]
         [Trait("Type", "Boundary & Negative")]
         [Trait("Priority", "Low")]
@@ -346,7 +346,7 @@ namespace AILA.Application.Tests.Features.Tags
         // ------------------------------------------------------------ TC-032
         // Covers: Main Flow — tag nháp, chưa gán vào khoá học nào thì xoá được.
         [Fact]
-        [Trait("TC", "TC-UNIT-TagService-032")]
+        [Trait("TC", "TC-UNIT-TagService-021")]
         [Trait("UC", "UC-61")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "High")]
@@ -367,7 +367,7 @@ namespace AILA.Application.Tests.Features.Tags
         // ------------------------------------------------------------ TC-033
         // Covers: BR-01 — handler này báo lỗi bằng THROW, không phải ErrorCode.
         [Fact]
-        [Trait("TC", "TC-UNIT-TagService-033")]
+        [Trait("TC", "TC-UNIT-TagService-022")]
         [Trait("UC", "UC-61")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Security (GBR)")]
@@ -395,7 +395,7 @@ namespace AILA.Application.Tests.Features.Tags
         // Covers: BR-02 — tag đang được dùng trong khoá học mà xoá thì sẽ để lại
         // bản ghi CourseTag mồ côi.
         [Fact]
-        [Trait("TC", "TC-UNIT-TagService-034")]
+        [Trait("TC", "TC-UNIT-TagService-023")]
         [Trait("UC", "UC-61")]
         [Trait("BR", "BR-02")]
         [Trait("Type", "Functional")]
@@ -419,7 +419,7 @@ namespace AILA.Application.Tests.Features.Tags
         // ------------------------------------------------------------ TC-035
         // Covers: Main Flow — rút lại yêu cầu đang chờ; DTO trả về báo PublishRequest = null.
         [Fact]
-        [Trait("TC", "TC-UNIT-TagService-035")]
+        [Trait("TC", "TC-UNIT-TagService-024")]
         [Trait("UC", "UC-62")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "Medium")]
@@ -441,7 +441,7 @@ namespace AILA.Application.Tests.Features.Tags
         // Covers: BR-01 — chỉ rút được yêu cầu ĐANG CHỜ và phải do chính người gửi.
         // Rút một yêu cầu đã duyệt sẽ âm thầm hạ một tag đang dùng công khai xuống.
         [Fact]
-        [Trait("TC", "TC-UNIT-TagService-036")]
+        [Trait("TC", "TC-UNIT-TagService-025")]
         [Trait("UC", "UC-62")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Security (GBR)")]

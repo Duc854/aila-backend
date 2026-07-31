@@ -148,7 +148,7 @@ namespace AILA.Application.Tests.Features.Profile
         // Covers: BR-02 — mục tiêu phải là tag CÓ THẬT và ĐÃ DUYỆT. Nếu không, learner có thể
         // gắn tag nháp riêng của một expert khác vào hồ sơ mình.
         [Fact]
-        [Trait("TC", "TC-UNIT-ProfileService-018")]
+        [Trait("TC", "TC-UNIT-ProfileService-017")]
         [Trait("UC", "UC-13")]
         [Trait("BR", "BR-02")]
         [Trait("Type", "Security (GBR)")]
@@ -184,7 +184,7 @@ namespace AILA.Application.Tests.Features.Profile
 
         // ------------------------------------------------------------ TC-019
         [Fact]
-        [Trait("TC", "TC-UNIT-ProfileService-019")]
+        [Trait("TC", "TC-UNIT-ProfileService-018")]
         [Trait("UC", "UC-13")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "High")]
@@ -215,7 +215,7 @@ namespace AILA.Application.Tests.Features.Profile
         [InlineData(5 * 1024 * 1024 + 1, "image/png")]     // vượt 5 MB một byte
         [InlineData(1024, "application/x-msdownload")]     // .exe
         [InlineData(1024, "image/gif")]                    // ngoài whitelist jpeg/png/webp
-        [Trait("TC", "TC-UNIT-ProfileService-020")]
+        [Trait("TC", "TC-UNIT-ProfileService-019")]
         [Trait("UC", "UC-13")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Boundary & Negative")]
@@ -238,7 +238,7 @@ namespace AILA.Application.Tests.Features.Profile
         // ------------------------------------------------------------ TC-021
         // Covers: BR-02 — đúng biên 5 MB (không dư một byte) vẫn phải được chấp nhận.
         [Fact]
-        [Trait("TC", "TC-UNIT-ProfileService-021")]
+        [Trait("TC", "TC-UNIT-ProfileService-020")]
         [Trait("UC", "UC-13")]
         [Trait("BR", "BR-02")]
         [Trait("Type", "Boundary & Negative")]
@@ -262,7 +262,7 @@ namespace AILA.Application.Tests.Features.Profile
         // ------------------------------------------------------------ TC-022
         // Covers: AF-01 — người dùng không tồn tại hoặc bị khoá thì KHÔNG được upload.
         [Fact]
-        [Trait("TC", "TC-UNIT-ProfileService-022")]
+        [Trait("TC", "TC-UNIT-ProfileService-020")]
         [Trait("UC", "UC-13")]
         [Trait("Type", "Security (GBR)")]
         [Trait("Priority", "High")]
@@ -292,7 +292,7 @@ namespace AILA.Application.Tests.Features.Profile
 
         // ------------------------------------------------------------ TC-023
         [Fact]
-        [Trait("TC", "TC-UNIT-ProfileService-023")]
+        [Trait("TC", "TC-UNIT-ProfileService-027")]
         [Trait("UC", "UC-16")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "Medium")]
@@ -314,7 +314,7 @@ namespace AILA.Application.Tests.Features.Profile
 
         // ------------------------------------------------------------ TC-024
         [Fact]
-        [Trait("TC", "TC-UNIT-ProfileService-024")]
+        [Trait("TC", "TC-UNIT-ProfileService-028")]
         [Trait("UC", "UC-16")]
         [Trait("Type", "Boundary & Negative")]
         [Trait("Priority", "Medium")]
@@ -336,7 +336,7 @@ namespace AILA.Application.Tests.Features.Profile
         // ------------------------------------------------------------ TC-025
         // Covers: Main Flow — khoá học đã ghi danh, kèm tiến độ.
         [Fact]
-        [Trait("TC", "TC-UNIT-ProfileService-025")]
+        [Trait("TC", "TC-UNIT-ProfileService-021")]
         [Trait("UC", "UC-32")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "Medium")]
@@ -371,7 +371,7 @@ namespace AILA.Application.Tests.Features.Profile
         [InlineData(2, 0, 2, 10)]
         [InlineData(2, 999, 2, 50)]
         [InlineData(3, 25, 3, 25)]
-        [Trait("TC", "TC-UNIT-ProfileService-026")]
+        [Trait("TC", "TC-UNIT-ProfileService-022")]
         [Trait("UC", "UC-32")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Boundary & Negative")]
@@ -395,7 +395,7 @@ namespace AILA.Application.Tests.Features.Profile
 
         // ------------------------------------------------------------ TC-027
         [Fact]
-        [Trait("TC", "TC-UNIT-ProfileService-027")]
+        [Trait("TC", "TC-UNIT-ProfileService-022")]
         [Trait("UC", "UC-32")]
         [Trait("Type", "Boundary & Negative")]
         [Trait("Priority", "Medium")]
@@ -418,7 +418,7 @@ namespace AILA.Application.Tests.Features.Profile
         // ------------------------------------------------------------ TC-028
         // TotalItems lấy từ repository chứ không phải Items.Count — nếu nhầm, tổng số trang sai.
         [Fact]
-        [Trait("TC", "TC-UNIT-ProfileService-028")]
+        [Trait("TC", "TC-UNIT-ProfileService-023")]
         [Trait("UC", "UC-32")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "Medium")]
@@ -442,7 +442,7 @@ namespace AILA.Application.Tests.Features.Profile
         [Theory]
         [InlineData(0, 999, 1, 50)]
         [InlineData(4, 20, 4, 20)]
-        [Trait("TC", "TC-UNIT-ProfileService-029")]
+        [Trait("TC", "TC-UNIT-ProfileService-024")]
         [Trait("UC", "UC-32")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Boundary & Negative")]
@@ -469,7 +469,7 @@ namespace AILA.Application.Tests.Features.Profile
         // truy vấn gì cả vì chưa có bảng nào lưu phiên AI Practice (UC-27 chưa cài đặt).
         // Test khoá lại điều đó để khi UC-27 xong, ai đó phải sửa cả handler này.
         [Fact]
-        [Trait("TC", "TC-UNIT-ProfileService-030")]
+        [Trait("TC", "TC-UNIT-ProfileService-025")]
         [Trait("UC", "UC-32")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "Low")]
@@ -493,7 +493,7 @@ namespace AILA.Application.Tests.Features.Profile
         // Covers: BR-01 — trang công khai chỉ dựng từ GetPublishedByExpertAsync, và
         // chuyên gia bị khoá tài khoản thì biến mất hoàn toàn (trả null, không phải hồ sơ rỗng).
         [Fact]
-        [Trait("TC", "TC-UNIT-ProfileService-031")]
+        [Trait("TC", "TC-UNIT-ProfileService-029")]
         [Trait("UC", "UC-05")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Security (GBR)")]

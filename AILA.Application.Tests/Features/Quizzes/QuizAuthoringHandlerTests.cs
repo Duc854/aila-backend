@@ -1,4 +1,4 @@
-﻿using AILA.Application.Common.Interfaces;
+using AILA.Application.Common.Interfaces;
 using AILA.Application.Common.Interfaces.Repositories;
 using AILA.Application.Features.Questions.Commands.CreateQuestion;
 using AILA.Application.Features.Questions.Commands.DeleteQuestion;
@@ -126,7 +126,7 @@ namespace AILA.Application.Tests.Features.Quizzes
 
         // Học liệu không phải loại Quiz thì không được gắn cài đặt quiz.
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizService-001")]
+        [Trait("TC", "TC-UNIT-QuizService-002")]
         [Trait("UC", "UC-50")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "Medium")]
@@ -156,7 +156,7 @@ namespace AILA.Application.Tests.Features.Quizzes
         [Theory]
         [InlineData(0)]
         [InlineData(-5)]
-        [Trait("TC", "TC-UNIT-QuizService-004")]
+        [Trait("TC", "TC-UNIT-QuizService-003")]
         [Trait("UC", "UC-50")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Boundary & Negative")]
@@ -185,7 +185,7 @@ namespace AILA.Application.Tests.Features.Quizzes
         [InlineData(0)]      // biên dưới theo code
         [InlineData(1)]
         [InlineData(100)]    // biên trên
-        [Trait("TC", "TC-UNIT-QuizService-003")]
+        [Trait("TC", "TC-UNIT-QuizService-004")]
         [Trait("UC", "UC-50")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Boundary & Negative")]
@@ -208,7 +208,7 @@ namespace AILA.Application.Tests.Features.Quizzes
         [InlineData(-1)]     // biên dưới - 1
         [InlineData(101)]    // biên trên + 1
         [InlineData(150)]
-        [Trait("TC", "TC-UNIT-QuizService-003")]
+        [Trait("TC", "TC-UNIT-QuizService-005")]
         [Trait("UC", "UC-50")]
         [Trait("Type", "Boundary & Negative")]
         [Trait("Priority", "Medium")]
@@ -230,7 +230,7 @@ namespace AILA.Application.Tests.Features.Quizzes
 
         // ============================================================ TC-005
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizService-005")]
+        [Trait("TC", "TC-UNIT-QuizService-006")]
         [Trait("UC", "UC-51")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "High")]
@@ -252,7 +252,7 @@ namespace AILA.Application.Tests.Features.Quizzes
         }
 
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizService-005")]
+        [Trait("TC", "TC-UNIT-QuizService-007")]
         [Trait("UC", "UC-51")]
         [Trait("Type", "Security (GBR)")]
         [Trait("Priority", "High")]
@@ -330,7 +330,7 @@ namespace AILA.Application.Tests.Features.Quizzes
         }
 
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizService-011")]
+        [Trait("TC", "TC-UNIT-QuizService-012")]
         [Trait("UC", "UC-53")]
         [Trait("Type", "Boundary & Negative")]
         [Trait("Priority", "Medium")]
@@ -355,7 +355,7 @@ namespace AILA.Application.Tests.Features.Quizzes
         }
 
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizService-011")]
+        [Trait("TC", "TC-UNIT-QuizService-012")]
         [Trait("UC", "UC-53")]
         [Trait("Type", "Security (GBR)")]
         [Trait("Priority", "High")]
@@ -377,7 +377,7 @@ namespace AILA.Application.Tests.Features.Quizzes
         [Theory]
         [InlineData("")]
         [InlineData("   ")]
-        [Trait("TC", "TC-UNIT-QuizService-011")]
+        [Trait("TC", "TC-UNIT-QuizService-012")]
         [Trait("UC", "UC-53")]
         [Trait("Type", "Input Validation")]
         [Trait("Priority", "High")]
@@ -454,7 +454,7 @@ namespace AILA.Application.Tests.Features.Quizzes
         }
 
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizService-015")]
+        [Trait("TC", "TC-UNIT-QuizService-016")]
         [Trait("UC", "UC-54")]
         [Trait("Type", "Security (GBR)")]
         [Trait("Priority", "High")]
@@ -478,7 +478,7 @@ namespace AILA.Application.Tests.Features.Quizzes
         // kiểm tra. Đổi từ MultipleChoice sang SingleChoice trên câu hỏi đang có 3 đáp án
         // đúng vẫn thành công → dữ liệu trở nên không nhất quán ngay lập tức.
         [Fact(Skip = "DEF-QZ-02 - Changing the question type does not revalidate the correct answers")]
-        [Trait("TC", "TC-UNIT-QuizService-016")]
+        [Trait("TC", "TC-UNIT-QuizService-017")]
         [Trait("UC", "UC-54")]
         [Trait("BR", "BR-02")]
         [Trait("Type", "Functional")]
@@ -550,7 +550,7 @@ namespace AILA.Application.Tests.Features.Quizzes
         }
 
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizService-018")]
+        [Trait("TC", "TC-UNIT-QuizService-019")]
         [Trait("UC", "UC-55")]
         [Trait("Type", "Security (GBR)")]
         [Trait("Priority", "High")]
@@ -569,7 +569,7 @@ namespace AILA.Application.Tests.Features.Quizzes
         }
 
         [Fact]
-        [Trait("TC", "TC-UNIT-QuizService-018")]
+        [Trait("TC", "TC-UNIT-QuizService-020")]
         [Trait("UC", "UC-55")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "Medium")]
@@ -587,7 +587,7 @@ namespace AILA.Application.Tests.Features.Quizzes
 
         // ============================================================ TC-019  ⚠ DEFECT
         [Fact(Skip = "DEF-MAT-02 - Content can still be deleted while the course is published")]
-        [Trait("TC", "TC-UNIT-QuizService-019")]
+        [Trait("TC", "TC-UNIT-QuizService-020")]
         [Trait("UC", "UC-55")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "High")]

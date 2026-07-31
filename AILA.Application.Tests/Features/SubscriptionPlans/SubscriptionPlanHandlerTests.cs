@@ -148,7 +148,7 @@ namespace AILA.Application.Tests.Features.SubscriptionPlans
         [InlineData("Pro", 2, 30, 199000, 0, -1, 0, 0, SubscriptionPlanErrors.InvalidAiPracticeScenarioLimit)]
         [InlineData("Pro", 2, 30, 199000, 0, 0, -1, 0, SubscriptionPlanErrors.InvalidExpertEvaluationLimit)]
         [InlineData("Pro", 2, 30, 199000, 0, 0, 0, -1, SubscriptionPlanErrors.InvalidDisplayOrder)]
-        [Trait("TC", "TC-UNIT-SubscriptionService-004")]
+        [Trait("TC", "TC-UNIT-SubscriptionService-003")]
         [Trait("UC", "UC-90")]
         [Trait("BR", "BR-03")]
         [Trait("Type", "Input Validation")]
@@ -176,7 +176,7 @@ namespace AILA.Application.Tests.Features.SubscriptionPlans
         // ------------------------------------------------------------ TC-005
         // Covers: BR-04 biên độ dài Name (100) và Description (1000).
         [Fact]
-        [Trait("TC", "TC-UNIT-SubscriptionService-005")]
+        [Trait("TC", "TC-UNIT-SubscriptionService-003")]
         [Trait("UC", "UC-90")]
         [Trait("BR", "BR-04")]
         [Trait("Type", "Boundary & Negative")]
@@ -210,7 +210,7 @@ namespace AILA.Application.Tests.Features.SubscriptionPlans
         [InlineData("IX_SubscriptionPlans_Name", SubscriptionPlanErrors.NameAlreadyExists)]
         [InlineData("IX_SubscriptionPlans_TierLevel", SubscriptionPlanErrors.TierLevelAlreadyExists)]
         [InlineData("IX_Something_Else", SubscriptionPlanErrors.ValidationError)]
-        [Trait("TC", "TC-UNIT-SubscriptionService-006")]
+        [Trait("TC", "TC-UNIT-SubscriptionService-003")]
         [Trait("UC", "UC-90")]
         [Trait("Type", "Boundary & Negative")]
         [Trait("Priority", "Medium")]
@@ -233,7 +233,7 @@ namespace AILA.Application.Tests.Features.SubscriptionPlans
 
         // ------------------------------------------------------------ TC-007
         [Fact]
-        [Trait("TC", "TC-UNIT-SubscriptionService-007")]
+        [Trait("TC", "TC-UNIT-SubscriptionService-004")]
         [Trait("UC", "UC-91")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "High")]
@@ -257,7 +257,7 @@ namespace AILA.Application.Tests.Features.SubscriptionPlans
 
         // ------------------------------------------------------------ TC-008
         [Fact]
-        [Trait("TC", "TC-UNIT-SubscriptionService-008")]
+        [Trait("TC", "TC-UNIT-SubscriptionService-005")]
         [Trait("UC", "UC-91")]
         [Trait("Type", "Boundary & Negative")]
         [Trait("Priority", "Medium")]
@@ -281,7 +281,7 @@ namespace AILA.Application.Tests.Features.SubscriptionPlans
         // khoá điều đó lại: nếu ai đó thêm field vào command mà quên rằng entity không cho sửa,
         // assert dưới đây sẽ chỉ ra ngay.
         [Fact]
-        [Trait("TC", "TC-UNIT-SubscriptionService-009")]
+        [Trait("TC", "TC-UNIT-SubscriptionService-006")]
         [Trait("UC", "UC-91")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Functional")]
@@ -304,7 +304,7 @@ namespace AILA.Application.Tests.Features.SubscriptionPlans
         // ------------------------------------------------------------ TC-010
         // Covers: BR-02 — validate chạy TRƯỚC khi tìm gói, nên input sai không tốn một truy vấn.
         [Fact]
-        [Trait("TC", "TC-UNIT-SubscriptionService-010")]
+        [Trait("TC", "TC-UNIT-SubscriptionService-006")]
         [Trait("UC", "UC-91")]
         [Trait("BR", "BR-02")]
         [Trait("Type", "Input Validation")]
@@ -325,7 +325,7 @@ namespace AILA.Application.Tests.Features.SubscriptionPlans
 
         // ------------------------------------------------------------ TC-011
         [Fact]
-        [Trait("TC", "TC-UNIT-SubscriptionService-011")]
+        [Trait("TC", "TC-UNIT-SubscriptionService-007")]
         [Trait("UC", "UC-92")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "High")]
@@ -354,7 +354,7 @@ namespace AILA.Application.Tests.Features.SubscriptionPlans
         // Covers: BR-01 — đổi sang đúng trạng thái đang có là vô nghĩa, phải từ chối ở
         // tầng handler chứ không để entity ném ArgumentException.
         [Fact]
-        [Trait("TC", "TC-UNIT-SubscriptionService-012")]
+        [Trait("TC", "TC-UNIT-SubscriptionService-008")]
         [Trait("UC", "UC-92")]
         [Trait("BR", "BR-01")]
         [Trait("Type", "Functional")]
@@ -383,7 +383,7 @@ namespace AILA.Application.Tests.Features.SubscriptionPlans
 
         // ------------------------------------------------------------ TC-013
         [Fact]
-        [Trait("TC", "TC-UNIT-SubscriptionService-013")]
+        [Trait("TC", "TC-UNIT-SubscriptionService-009")]
         [Trait("UC", "UC-92")]
         [Trait("Type", "Boundary & Negative")]
         [Trait("Priority", "Medium")]
@@ -403,7 +403,7 @@ namespace AILA.Application.Tests.Features.SubscriptionPlans
         // Covers: Main Flow — danh sách quản trị KHÔNG lọc trạng thái, khác
         // GetActiveSubscriptionPlansQuery của UC-09 vốn chỉ trả gói đang bán.
         [Fact]
-        [Trait("TC", "TC-UNIT-SubscriptionService-014")]
+        [Trait("TC", "TC-UNIT-SubscriptionService-010")]
         [Trait("UC", "UC-92")]
         [Trait("Type", "Functional")]
         [Trait("Priority", "High")]
@@ -426,7 +426,7 @@ namespace AILA.Application.Tests.Features.SubscriptionPlans
 
         // ------------------------------------------------------------ TC-015
         [Fact]
-        [Trait("TC", "TC-UNIT-SubscriptionService-015")]
+        [Trait("TC", "TC-UNIT-SubscriptionService-011")]
         [Trait("UC", "UC-92")]
         [Trait("Type", "Boundary & Negative")]
         [Trait("Priority", "Low")]
