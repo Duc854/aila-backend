@@ -32,7 +32,7 @@ public sealed class UnlockCourseCommandHandler
                 "NOT_LOCKED", "Khóa học này không đang bị khoá.");
 
         // 3. Domain action
-        course.UnlockVisibility();
+        //course.UnlockVisibility();
 
         await _uow.SaveChangesAsync(ct);
 
