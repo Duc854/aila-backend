@@ -1,5 +1,6 @@
 ﻿using AILA.Domain.Common;
 using AILA.Domain.Enums;
+using AILA.Domain.ValueObjects;
 
 namespace AILA.Domain.Entities
 {
@@ -20,29 +21,9 @@ namespace AILA.Domain.Entities
         #region Snapshot Information
 
         /// <summary>
-        /// Snapshot Tier Level tại thời điểm mua.
+        /// Snapshot của Subscription Plan tại thời điểm thanh toán thành công.
         /// </summary>
-        public int TierLevel { get; private set; }
-
-        /// <summary>
-        /// Snapshot thời hạn gói.
-        /// </summary>
-        public int DurationInDays { get; private set; }
-
-        /// <summary>
-        /// Snapshot giới hạn AI Token.
-        /// </summary>
-        public int AiTokenLimit { get; private set; }
-
-        /// <summary>
-        /// Snapshot giới hạn AI Practice Scenario.
-        /// </summary>
-        public int AiPracticeScenarioLimit { get; private set; }
-
-        /// <summary>
-        /// Snapshot giới hạn Expert Evaluation.
-        /// </summary>
-        public int ExpertEvaluationLimit { get; private set; }
+        public SubscriptionPlanSnapshot PlanSnapshot { get; private set; } = null!;
 
         #endregion
 
@@ -60,50 +41,33 @@ namespace AILA.Domain.Entities
         {
         }
 
-        public Subscription(
-            Guid learnerId,
-            Guid subscriptionPlanId,
-            Guid paymentId,
-            int tierLevel,
-            int durationInDays,
-            int aiTokenLimit,
-            int aiPracticeScenarioLimit,
-            int expertEvaluationLimit)
+        public static Subscription Create(Payment payment)
         {
-            Validate(
-                tierLevel,
-                durationInDays,
-                aiTokenLimit,
-                aiPracticeScenarioLimit,
-                expertEvaluationLimit);
+            Validate(payment);
 
-            Id = Guid.NewGuid();
+            return new Subscription
+            {
+                Id = Guid.NewGuid(),
 
-            LearnerId = learnerId;
+                LearnerId = payment.LearnerId,
 
-            SubscriptionPlanId = subscriptionPlanId;
+                SubscriptionPlanId = payment.SubscriptionPlanId,
 
-            PaymentId = paymentId;
+                PaymentId = payment.Id,
 
-            TierLevel = tierLevel;
+                PlanSnapshot = payment.PlanSnapshot,
 
-            DurationInDays = durationInDays;
+                ActivatedAt = DateTime.UtcNow,
 
-            AiTokenLimit = aiTokenLimit;
+                ExpiredAt = DateTime.UtcNow.AddDays(
+                    payment.PlanSnapshot.DurationInDays),
 
-            AiPracticeScenarioLimit = aiPracticeScenarioLimit;
-
-            ExpertEvaluationLimit = expertEvaluationLimit;
-
-            ActivatedAt = DateTime.UtcNow;
-
-            ExpiredAt = ActivatedAt.AddDays(DurationInDays);
-
-            Status = SubscriptionStatus.Active;
+                Status = SubscriptionStatus.Active
+            };
         }
 
         /// <summary>
-        /// Gia hạn cùng gói (cùng Tier).
+        /// Gia hạn gói cùng Tier.
         /// </summary>
         public void Extend()
         {
@@ -111,13 +75,14 @@ namespace AILA.Domain.Entities
                 throw new InvalidOperationException(
                     "Chỉ gói đăng ký đang hoạt động mới có thể được gia hạn.");
 
-            ExpiredAt = ExpiredAt.AddDays(DurationInDays);
+            ExpiredAt = ExpiredAt.AddDays(
+                PlanSnapshot.DurationInDays);
 
             UpdateTimestamp();
         }
 
         /// <summary>
-        /// Được thay thế bởi một gói có Tier cao hơn.
+        /// Được thay thế bởi gói có Tier cao hơn.
         /// </summary>
         public void Replace()
         {
@@ -172,37 +137,16 @@ namespace AILA.Domain.Entities
 
         #region Validation
 
-        private static void Validate(
-            int tierLevel,
-            int durationInDays,
-            int aiTokenLimit,
-            int aiPracticeScenarioLimit,
-            int expertEvaluationLimit)
+        private static void Validate(Payment payment)
         {
-            if (tierLevel <= 0)
+            if (payment is null)
                 throw new ArgumentException(
-                    "Cấp độ gói không hợp lệ.",
-                    nameof(tierLevel));
+                    "Thông tin thanh toán không được để trống.",
+                    nameof(payment));
 
-            if (durationInDays <= 0)
-                throw new ArgumentException(
-                    "Thời hạn gói không hợp lệ.",
-                    nameof(durationInDays));
-
-            if (aiTokenLimit < 0)
-                throw new ArgumentException(
-                    "Giới hạn AI Token không hợp lệ.",
-                    nameof(aiTokenLimit));
-
-            if (aiPracticeScenarioLimit < 0)
-                throw new ArgumentException(
-                    "Giới hạn AI Practice Scenario không hợp lệ.",
-                    nameof(aiPracticeScenarioLimit));
-
-            if (expertEvaluationLimit < 0)
-                throw new ArgumentException(
-                    "Giới hạn đánh giá bởi chuyên gia không hợp lệ.",
-                    nameof(expertEvaluationLimit));
+            if (!payment.IsSuccessful())
+                throw new InvalidOperationException(
+                    "Chỉ có thể tạo gói đăng ký từ giao dịch thanh toán thành công.");
         }
 
         #endregion

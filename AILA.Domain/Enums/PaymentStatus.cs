@@ -12,8 +12,8 @@ namespace AILA.Domain.Enums
 
         Success = 2,
 
-        Failed = 3,
+        Cancelled = 3,
 
-        Cancelled = 4
+        Expired = 4
     }
 }
