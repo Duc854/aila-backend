@@ -19,7 +19,10 @@ namespace AILA.Infrastructure.Persistence.Configurations
                    .IsRequired()
                    .HasColumnType("text");
 
-            builder.Property(x => x.TaskDescription)
+            builder.Property(x => x.AITask)
+                   .IsRequired()
+                   .HasColumnType("text");
+            builder.Property(x => x.LearnerTask)
                    .IsRequired()
                    .HasColumnType("text");
 

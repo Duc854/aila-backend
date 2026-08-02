@@ -1,10 +1,12 @@
-using AILA.Api.Extensions;
-using AILA.Infrastructure.Persistence;
-using AILA.Domain.Entities;
+using AILA.Application.Features.Reports.Commands.LockCourseFromReport;
+using AILA.Application.Features.Reports.Commands.ResolveReport;
+using AILA.Application.Features.Reports.Commands.UnlockCourse;
+using AILA.Application.Features.Reports.Queries.GetReportById;
+using AILA.Application.Features.Reports.Queries.GetReports;
 using AILA.Domain.Enums;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Shared.Wrappers;
 
 namespace AILA.Api.Controllers.Admin
 {
@@ -13,115 +15,99 @@ namespace AILA.Api.Controllers.Admin
     [Authorize(Roles = "Admin")]
     public class AdminReportsController : ControllerBase
     {
-        private readonly ApplicationDbContext _db;
-        private readonly ILogger<AdminReportsController> _logger;
+        private readonly ISender _sender;
 
-        public AdminReportsController(ApplicationDbContext db, ILogger<AdminReportsController> logger)
+        public AdminReportsController(ISender sender)
         {
-            _db = db;
-            _logger = logger;
+            _sender = sender;
         }
 
         [HttpGet]
-        public IActionResult GetReports([FromQuery] ReportStatus? status)
+        public async Task<IActionResult> GetReports(
+            [FromQuery] ReportStatus? status,
+            [FromQuery] bool? isCourseReport)
         {
-            var query = _db.Set<ContentReport>().AsQueryable();
-            if (status != null)
-                query = query.Where(r => r.Status == status.Value);
+            var result = await _sender.Send(
+                new GetReportsQuery(status, isCourseReport));
 
-            var list = query.Select(r => new
-            {
-                r.Id,
-                r.LearnerId,
-                r.CourseId,
-                r.MaterialId,
-                r.ReportType,
-                r.Description,
-                r.Status,
-                r.CreatedAt
-            }).ToList();
-
-            return Ok(ResponseDto<object>.SuccessResult(list));
+            return Ok(result);
         }
 
-        [HttpPost("{reportId:guid}/action")]
-        public IActionResult ReviewReport([FromRoute] Guid reportId, [FromBody] ReviewReportRequest request)
+        [HttpGet("{reportId:guid}")]
+        public async Task<IActionResult> GetReportById(Guid reportId)
         {
-            var identity = HttpContext.GetUserIdentity();
-            if (identity == null)
-                return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực thất bại."));
+            var result = await _sender.Send(
+                new GetReportByIdQuery(reportId));
 
-            var report = _db.Set<ContentReport>().FirstOrDefault(r => r.Id == reportId);
-            if (report == null)
-                return NotFound(ResponseDto<object>.FailResult("REPORT_NOT_FOUND", "Không tìm thấy báo cáo."));
+            if (!result.Success)
+                return NotFound(result);
 
-            if (report.Status != ReportStatus.Pending)
-                return BadRequest(ResponseDto<object>.FailResult("ALREADY_RESOLVED", "Báo cáo đã được xử lý hoặc không thể thực hiện hành động này."));
+            return Ok(result);
+        }
 
-            // Require resolution note for actions that affect content/user
-            if ((request.Action == ModerationAction.RemoveContent || request.Action == ModerationAction.SuspendUser || request.Action == ModerationAction.WarnUser)
-                && string.IsNullOrWhiteSpace(request.ResolutionNote))
+        [HttpPatch("{reportId:guid}/resolve")]
+        public async Task<IActionResult> ResolveReport(Guid reportId)
+        {
+            var result = await _sender.Send(
+                new ResolveReportCommand(reportId));
+
+            if (!result.Success)
             {
-                return BadRequest(ResponseDto<object>.FailResult("MISSING_NOTE", "Ghi chú xử lý là bắt buộc cho hành động này."));
+                if (result.ErrorCode == "REPORT_NOT_FOUND")
+                    return NotFound(result);
+
+                return BadRequest(result);
             }
 
-            // Apply action
-            switch (request.Action)
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Admin lock course liên quan đến report và resolve report cùng lúc.
+        /// PATCH /api/admin/reports/{reportId}/lock-course
+        /// </summary>
+        [HttpPatch("{reportId:guid}/lock-course")]
+        public async Task<IActionResult> LockCourseFromReport(Guid reportId)
+        {
+            var result = await _sender.Send(
+                new LockCourseFromReportCommand(reportId));
+
+            if (!result.Success)
             {
-                case ModerationAction.DismissReport:
-                    // simply mark resolved
-                    report.Resolve();
-                    // Audit
-                    _logger.LogInformation("Admin {AdminId} dismissed report {ReportId}. Note: {Note}", identity.UserId, report.Id, request.ResolutionNote);
-                    break;
-                case ModerationAction.RemoveContent:
-                    if (report.CourseId != null)
-                    {
-                        var course = _db.Set<Course>().FirstOrDefault(c => c.Id == report.CourseId);
-                        if (course != null)
-                        {
-                            course.Unpublish();
-                        }
-                    }
-                    report.Resolve();
-                    _logger.LogInformation("Admin {AdminId} removed content for report {ReportId}. Note: {Note}", identity.UserId, report.Id, request.ResolutionNote);
-                    break;
-                case ModerationAction.WarnUser:
-                    // TODO: implement warnings (e.g., create notification). For now just resolve.
-                    report.Resolve();
-                    _logger.LogInformation("Admin {AdminId} warned user for report {ReportId}. Note: {Note}", identity.UserId, report.Id, request.ResolutionNote);
-                    break;
-                case ModerationAction.SuspendUser:
-                    // Suspend the course owner if possible
-                    if (report.CourseId != null)
-                    {
-                        var course = _db.Set<Course>().FirstOrDefault(c => c.Id == report.CourseId);
-                        if (course != null)
-                        {
-                            var owner = _db.Users.FirstOrDefault(u => u.Id == course.ExpertId);
-                            if (owner != null) owner.Deactivate();
-                        }
-                    }
-                    report.Resolve();
-                    _logger.LogInformation("Admin {AdminId} suspended user for report {ReportId}. Note: {Note}", identity.UserId, report.Id, request.ResolutionNote);
-                    break;
-                default:
-                    return BadRequest(ResponseDto<object>.FailResult("INVALID_ACTION", "Hành động không hợp lệ."));
+                return result.ErrorCode switch
+                {
+                    "REPORT_NOT_FOUND"  => NotFound(result),
+                    "NOT_COURSE_REPORT" => BadRequest(result),
+                    "ALREADY_RESOLVED"  => BadRequest(result),
+                    _                   => BadRequest(result)
+                };
             }
 
-            _db.SaveChanges();
+            return Ok(result);
+        }
 
-            return Ok(ResponseDto<object>.SuccessResult(new { Message = "Report processed" }));
+        /// <summary>
+        /// Admin gỡ khoá course để expert có thể publish lại.
+        /// PATCH /api/admin/courses/{courseId}/unlock
+        /// Route nằm ở đây (AdminReportsController) vì unlock là action moderation.
+        /// </summary>
+        [HttpPatch("/api/admin/courses/{courseId:guid}/unlock")]
+        public async Task<IActionResult> UnlockCourse(Guid courseId)
+        {
+            var result = await _sender.Send(
+                new UnlockCourseCommand(courseId));
+
+            if (!result.Success)
+            {
+                return result.ErrorCode switch
+                {
+                    "COURSE_NOT_FOUND" => NotFound(result),
+                    "NOT_LOCKED"       => BadRequest(result),
+                    _                  => BadRequest(result)
+                };
+            }
+
+            return Ok(result);
         }
     }
-
-    public enum ModerationAction
-    {
-        DismissReport,
-        RemoveContent,
-        WarnUser,
-        SuspendUser
-    }
-
-    public record ReviewReportRequest(ModerationAction Action, string? ResolutionNote);
 }

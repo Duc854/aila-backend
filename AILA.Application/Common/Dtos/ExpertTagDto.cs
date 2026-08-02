@@ -17,7 +17,13 @@ namespace AILA.Application.Common.Dtos
     {
         public Guid Id { get; set; }
         public string Status { get; set; } = string.Empty;
-        public string? Note { get; set; }
+
+        /// Ghi chú của Expert khi gửi yêu cầu
+        public string? RequestNote { get; set; }
+
+        /// Phản hồi của Admin khi từ chối
+        public string? ReviewComment { get; set; }
+
         public DateTime CreatedAt { get; set; }
         public DateTime? ReviewedAt { get; set; }
     }

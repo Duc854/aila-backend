@@ -10,4 +10,8 @@
   <Folder Name="/Presentation/">
     <Project Path="AILA.Api/AILA.Api.csproj" />
   </Folder>
+  <Folder Name="/Test/">
+    <Project Path="AILA.Application.Tests/AILA.Application.Tests.csproj" Id="e3133876-f891-4c70-a7a5-a5a804ee0578" />
+    <Project Path="AILA.Domain.Tests/AILA.Domain.Tests.csproj" Id="fc45697f-8cb7-467d-b4e7-9f5da780f085" />
+  </Folder>
 </Solution>
