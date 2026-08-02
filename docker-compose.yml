@@ -1,0 +1,133 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+
+    container_name: aila-postgres
+
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+
+      POSTGRES_USER: ${POSTGRES_USER}
+
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+
+      interval: 10s
+
+      timeout: 5s
+
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+
+    container_name: aila-redis
+
+    restart: unless-stopped
+
+    command: redis-server
+      --requirepass ${REDIS_PASSWORD}
+      --appendonly yes
+
+    ports:
+      - "6379:6379"
+
+    volumes:
+      - redis_data:/data
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+
+      interval: 10s
+
+      timeout: 5s
+
+      retries: 5
+
+  api:
+    build:
+      context: .
+
+      dockerfile: Dockerfile
+
+    image: aila-api:latest
+
+    container_name: aila-api
+
+    restart: unless-stopped
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+      redis:
+        condition: service_healthy
+
+    ports:
+      - "8080:8080"
+
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+
+      ConnectionStrings__PostgreSQL: Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+
+      ConnectionStrings__Redis: redis:6379,password=${REDIS_PASSWORD}
+
+      JwtSettings__Key: ${JWT_KEY}
+
+      JwtSettings__Issuer: ${JWT_ISSUER}
+
+      JwtSettings__Audience: ${JWT_AUDIENCE}
+
+      JwtSettings__ExpireMinutes: ${JWT_EXPIRE_MINUTES}
+
+      PasswordReset__OtpHashSecret: ${OTP_HASH_SECRET}
+
+      Smtp__Host: ${SMTP_HOST}
+
+      Smtp__Port: ${SMTP_PORT}
+
+      Smtp__UserName: ${SMTP_USERNAME}
+
+      Smtp__Password: ${SMTP_PASSWORD}
+
+      Smtp__FromEmail: ${SMTP_FROM_EMAIL}
+
+      Smtp__FromName: ${SMTP_FROM_NAME}
+
+      GoogleSettings__ClientId: ${GOOGLE_CLIENT_ID}
+
+      GoogleSettings__ClientSecret: ${GOOGLE_CLIENT_SECRET}
+
+      GoogleSettings__RedirectUri: ${GOOGLE_REDIRECT_URI}
+
+      AdminAccount__Email: ${ADMIN_EMAIL}
+
+      AdminAccount__Password: ${ADMIN_PASSWORD}
+
+      AdminAccount__FullName: ${ADMIN_FULLNAME}
+
+      Cloudinary__CloudName: ${CLOUDINARY_CLOUD_NAME}
+
+      Cloudinary__ApiKey: ${CLOUDINARY_API_KEY}
+
+      Cloudinary__ApiSecret: ${CLOUDINARY_API_SECRET}
+
+volumes:
+  postgres_data:
+
+  redis_data:
