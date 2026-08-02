@@ -502,3 +502,10 @@ $RECYCLE.BIN/
 logs/
 Log/
 spec-public-expert-profile-api.md
+
+# Environment specific settings
+**/appsettings.Development.json
+**/appsettings.Production.json
+
+# Environment variables
+.env
