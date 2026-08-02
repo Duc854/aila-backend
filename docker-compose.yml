@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   postgres:
     image: pgvector/pgvector:pg16
@@ -10,26 +8,18 @@ services:
 
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
-
       POSTGRES_USER: ${POSTGRES_USER}
-
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-
-    ports:
-      - "5432:5432"
 
     volumes:
       - postgres_data:/var/lib/postgresql/data
-
       - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
 
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
 
       interval: 10s
-
       timeout: 5s
-
       retries: 5
 
   redis:
@@ -43,9 +33,6 @@ services:
       --requirepass ${REDIS_PASSWORD}
       --appendonly yes
 
-    ports:
-      - "6379:6379"
-
     volumes:
       - redis_data:/data
 
@@ -53,15 +40,12 @@ services:
       test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
 
       interval: 10s
-
       timeout: 5s
-
       retries: 5
 
   api:
     build:
       context: .
-
       dockerfile: Dockerfile
 
     image: aila-api:latest
@@ -79,6 +63,9 @@ services:
 
     ports:
       - "8080:8080"
+
+    volumes:
+      - dataprotection_keys:/root/.aspnet/DataProtection-Keys
 
     environment:
       ASPNETCORE_ENVIRONMENT: Production
@@ -127,7 +114,16 @@ services:
 
       Cloudinary__ApiSecret: ${CLOUDINARY_API_SECRET}
 
+    logging:
+      driver: json-file
+
+      options:
+        max-size: "10m"
+        max-file: "3"
+
 volumes:
   postgres_data:
 
   redis_data:
+
+  dataprotection_keys:
