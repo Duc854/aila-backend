@@ -44,6 +44,14 @@ public sealed class UpdateQuizDetailCommandHandler
                         "Bạn không có quyền chỉnh sửa Quiz.");
             }
 
+            if (quiz.Material.Module.Course.IsPublished)
+            {
+                return ResponseDto<QuizMaterialDto>
+                    .FailResult(
+                        "COURSE_PUBLISHED",
+                        "Không thể chỉnh sửa vì khóa học đã được công khai.");
+            }
+
             quiz.UpdateSetting(
                 request.TimeLimitMinutes,
                 request.PassingScore,
@@ -80,6 +88,14 @@ public sealed class UpdateQuizDetailCommandHandler
                 .FailResult(
                     "FORBIDDEN",
                     "Bạn không có quyền chỉnh sửa Quiz.");
+        }
+
+        if (material.Module.Course.IsPublished)
+        {
+            return ResponseDto<QuizMaterialDto>
+                .FailResult(
+                    "COURSE_PUBLISHED",
+                    "Không thể chỉnh sửa vì khóa học đã được công khai.");
         }
 
         if (material.MaterialType != MaterialType.Quiz)

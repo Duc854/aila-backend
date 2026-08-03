@@ -43,6 +43,14 @@ public sealed class UpdateLearningMaterialCommandHandler
                     "Bạn không có quyền chỉnh sửa học liệu.");
         }
 
+        if (material.Module.Course.IsPublished)
+        {
+            return ResponseDto<LearningMaterialDto>
+                .FailResult(
+                    "COURSE_PUBLISHED",
+                    "Không thể chỉnh sửa vì khóa học đã được công khai.");
+        }
+
         material.UpdateTitle(request.Title);
 
         await _uow.SaveChangesAsync(ct);
