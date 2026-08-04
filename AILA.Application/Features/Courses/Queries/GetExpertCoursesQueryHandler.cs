@@ -36,6 +36,7 @@ namespace AILA.Application.Features.Courses.Queries
                 Level        = c.Level.ToString(),
                 DurationHours= c.DurationHours,
                 IsPublished  = c.IsPublished,
+                IsPublicationLocked = c.IsPublicationLocked,
                 CreatedAt    = c.CreatedAt,
                 UpdatedAt    = c.UpdatedAt,
 
