@@ -1,5 +1,6 @@
 using AILA.Application.Common.Interfaces;
 using AILA.Application.Features.Authentication.Dtos;
+using AILA.Domain.Entities;
 using AILA.Domain.Enums;
 using MediatR;
 
@@ -39,6 +40,15 @@ namespace AILA.Application.Features.Authentication.Commands.ExpertLogin
 
             var accessToken = _tokenProvider.GenerateAccessToken(user);
             var refreshToken = _tokenProvider.GenerateRefreshToken();
+            var refreshTokenHash = _tokenProvider.HashToken(refreshToken);
+
+            var userToken = new UserToken(
+                user.Id,
+                refreshTokenHash,
+                DateTime.UtcNow.AddDays(7));
+
+            _uow.UserTokens.Add(userToken);
+            await _uow.SaveChangesAsync(cancellationToken);
 
             return new LoginResponseDto
             {

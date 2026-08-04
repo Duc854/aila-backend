@@ -6,6 +6,7 @@ using AILA.Application.Features.Profile.Commands.UpdateLearnerProfile;
 using AILA.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Wrappers;
 
@@ -75,6 +76,7 @@ namespace AILA.Api.Controllers
             if (!result.Success)
                 return Unauthorized(result);
 
+            SetRefreshTokenCookie(result.Data!.RefreshToken);
             return Ok(result);
         }
 
@@ -139,6 +141,25 @@ namespace AILA.Api.Controllers
         string? KnowledgeLevel,
         Guid[]? LearningGoals
     );
+
+    public static class LearnerControllerExtensions
+    {
+        public static void SetRefreshTokenCookie(this ControllerBase controller, string refreshToken)
+        {
+            var isHttps = controller.Request.IsHttps || controller.Request.Headers["X-Forwarded-Proto"].ToString().Equals("https", StringComparison.OrdinalIgnoreCase);
+            var options = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = isHttps,
+                SameSite = isHttps ? SameSiteMode.None : SameSiteMode.Lax,
+                Path = "/",
+                Expires = DateTimeOffset.UtcNow.AddDays(7),
+                MaxAge = TimeSpan.FromDays(7)
+            };
+
+            controller.Response.Cookies.Append("refreshToken", refreshToken, options);
+        }
+    }
 
     public record CompleteOnboardingRequest(
         string LearnerType,
