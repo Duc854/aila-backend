@@ -28,18 +28,21 @@ public sealed class LockCourseFromReportCommandHandler
             return ResponseDto<CourseModerationResponseDto>.FailResult(
                 "REPORT_NOT_FOUND", "Không tìm thấy báo cáo.");
 
-        // 2. Chỉ report về Course mới lock được
-        if (report.CourseId is null || report.Course is null)
+        // 2. Resolve course từ report — hỗ trợ cả course report lẫn content report
+        var course = report.Course                          // course report
+                  ?? report.Material?.Module?.Course;      // content report
+
+        if (course is null)
             return ResponseDto<CourseModerationResponseDto>.FailResult(
                 "NOT_COURSE_REPORT", "Báo cáo này không liên quan đến khóa học.");
 
-        // 3. Report phải đang Pending (chưa xử lý)
+        // 3. Report phải đang Pending
         if (report.Status != ReportStatus.Pending)
             return ResponseDto<CourseModerationResponseDto>.FailResult(
                 "ALREADY_RESOLVED", "Báo cáo đã được xử lý trước đó.");
 
-        // 4. Domain actions — thứ tự: lock course trước, resolve report sau
-        report.Course.LockVisibility();
+        // 4. Domain actions
+        course.LockVisibility();
         report.Resolve();
 
         await _uow.SaveChangesAsync(ct);
@@ -47,11 +50,11 @@ public sealed class LockCourseFromReportCommandHandler
         return ResponseDto<CourseModerationResponseDto>.SuccessResult(
             new CourseModerationResponseDto
             {
-                CourseId           = report.Course.Id,
-                CourseName         = report.Course.Name,
-                IsPublished        = report.Course.IsPublished,
-                IsPublicationLocked = report.Course.IsPublicationLocked,
-                Message            = "Khóa học đã bị khoá và báo cáo đã được đánh dấu xử lý."
+                CourseId            = course.Id,
+                CourseName          = course.Name,
+                IsPublished         = course.IsPublished,
+                IsPublicationLocked = course.IsPublicationLocked,
+                Message             = "Khóa học đã bị khoá và báo cáo đã được đánh dấu xử lý."
             });
     }
 }
