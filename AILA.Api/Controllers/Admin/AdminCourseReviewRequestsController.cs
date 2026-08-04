@@ -1,6 +1,7 @@
 using AILA.Application.Features.CourseReviewRequests.Commands.ApproveCourseReReview;
 using AILA.Application.Features.CourseReviewRequests.Commands.RejectCourseReReview;
 using AILA.Application.Features.CourseReviewRequests.Queries.GetCourseReReviewRequests;
+using AILA.Application.Features.Materials.Queries.GetMaterialDetail;
 using AILA.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -90,6 +91,26 @@ public class AdminCourseReviewRequestsController : ControllerBase
                 _                    => BadRequest(result)
             };
         }
+
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Admin xem trước chi tiết một học liệu trong bất kỳ khóa học nào.
+    /// Dùng cho CoursePreviewModal ở trang admin (reports, review requests).
+    /// GET /api/admin/courses/{courseId}/materials/{materialId}/preview
+    /// </summary>
+    [HttpGet("/api/admin/courses/{courseId:guid}/materials/{materialId:guid}/preview")]
+    public async Task<IActionResult> PreviewMaterial(
+        Guid courseId,
+        Guid materialId,
+        CancellationToken ct)
+    {
+        var query  = new GetMaterialDetailQuery(courseId, materialId);
+        var result = await _sender.Send(query, ct);
+
+        if (!result.Success)
+            return NotFound(result);
 
         return Ok(result);
     }
