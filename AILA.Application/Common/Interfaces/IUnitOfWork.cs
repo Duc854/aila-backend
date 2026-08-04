@@ -28,11 +28,9 @@ namespace AILA.Application.Common.Interfaces
         IAnswerOptionRepository AnswerOptions { get; }
         ISubscriptionPlanRepository SubscriptionPlans { get; }
         IAIPracticeMaterialRepository AIPracticeMaterials { get; }
-<<<<<<< HEAD
-        IUserTokenRepository UserTokens { get; }
-=======
         ICourseReviewRequestRepository CourseReviewRequests { get; }
->>>>>>> 74361dc831a66e9feb77d411b01b0a58d48b208b
+        IUserTokenRepository UserTokens { get; }
+
         IGenericRepository<T> Repository<T>() where T : class;
 
         /// <summary>
