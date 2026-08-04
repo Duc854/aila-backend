@@ -39,6 +39,7 @@ namespace AILA.Infrastructure
             // Security
             services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
             services.AddScoped<ITokenProvider, JwtTokenProvider>();
+            services.AddScoped<IAccessTokenService, JwtAccessTokenService>();
 
             // External services
             services.AddHttpClient<IGoogleAuthService, GoogleAuthService>();
