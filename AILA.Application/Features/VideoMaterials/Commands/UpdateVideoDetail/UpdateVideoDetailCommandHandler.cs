@@ -39,6 +39,14 @@ public sealed class UpdateVideoDetailCommandHandler
                         "Bạn không có quyền chỉnh sửa video này.");
             }
 
+            if (video.Material.Module.Course.IsPublished)
+            {
+                return ResponseDto<VideoMaterialDto>
+                    .FailResult(
+                        "COURSE_PUBLISHED",
+                        "Không thể chỉnh sửa vì khóa học đã được công khai.");
+            }
+
             video.UpdateDetails(
                 request.VideoUrl,
                 request.DurationSeconds,
@@ -71,6 +79,14 @@ public sealed class UpdateVideoDetailCommandHandler
                 .FailResult(
                     "FORBIDDEN",
                     "Bạn không có quyền chỉnh sửa video này.");
+        }
+
+        if (material.Module.Course.IsPublished)
+        {
+            return ResponseDto<VideoMaterialDto>
+                .FailResult(
+                    "COURSE_PUBLISHED",
+                    "Không thể chỉnh sửa vì khóa học đã được công khai.");
         }
 
         if (material.MaterialType != MaterialType.Video)

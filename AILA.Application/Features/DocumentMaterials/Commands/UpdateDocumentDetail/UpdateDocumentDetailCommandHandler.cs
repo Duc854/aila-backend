@@ -38,6 +38,14 @@ public sealed class UpdateDocumentDetailCommandHandler
                         "Bạn không có quyền chỉnh sửa.");
             }
 
+            if (document.Material.Module.Course.IsPublished)
+            {
+                return ResponseDto<DocumentMaterialDto>
+                    .FailResult(
+                        "COURSE_PUBLISHED",
+                        "Không thể chỉnh sửa vì khóa học đã được công khai.");
+            }
+
             document.UpdateDetails(request.Content);
 
             await _uow.SaveChangesAsync(ct);
@@ -67,6 +75,14 @@ public sealed class UpdateDocumentDetailCommandHandler
                 .FailResult(
                     "FORBIDDEN",
                     "Bạn không có quyền chỉnh sửa.");
+        }
+
+        if (material.Module.Course.IsPublished)
+        {
+            return ResponseDto<DocumentMaterialDto>
+                .FailResult(
+                    "COURSE_PUBLISHED",
+                    "Không thể chỉnh sửa vì khóa học đã được công khai.");
         }
 
         if (material.MaterialType != MaterialType.Document)
