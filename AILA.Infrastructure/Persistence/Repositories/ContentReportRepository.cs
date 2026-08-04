@@ -81,6 +81,9 @@ namespace AILA.Infrastructure.Persistence.Repositories
             // Dùng AsTracking (mặc định) để EF Core track thay đổi trên Course
             return await _context.Set<ContentReport>()
                 .Include(r => r.Course)
+                .Include(r => r.Material)
+                    .ThenInclude(m => m.Module)
+                        .ThenInclude(mod => mod.Course)
                 .FirstOrDefaultAsync(r => r.Id == reportId, cancellationToken);
         }
     }
