@@ -12,6 +12,7 @@ using AILA.Application.Features.Authentication.Commands.VerifyPasswordResetOtp;
 using AILA.Application.Features.Authentication.Dtos;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -49,6 +50,7 @@ namespace AILA.Api.Controllers
                         "INVALID_CREDENTIALS",
                         "Tên tài khoản hoặc mật khẩu Admin không đúng."));
 
+            SetRefreshTokenCookie(result.RefreshToken);
             return Ok(ResponseDto<LoginResponseDto>.SuccessResult(result));
         }
 
@@ -64,6 +66,7 @@ namespace AILA.Api.Controllers
                         "INVALID_CREDENTIALS",
                         "Email hoặc mật khẩu không đúng, hoặc tài khoản không có quyền Expert."));
 
+            SetRefreshTokenCookie(result.RefreshToken);
             return Ok(ResponseDto<LoginResponseDto>.SuccessResult(result));
         }
 
@@ -205,6 +208,7 @@ namespace AILA.Api.Controllers
             }
 
             _logger.LogInformation("Google callback succeeded for external user. userEmail={Email}", result.Data?.Email);
+            SetRefreshTokenCookie(result.Data!.RefreshToken);
 
             if (!string.IsNullOrWhiteSpace(state))
             {
@@ -218,17 +222,39 @@ namespace AILA.Api.Controllers
 
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh(
-            [FromBody]  RefreshTokenRequestDto request)
+            [FromBody] RefreshTokenRequestDto? request)
         {
-            var result =
-                await _sender.Send(
-                    new RefreshTokenCommand(
-                        request.RefreshToken
-                    )
-                );
+            var refreshToken = request?.RefreshToken;
+            if (string.IsNullOrWhiteSpace(refreshToken))
+            {
+                refreshToken = Request.Cookies["refreshToken"];
+            }
 
+            if (string.IsNullOrWhiteSpace(refreshToken))
+            {
+                return Unauthorized(ResponseDto<object>.FailResult("INVALID_REFRESH_TOKEN", "Refresh token không hợp lệ."));
+            }
 
-            return Ok(result);
+            var result = await _sender.Send(new RefreshTokenCommand(refreshToken));
+            SetRefreshTokenCookie(result.RefreshToken);
+
+            return Ok(ResponseDto<LoginResponseDto>.SuccessResult(result));
+        }
+
+        private void SetRefreshTokenCookie(string refreshToken)
+        {
+            var isHttps = Request.IsHttps || Request.Headers["X-Forwarded-Proto"].ToString().Equals("https", StringComparison.OrdinalIgnoreCase);
+            var options = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = isHttps,
+                SameSite = isHttps ? SameSiteMode.None : SameSiteMode.Lax,
+                Path = "/",
+                Expires = DateTimeOffset.UtcNow.AddDays(7),
+                MaxAge = TimeSpan.FromDays(7)
+            };
+
+            Response.Cookies.Append("refreshToken", refreshToken, options);
         }
 
         [HttpPost("logout")]
