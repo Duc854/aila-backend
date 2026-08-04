@@ -24,14 +24,20 @@ namespace AILA.Api.Middlewares
             catch (ValidationException ex)
             {
                 await HandleValidationException(context, ex);
-            }
-            catch (Exception)
+            }            catch (UnauthorizedAccessException ex)
             {
                 await WriteError(
                     context,
-                    HttpStatusCode.InternalServerError,
-                    "INTERNAL_SERVER_ERROR",
-                    "Đã xảy ra lỗi hệ thống.");
+                    HttpStatusCode.Unauthorized,
+                    "UNAUTHORIZED",
+                    ex.Message);
+            }            catch (Exception ex)
+            {
+                await WriteError(
+                context,
+                HttpStatusCode.InternalServerError,
+                "INTERNAL_SERVER_ERROR",
+                ex.Message);
             }
         }
 
