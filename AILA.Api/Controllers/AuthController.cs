@@ -304,7 +304,7 @@ namespace AILA.Api.Controllers
                     HttpOnly = true,
                     Secure = true,
                     SameSite = SameSiteMode.None,
-                    Path = "/api/auth"
+                    Path = "/"
                 });
 
 
