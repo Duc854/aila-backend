@@ -88,6 +88,34 @@ namespace AILA.Application.Features.Quizzes.Commands.SubmitQuiz
                     BuildResult(attempt, quiz, enrollment, previousCorrect, wasAutoSubmitted: false));
             }
 
+            // 5b. Lượt đã bị đóng vì hết giờ (do lần gọi trước hoặc do worker quét nền):
+            //     không thể nộp nữa, Learner phải mở lượt mới qua endpoint start.
+            if (attempt.Status == Domain.Enums.QuizAttemptStatus.Expired)
+            {
+                return ResponseDto<QuizResultDto>.FailResult(
+                    "ATTEMPT_EXPIRED",
+                    "Lượt làm bài này đã hết giờ và bị đóng. Vui lòng bắt đầu một lượt làm bài mới.");
+            }
+
+            // 5c. Đồng hồ đếm giờ do SERVER giữ (AF-01): hạn chót = StartedAt + TimeLimitMinutes,
+            //     cộng thêm một khoảng dung sai cho độ trễ mạng. Quá mốc đó thì bài nộp bị TỪ CHỐI
+            //     (không chấm, không cộng tiến độ) và lượt bị đóng ngay để không treo InProgress.
+            var now = DateTime.UtcNow;
+            if (attempt.IsPastGracePeriod(quiz.TimeLimitMinutes, now))
+            {
+                attempt.Expire();
+                await _uow.SaveChangesAsync(cancellationToken);
+
+                _logger.LogWarning(
+                    "Từ chối bài nộp trễ cho QuizAttempt {AttemptId}: hạn chót {Deadline:O}, nộp lúc {Now:O}.",
+                    attempt.Id, attempt.GetDeadline(quiz.TimeLimitMinutes), now);
+
+                return ResponseDto<QuizResultDto>.FailResult(
+                    "ATTEMPT_EXPIRED",
+                    "Đã hết thời gian làm bài nên bài nộp không được ghi nhận. "
+                    + "Vui lòng bắt đầu một lượt làm bài mới.");
+            }
+
             // 6. Validate submission: câu hỏi phải thuộc quiz, các đáp án phải thuộc câu hỏi.
             var selections = new Dictionary<Guid, List<Guid>>();
             foreach (var answer in request.Answers)
@@ -109,9 +137,9 @@ namespace AILA.Application.Features.Quizzes.Commands.SubmitQuiz
                 selections[answer.QuestionId] = optionIds;
             }
 
-            // 7. Mốc hết giờ do server quyết định (AF-01): xác định auto-submit để ghi log.
-            var deadline = attempt.StartedAt.AddMinutes(quiz.TimeLimitMinutes);
-            var wasAutoSubmitted = DateTime.UtcNow > deadline;
+            // 7. Bài nộp lọt trong khoảng dung sai sau hạn chót vẫn được chấm, nhưng đánh dấu
+            //    là tự động nộp do hết giờ để client hiển thị đúng và để truy vết trong log.
+            var wasAutoSubmitted = attempt.IsOverdue(quiz.TimeLimitMinutes, now);
 
             // 8. Chấm điểm phía server + lưu kết quả và cập nhật tiến độ trong CÙNG một giao dịch (AC-3).
             await _uow.BeginTransactionAsync(cancellationToken);

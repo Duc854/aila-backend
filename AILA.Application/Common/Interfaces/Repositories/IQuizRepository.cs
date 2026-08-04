@@ -40,6 +40,14 @@ namespace AILA.Application.Common.Interfaces.Repositories
         Task<(IEnumerable<QuizAttempt> Items, int TotalCount)> GetPagedSubmittedAttemptsByLearnerAsync(
             Guid learnerId, int pageIndex, int pageSize, CancellationToken cancellationToken = default);
 
+        /// <summary>
+        /// Lấy các lượt làm bài còn InProgress nhưng đã quá hạn nộp (kèm dung sai), dạng tracking
+        /// để gọi <see cref="QuizAttempt.Expire"/>. Phục vụ worker quét nền đóng các lượt bị bỏ dở
+        /// mà máy khách không bao giờ gửi bài nộp (DEF-QA-01).
+        /// </summary>
+        Task<List<QuizAttempt>> GetOverdueInProgressAttemptsAsync(
+            DateTime utcNow, int batchSize, CancellationToken cancellationToken = default);
+
         Task AddAttemptAsync(QuizAttempt attempt, CancellationToken cancellationToken = default);
 
         /// <summary>

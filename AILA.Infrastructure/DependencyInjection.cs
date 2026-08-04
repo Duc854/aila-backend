@@ -4,6 +4,7 @@ using AILA.Infrastructure.Persistence.Seed;
 using AILA.Infrastructure.Security;
 using AILA.Infrastructure.Services;
 using AILA.Infrastructure.Services.Email;
+using AILA.Infrastructure.Services.Quizzes;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -55,6 +56,10 @@ namespace AILA.Infrastructure
 
             // 7. Luồng Reset Password (UC-08): state tạm ở Redis + gửi OTP qua email nền
             services.AddPasswordReset(configuration);
+
+            // 8. Worker đóng các lượt làm bài kiểm tra đã hết giờ (UC-26, AF-01):
+            //    đồng hồ đếm giờ thuộc về server, không phụ thuộc máy khách gọi API nộp bài.
+            services.AddHostedService<QuizAttemptExpiryService>();
 
             return services;
         }

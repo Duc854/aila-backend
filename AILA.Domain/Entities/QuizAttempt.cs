@@ -10,6 +10,12 @@ namespace AILA.Domain.Entities
 {
     public class QuizAttempt : BaseEntity
     {
+        /// <summary>
+        /// Dung sai cho độ trễ mạng và lệch đồng hồ máy khách: bài nộp tới trong khoảng này
+        /// sau hạn chót vẫn được chấm (đánh dấu là tự động nộp), quá khoảng này thì bị từ chối.
+        /// </summary>
+        public const int SubmissionGraceSeconds = 30;
+
         private readonly List<QuizAnswer> _answers = new();
 
         public Guid EnrollmentId { get; private set; }
@@ -82,10 +88,46 @@ namespace AILA.Domain.Entities
             UpdateTimestamp();
         }
 
+        /// <summary>
+        /// Hạn chót do server quyết định, tính từ thời điểm bắt đầu lượt làm bài.
+        /// Máy khách không được phép quyết định mốc này (AF-01).
+        /// </summary>
+        public DateTime GetDeadline(int timeLimitMinutes) => StartedAt.AddMinutes(timeLimitMinutes);
+
+        /// <summary>Đã quá hạn chót (chưa tính dung sai) — dùng để đánh dấu "tự động nộp".</summary>
+        public bool IsOverdue(int timeLimitMinutes, DateTime utcNow)
+            => utcNow > GetDeadline(timeLimitMinutes);
+
+        /// <summary>
+        /// Đã quá hạn chót kể cả sau khi trừ dung sai — bài nộp tới lúc này phải bị từ chối.
+        /// </summary>
+        public bool IsPastGracePeriod(int timeLimitMinutes, DateTime utcNow)
+            => utcNow > GetDeadline(timeLimitMinutes).AddSeconds(SubmissionGraceSeconds);
+
+        /// <summary>
+        /// Đóng lượt làm bài đã hết giờ mà không có bài nộp hợp lệ (AF-01): lượt không còn
+        /// treo ở InProgress, không sinh kết quả giả và không đụng tới tiến độ khóa học.
+        /// Learner muốn làm lại thì mở lượt mới qua endpoint start.
+        /// </summary>
+        public void Expire()
+        {
+            if (Status != QuizAttemptStatus.InProgress)
+                throw new InvalidOperationException("Chỉ có thể đóng lượt làm bài đang dở dang.");
+
+            Score = 0;
+            IsPassed = false;
+            Status = QuizAttemptStatus.Expired;
+
+            UpdateTimestamp();
+        }
+
         public void Submit(decimal score, bool isPassed)
         {
             if (Status == QuizAttemptStatus.Submitted)
                 throw new InvalidOperationException("Bài kiểm tra đã được nộp.");
+
+            if (Status == QuizAttemptStatus.Expired)
+                throw new InvalidOperationException("Bài kiểm tra đã hết giờ, không thể nộp.");
 
             if (score < 0 || score > 100)
                 throw new ArgumentException("Điểm số phải nằm trong khoảng từ 0 đến 100.", nameof(score));

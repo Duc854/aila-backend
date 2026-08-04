@@ -94,6 +94,25 @@ namespace AILA.Infrastructure.Persistence.Repositories
             return (items, totalCount);
         }
 
+        public async Task<List<QuizAttempt>> GetOverdueInProgressAttemptsAsync(
+            DateTime utcNow, int batchSize, CancellationToken cancellationToken = default)
+        {
+            // Hạn chót phụ thuộc TimeLimitMinutes của từng quiz nên phép cộng ngày tháng đó
+            // không dịch được chắc chắn sang SQL. Thay vào đó lấy các lượt dở dang CŨ NHẤT
+            // (chính là nhóm dễ quá hạn nhất) rồi lọc hạn chót trong bộ nhớ; mỗi lượt quá hạn
+            // chỉ bị quét đúng một lần vì sau đó nó rời khỏi tập InProgress.
+            var candidates = await _context.QuizAttempts
+                .Include(a => a.QuizMaterial)
+                .Where(a => a.Status == QuizAttemptStatus.InProgress && a.StartedAt <= utcNow)
+                .OrderBy(a => a.StartedAt)
+                .Take(batchSize)
+                .ToListAsync(cancellationToken);
+
+            return candidates
+                .Where(a => a.IsPastGracePeriod(a.QuizMaterial.TimeLimitMinutes, utcNow))
+                .ToList();
+        }
+
         public async Task AddAttemptAsync(QuizAttempt attempt, CancellationToken cancellationToken = default)
         {
             await _context.QuizAttempts.AddAsync(attempt, cancellationToken);

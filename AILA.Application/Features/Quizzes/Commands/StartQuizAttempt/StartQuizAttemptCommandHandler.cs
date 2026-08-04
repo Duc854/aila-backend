@@ -58,15 +58,19 @@ namespace AILA.Application.Features.Quizzes.Commands.StartQuizAttempt
                 enrollment.Id, request.MaterialId, cancellationToken);
 
             var now = DateTime.UtcNow;
-            var isExpired = attempt != null
-                && attempt.StartedAt.AddMinutes(quiz.TimeLimitMinutes) <= now;
+            var isExpired = attempt != null && attempt.IsOverdue(quiz.TimeLimitMinutes, now);
 
             if (attempt == null || isExpired)
             {
                 if (isExpired)
                 {
+                    // Đóng lượt cũ ngay tại đây: nếu chỉ mở lượt mới, lượt cũ sẽ treo ở
+                    // InProgress vĩnh viễn và vẫn còn nộp được (DEF-QA-01).
+                    attempt!.Expire();
+
                     _logger.LogInformation(
-                        "QuizAttempt {AttemptId} đã hết giờ (bỏ dở), mở lượt làm mới.", attempt!.Id);
+                        "QuizAttempt {AttemptId} đã hết giờ (bỏ dở), đóng lượt cũ và mở lượt làm mới.",
+                        attempt.Id);
                 }
 
                 attempt = new QuizAttempt(enrollment.Id, request.MaterialId);

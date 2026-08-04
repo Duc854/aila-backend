@@ -130,6 +130,8 @@ namespace AILA.Api.Controllers
             "ATTEMPT_NOT_FOUND" => NotFound(result),
             "NO_RESULT" => NotFound(result),
             "QUIZ_NOT_CONFIGURED" => UnprocessableEntity(result),
+            // Hết giờ làm bài: xung đột trạng thái, client cần mở lượt mới chứ không retry.
+            "ATTEMPT_EXPIRED" => Conflict(result),
             "INVALID_SUBMISSION" => BadRequest(result),
             _ => BadRequest(result)
         };
