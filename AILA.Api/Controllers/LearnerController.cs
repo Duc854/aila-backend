@@ -6,7 +6,6 @@ using AILA.Application.Features.Profile.Commands.UpdateLearnerProfile;
 using AILA.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Wrappers;
 using System;

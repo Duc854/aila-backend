@@ -1,8 +1,10 @@
+using AILA.Application.Common.Interfaces;
 using AILA.Application.Features.Authentication.Commands;
 using AILA.Application.Features.Authentication.Commands.AdminLogin;
 using AILA.Application.Features.Authentication.Commands.ConfirmPasswordReset;
 using AILA.Application.Features.Authentication.Commands.ExpertLogin;
 using AILA.Application.Features.Authentication.Commands.GoogleCallback;
+using AILA.Application.Features.Authentication.Commands.Logout.AILA.Application.Features.Authentication.Commands.Logout;
 using AILA.Application.Features.Authentication.Commands.RefreshToken;
 using AILA.Application.Features.Authentication.Commands.Register;
 using AILA.Application.Features.Authentication.Commands.RequestPasswordReset;
@@ -27,11 +29,13 @@ namespace AILA.Api.Controllers
     {
         private readonly ISender _sender;
         private readonly ILogger<AuthController> _logger;
+        private readonly IAccessTokenService _accessTokenService;
 
-        public AuthController(ISender sender, ILogger<AuthController> logger)
+        public AuthController(ISender sender, ILogger<AuthController> logger, IAccessTokenService accessTokenService)
         {
             _sender = sender;
             _logger = logger;
+            _accessTokenService = accessTokenService;
         }
 
         [HttpPost("admin/login")]
@@ -251,6 +255,63 @@ namespace AILA.Api.Controllers
             };
 
             Response.Cookies.Append("refreshToken", refreshToken, options);
+        }
+
+        [HttpPost("logout")]
+        [Authorize]
+        public async Task<IActionResult> Logout(
+    CancellationToken ct)
+        {
+
+            var accessToken =
+                Request.Headers["Authorization"]
+                    .ToString()
+                    .Replace("Bearer ", "");
+
+
+
+            var refreshToken =
+                Request.Cookies["refreshToken"];
+
+
+
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                return Unauthorized();
+            }
+
+
+
+            var tokenInfo =
+                _accessTokenService
+                    .GetTokenInfo(accessToken);
+
+
+
+            await _sender.Send(
+                new LogoutCommand(
+                    refreshToken ?? string.Empty,
+                    tokenInfo.Jti,
+                    tokenInfo.ExpiredAt),
+                ct);
+
+
+
+            Response.Cookies.Delete(
+                "refreshToken",
+                new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.None,
+                    Path = "/api/auth"
+                });
+
+
+
+            return Ok(
+                ResponseDto<object>.SuccessResult(
+                    "Đăng xuất thành công."));
         }
     }
 }
