@@ -6,7 +6,6 @@ using AILA.Application.Features.Profile.Commands.UpdateLearnerProfile;
 using AILA.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Wrappers;
 
@@ -132,21 +131,10 @@ namespace AILA.Api.Controllers
 
             return Ok(result);
         }
-    }
 
-    public record UpdateLearnerProfileRequest(
-        string FullName,
-        string? AvatarUrl,
-        string? LearnerType,
-        string? KnowledgeLevel,
-        Guid[]? LearningGoals
-    );
-
-    public static class LearnerControllerExtensions
-    {
-        public static void SetRefreshTokenCookie(this ControllerBase controller, string refreshToken)
+        private void SetRefreshTokenCookie(string refreshToken)
         {
-            var isHttps = controller.Request.IsHttps || controller.Request.Headers["X-Forwarded-Proto"].ToString().Equals("https", StringComparison.OrdinalIgnoreCase);
+            var isHttps = Request.IsHttps || Request.Headers["X-Forwarded-Proto"].ToString().Equals("https", StringComparison.OrdinalIgnoreCase);
             var options = new CookieOptions
             {
                 HttpOnly = true,
@@ -157,9 +145,17 @@ namespace AILA.Api.Controllers
                 MaxAge = TimeSpan.FromDays(7)
             };
 
-            controller.Response.Cookies.Append("refreshToken", refreshToken, options);
+            Response.Cookies.Append("refreshToken", refreshToken, options);
         }
     }
+
+    public record UpdateLearnerProfileRequest(
+        string FullName,
+        string? AvatarUrl,
+        string? LearnerType,
+        string? KnowledgeLevel,
+        Guid[]? LearningGoals
+    );
 
     public record CompleteOnboardingRequest(
         string LearnerType,
