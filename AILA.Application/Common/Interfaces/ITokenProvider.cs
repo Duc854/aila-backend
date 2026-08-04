@@ -11,5 +11,6 @@ namespace AILA.Application.Common.Interfaces
     {
         string GenerateAccessToken(User user);
         string GenerateRefreshToken();
+        string HashToken(string token);
     }
 }

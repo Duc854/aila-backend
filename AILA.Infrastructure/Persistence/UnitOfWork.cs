@@ -40,6 +40,8 @@ namespace AILA.Infrastructure.Persistence
         public IAnswerOptionRepository AnswerOptions { get; private set; }
         public ISubscriptionPlanRepository SubscriptionPlans { get; private set; }
         public IAIPracticeMaterialRepository AIPracticeMaterials { get; private set; }
+        public IUserTokenRepository UserTokens { get; private set; }
+
 
         public UnitOfWork(ApplicationDbContext context)
         {

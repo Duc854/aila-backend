@@ -37,6 +37,7 @@ namespace AILA.Domain.Entities
 
             Id = Guid.NewGuid();
             UserId = userId;
+            RefreshTokenHash = refreshTokenHash;
             ExpiredAt = expiredAt;
             IsRevoked = false;
         }
