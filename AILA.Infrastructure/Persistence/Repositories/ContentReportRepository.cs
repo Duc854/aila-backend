@@ -35,6 +35,8 @@ namespace AILA.Infrastructure.Persistence.Repositories
                 .AsNoTracking()
                 .Include(r => r.Course)
                 .Include(r => r.Material)
+                    .ThenInclude(m => m.Module)
+                        .ThenInclude(mod => mod.Course)
                 .Include(r => r.Learner)
                     .ThenInclude(l => l.User);
 
@@ -67,6 +69,8 @@ namespace AILA.Infrastructure.Persistence.Repositories
                     .ThenInclude(l => l.User)
                 .Include(r => r.Course)
                 .Include(r => r.Material)
+                    .ThenInclude(m => m.Module)
+                        .ThenInclude(mod => mod.Course)
                 .FirstOrDefaultAsync(r => r.Id == reportId, cancellationToken);
         }
 
