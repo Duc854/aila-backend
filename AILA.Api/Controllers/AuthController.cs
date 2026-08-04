@@ -3,7 +3,7 @@ using AILA.Application.Features.Authentication.Commands.AdminLogin;
 using AILA.Application.Features.Authentication.Commands.ConfirmPasswordReset;
 using AILA.Application.Features.Authentication.Commands.ExpertLogin;
 using AILA.Application.Features.Authentication.Commands.GoogleCallback;
-using AILA.Application.Features.Authentication.Commands.GoogleLogin;
+using AILA.Application.Features.Authentication.Commands.RefreshToken;
 using AILA.Application.Features.Authentication.Commands.Register;
 using AILA.Application.Features.Authentication.Commands.RequestPasswordReset;
 using AILA.Application.Features.Authentication.Commands.VerifyPasswordResetOtp;
@@ -208,6 +208,21 @@ namespace AILA.Api.Controllers
                 var fragment = $"accessToken={Uri.EscapeDataString(result.Data!.AccessToken)}&refreshToken={Uri.EscapeDataString(result.Data.RefreshToken)}";
                 return Redirect($"{returnUrl}#{fragment}");
             }
+
+            return Ok(result);
+        }
+
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh(
+            [FromBody]  RefreshTokenRequestDto request)
+        {
+            var result =
+                await _sender.Send(
+                    new RefreshTokenCommand(
+                        request.RefreshToken
+                    )
+                );
+
 
             return Ok(result);
         }
