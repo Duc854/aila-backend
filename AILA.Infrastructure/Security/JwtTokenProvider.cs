@@ -79,5 +79,23 @@ namespace AILA.Infrastructure.Security
 
             return Convert.ToBase64String(hashBytes);
         }
+
+        public string? GetJti(string accessToken)
+        {
+            var handler = new JwtSecurityTokenHandler();
+
+            var jwt = handler.ReadJwtToken(accessToken);
+
+            return jwt.Id;
+        }
+
+        public DateTime GetExpiration(string accessToken)
+        {
+            var handler = new JwtSecurityTokenHandler();
+
+            var jwt = handler.ReadJwtToken(accessToken);
+
+            return jwt.ValidTo;
+        }
     }
 }
