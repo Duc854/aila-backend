@@ -40,6 +40,8 @@ namespace AILA.Infrastructure.Persistence
         public IAnswerOptionRepository AnswerOptions { get; private set; }
         public ISubscriptionPlanRepository SubscriptionPlans { get; private set; }
         public IAIPracticeMaterialRepository AIPracticeMaterials { get; private set; }
+        public ICourseReviewRequestRepository CourseReviewRequests { get; private set; }
+        public IUserTokenRepository UserTokens { get; private set; }
 
         public UnitOfWork(ApplicationDbContext context)
         {
@@ -62,6 +64,8 @@ namespace AILA.Infrastructure.Persistence
             AnswerOptions = new AnswerOptionRepository(_context);
             SubscriptionPlans = new SubscriptionPlanRepository(_context);
             AIPracticeMaterials = new AIPracticeMaterialRepository(_context);
+            CourseReviewRequests = new CourseReviewRequestRepository(_context);
+            UserTokens = new UserTokenRepository(_context);
         }
         public IGenericRepository<T> Repository<T>() where T : class
         {
