@@ -80,6 +80,9 @@ namespace AILA.Application.Features.Modules.Commands
             if (module.Course.ExpertId != request.ExpertId)
                 return ResponseDto<ModuleDto>.FailResult("FORBIDDEN", "Bạn không có quyền chỉnh sửa chương học này.");
 
+            if (module.Course.IsPublished)
+                return ResponseDto<ModuleDto>.FailResult("COURSE_PUBLISHED", "Không thể chỉnh sửa vì khóa học đã được công khai.");
+
             // Gọi Domain method — validation nằm trong Entity
             module.UpdateInfo(request.Title, request.Description);
             await _uow.SaveChangesAsync(ct);
@@ -110,6 +113,10 @@ namespace AILA.Application.Features.Modules.Commands
 
             if (module.Course.ExpertId != request.ExpertId)
                 return ResponseDto<object>.FailResult("FORBIDDEN", "Bạn không có quyền xóa chương học này.");
+
+            var hasEnrollments = await _uow.Enrollments.HasEnrollmentsForCourseAsync(module.CourseId, ct);
+            if (module.Course.IsPublished || hasEnrollments)
+                return ResponseDto<object>.FailResult("COURSE_NOT_MODIFIABLE", "Không thể xóa vì khóa học đã được công khai hoặc đã có học viên đăng ký.");
 
             _uow.Modules.Delete(module);
             await _uow.SaveChangesAsync(ct);

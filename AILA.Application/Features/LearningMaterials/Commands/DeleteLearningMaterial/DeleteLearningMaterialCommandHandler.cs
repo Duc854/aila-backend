@@ -38,6 +38,14 @@ public sealed class DeleteLearningMaterialCommandHandler
                 "Bạn không có quyền xóa học liệu.");
         }
 
+        var hasEnrollments = await _uow.Enrollments.HasEnrollmentsForCourseAsync(material.Module.CourseId, ct);
+        if (material.Module.Course.IsPublished || hasEnrollments)
+        {
+            return ResponseDto<object>.FailResult(
+                "COURSE_NOT_MODIFIABLE",
+                "Không thể xóa vì khóa học đã được công khai hoặc đã có học viên đăng ký.");
+        }
+
         var moduleId = material.ModuleId;
 
         _uow.Materials.Delete(material);
