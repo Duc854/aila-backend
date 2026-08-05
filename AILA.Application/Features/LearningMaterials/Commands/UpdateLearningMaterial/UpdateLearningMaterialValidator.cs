@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 
 namespace AILA.Application.Features.LearningMaterials.Commands.UpdateLearningMaterial;
 

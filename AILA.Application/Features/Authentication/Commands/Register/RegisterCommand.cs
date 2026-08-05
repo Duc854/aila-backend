@@ -2,6 +2,7 @@ using AILA.Application.Common.Interfaces;
 using AILA.Application.Features.Authentication.Dtos;
 using AILA.Domain.Entities;
 using AILA.Domain.Enums;
+using FluentValidation;
 using MediatR;
 using Shared.Wrappers;
 
@@ -12,6 +13,22 @@ namespace AILA.Application.Features.Authentication.Commands.Register
         public string Email { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
         public string FullName { get; set; } = string.Empty;
+    }
+
+    public class RegisterCommandValidator : AbstractValidator<RegisterCommand>
+    {
+        public RegisterCommandValidator()
+        {
+            RuleFor(v => v.Email)
+                .NotEmpty().WithMessage("Email không được để trống.")
+                .EmailAddress().WithMessage("Email không đúng định dạng.");
+
+            RuleFor(v => v.Password)
+                .NotEmpty().WithMessage("Mật khẩu không được để trống.");
+                
+            RuleFor(v => v.FullName)
+                .NotEmpty().WithMessage("Họ tên không được để trống.");
+        }
     }
 
     public class RegisterCommandHandler : IRequestHandler<RegisterCommand, ResponseDto<RegisterResponseDto>>

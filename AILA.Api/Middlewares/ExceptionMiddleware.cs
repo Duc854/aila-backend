@@ -1,4 +1,4 @@
-﻿using Shared.Wrappers;
+using Shared.Wrappers;
 using System.Net;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
@@ -25,13 +25,23 @@ namespace AILA.Api.Middlewares
             {
                 await HandleValidationException(context, ex);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                var details = ex.Message;
+                if (ex is Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException dbEx)
+                {
+                    var entry = dbEx.Entries.FirstOrDefault();
+                    if (entry != null)
+                    {
+                        details = $"Concurrency error on entity {entry.Entity.GetType().Name}. State: {entry.State}.";
+                    }
+                }
+                
                 await WriteError(
                     context,
                     HttpStatusCode.InternalServerError,
                     "INTERNAL_SERVER_ERROR",
-                    "Đã xảy ra lỗi hệ thống.");
+                    $"Đã xảy ra lỗi hệ thống. Details: {details}");
             }
         }
 

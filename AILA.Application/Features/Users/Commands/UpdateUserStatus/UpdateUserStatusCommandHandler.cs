@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using AILA.Application.Common.Interfaces;
@@ -31,9 +31,7 @@ namespace AILA.Application.Features.Users.Commands.UpdateUserStatus
                     "User ID không hợp lệ.");
             }
 
-            var user = await _unitOfWork.Users.GetUserByIdAsync(
-                request.UserId,
-                cancellationToken);
+            var user = await _unitOfWork.Users.GetByIdAsync(request.UserId);
 
             if (user == null)
             {
@@ -59,6 +57,7 @@ namespace AILA.Application.Features.Users.Commands.UpdateUserStatus
             {
                 user.Deactivate();
             }
+
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

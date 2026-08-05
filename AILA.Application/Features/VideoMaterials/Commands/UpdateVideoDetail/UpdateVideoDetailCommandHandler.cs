@@ -1,4 +1,4 @@
-﻿using AILA.Application.Common.Interfaces;
+using AILA.Application.Common.Interfaces;
 using AILA.Application.Features.VideoMaterials.Dtos;
 using AILA.Application.Features.VideoMaterials.Mapping;
 using AILA.Domain.Entities;

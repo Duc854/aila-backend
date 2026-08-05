@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using AILA.Application.Features.Tags.Dtos;
 using MediatR;
 using Shared.Wrappers;

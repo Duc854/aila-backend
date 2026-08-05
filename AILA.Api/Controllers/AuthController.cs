@@ -16,6 +16,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shared.Models;
 using Shared.Wrappers;
+using AILA.Api.Extensions;
 
 namespace AILA.Api.Controllers
 {
@@ -72,6 +73,28 @@ namespace AILA.Api.Controllers
                 return BadRequest(result);
 
             return CreatedAtAction(nameof(Register), result);
+        }
+
+        [Authorize]
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout([FromBody] LogoutRequestDto request)
+        {
+            var userId = HttpContext.GetUserIdentity()?.UserId;
+            if (userId == null)
+                return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Không thể xác định người dùng."));
+
+            var command = new AILA.Application.Features.Authentication.Commands.Logout.LogoutCommand
+            {
+                RefreshToken = request.RefreshToken,
+                UserId = userId.Value
+            };
+
+            var result = await _sender.Send(command);
+
+            if (!result.Success)
+                return BadRequest(result);
+
+            return Ok(result);
         }
 
         #region UC-08: Reset Password
