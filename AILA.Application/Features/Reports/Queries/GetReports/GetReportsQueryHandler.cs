@@ -39,12 +39,12 @@ namespace AILA.Application.Features.Reports.Queries.GetReports
             var result = reports.Select(r => new ReportDto
             {
                 Id          = r.Id,
-                CourseId    = r.CourseId,
+                CourseId    = r.CourseId ?? r.Material?.Module?.Course?.Id,
                 MaterialId  = r.MaterialId,
-                CourseName  = r.Course?.Name,
+                CourseName  = r.Course?.Name ?? r.Material?.Module?.Course?.Name,
                 MaterialName = r.Material?.Title,
                 ContentType  = r.MaterialId.HasValue ? "Learning Material" : "Course",
-                IsCourseLocked = r.Course?.IsPublicationLocked,
+                IsCourseLocked = r.Course?.IsPublicationLocked ?? r.Material?.Module?.Course?.IsPublicationLocked,
                 LearnerName  = r.Learner?.User?.FullName,
                 Reason       = r.ReportType.ToString(),
                 Description  = r.Description,

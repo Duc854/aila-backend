@@ -41,8 +41,24 @@ namespace AILA.Application.Features.Authentication.Commands.AdminLogin
             if (!isValid)
                 throw new UnauthorizedAccessException("Sai email hoặc mật khẩu.");
 
+            if(user.Role != UserRole.Admin)
+                throw new UnauthorizedAccessException("Yêu cầu đăng nhập tài khoản admin");
+
             var accessToken = _tokenProvider.GenerateAccessToken(user);
             var refreshToken = _tokenProvider.GenerateRefreshToken();
+
+            var refreshTokenHash =_tokenProvider.HashToken(refreshToken);
+
+            var userToken = new UserToken(
+                user.Id,
+                refreshTokenHash,
+                DateTime.UtcNow.AddDays(7)
+            );
+
+
+            _uow.UserTokens.Add(userToken);
+
+            await _uow.SaveChangesAsync(cancellationToken);
 
             var response = new LoginResponseDto
             {
@@ -50,8 +66,8 @@ namespace AILA.Application.Features.Authentication.Commands.AdminLogin
                 RefreshToken = refreshToken,
                 Role = user.Role.ToString(),
                 UserId = user.Id,
-                FullName = "Administrator",
-                Email = "adminEmail",
+                FullName = user.FullName,
+                Email = user.Email,
             };
 
             return response;

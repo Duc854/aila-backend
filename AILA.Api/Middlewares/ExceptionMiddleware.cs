@@ -41,7 +41,7 @@ namespace AILA.Api.Middlewares
                     context,
                     HttpStatusCode.InternalServerError,
                     "INTERNAL_SERVER_ERROR",
-                    $"Đã xảy ra lỗi hệ thống. Details: {details}");
+                    ex.Message);
             }
         }
 

@@ -181,6 +181,7 @@ namespace AILA.Infrastructure.Persistence.Repositories
             return await _context.Courses
                 .Include(c => c.CourseTags)
                 .Include(c => c.Modules)
+                    .ThenInclude(m => m.Materials)
                 .FirstOrDefaultAsync(c => c.Id == courseId, ct);
         }
     }

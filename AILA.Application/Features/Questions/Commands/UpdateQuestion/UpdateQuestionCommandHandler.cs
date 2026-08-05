@@ -45,6 +45,14 @@ public sealed class UpdateQuestionCommandHandler
                     "Bạn không có quyền chỉnh sửa câu hỏi.");
         }
 
+        if (question.QuizMaterial.Material.Module.Course.IsPublished)
+        {
+            return ResponseDto<QuestionDto>
+                .FailResult(
+                    "COURSE_PUBLISHED",
+                    "Không thể chỉnh sửa vì khóa học đã được công khai.");
+        }
+
         question.Update(
             request.Content,
             request.QuestionType,

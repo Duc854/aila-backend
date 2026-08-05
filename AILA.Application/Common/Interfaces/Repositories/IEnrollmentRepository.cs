@@ -9,6 +9,8 @@ namespace AILA.Application.Common.Interfaces.Repositories
 
         Task<Enrollment?> GetByCourseAndLearnerAsync(Guid courseId, Guid learnerId, CancellationToken cancellationToken = default);
 
+        Task<bool> HasEnrollmentsForCourseAsync(Guid courseId, CancellationToken cancellationToken = default);
+
         Task<List<Enrollment>> GetEnrollmentsWithCourseByLearnerIdAsync(Guid learnerId, CancellationToken ct = default);
 
         /// <summary>

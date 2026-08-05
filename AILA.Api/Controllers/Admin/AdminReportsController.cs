@@ -1,3 +1,4 @@
+using AILA.Application.Features.Reports.Commands.DismissReport;
 using AILA.Application.Features.Reports.Commands.LockCourseFromReport;
 using AILA.Application.Features.Reports.Commands.ResolveReport;
 using AILA.Application.Features.Reports.Commands.UnlockCourse;
@@ -63,6 +64,32 @@ namespace AILA.Api.Controllers.Admin
         }
 
         /// <summary>
+        /// Admin từ chối (bác bỏ) báo cáo — nội dung không vi phạm.
+        /// Status DB vẫn là Resolved vì domain không có Rejected.
+        /// PATCH /api/admin/reports/{reportId}/dismiss
+        /// </summary>
+        [HttpPatch("{reportId:guid}/dismiss")]
+        public async Task<IActionResult> DismissReport(
+            Guid reportId,
+            [FromBody] DismissReportRequest? body)
+        {
+            var result = await _sender.Send(
+                new DismissReportCommand(reportId, body?.Note));
+
+            if (!result.Success)
+            {
+                return result.ErrorCode switch
+                {
+                    "REPORT_NOT_FOUND" => NotFound(result),
+                    "ALREADY_RESOLVED" => BadRequest(result),
+                    _                  => BadRequest(result)
+                };
+            }
+
+            return Ok(result);
+        }
+
+        /// <summary>
         /// Admin lock course liên quan đến report và resolve report cùng lúc.
         /// PATCH /api/admin/reports/{reportId}/lock-course
         /// </summary>
@@ -110,4 +137,7 @@ namespace AILA.Api.Controllers.Admin
             return Ok(result);
         }
     }
+
+    // Request model
+    public record DismissReportRequest(string? Note);
 }

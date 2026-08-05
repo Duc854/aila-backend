@@ -45,12 +45,12 @@ namespace AILA.Application.Features.Reports.Queries.GetReportById
             return ResponseDto<ReportDetailDto>.SuccessResult(new ReportDetailDto
             {
                 Id           = report.Id,
-                CourseId     = report.CourseId,
+                CourseId     = report.CourseId ?? report.Material?.Module?.Course?.Id,
                 MaterialId   = report.MaterialId,
-                CourseName   = report.Course?.Name,
+                CourseName   = report.Course?.Name ?? report.Material?.Module?.Course?.Name,
                 MaterialName = report.Material?.Title,
                 ContentType  = report.MaterialId.HasValue ? "Learning Material" : "Course",
-                IsCourseLocked = report.Course?.IsPublicationLocked,
+                IsCourseLocked = report.Course?.IsPublicationLocked ?? report.Material?.Module?.Course?.IsPublicationLocked,
                 LearnerName  = report.Learner?.User.FullName,
                 LearnerEmail = report.Learner?.User?.Email,
                 Reason       = report.ReportType.ToString(),

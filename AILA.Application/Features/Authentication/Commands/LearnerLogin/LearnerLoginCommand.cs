@@ -1,5 +1,6 @@
 using AILA.Application.Common.Interfaces;
 using AILA.Application.Features.Authentication.Dtos;
+using AILA.Domain.Entities;
 using AILA.Domain.Enums;
 using FluentValidation;
 using MediatR;
@@ -53,6 +54,15 @@ namespace AILA.Application.Features.Authentication.Commands.LearnerLogin
 
             var accessToken = _tokenProvider.GenerateAccessToken(user);
             var refreshToken = _tokenProvider.GenerateRefreshToken();
+            var refreshTokenHash = _tokenProvider.HashToken(refreshToken);
+
+            var userToken = new UserToken(
+                user.Id,
+                refreshTokenHash,
+                DateTime.UtcNow.AddDays(7));
+
+            _unitOfWork.UserTokens.Add(userToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             var refreshTokenHash = _passwordHasher.HashPassword(refreshToken);
             var userToken = new AILA.Domain.Entities.UserToken(

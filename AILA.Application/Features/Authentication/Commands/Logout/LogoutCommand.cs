@@ -1,53 +1,34 @@
-using AILA.Application.Common.Interfaces;
-using AILA.Domain.Entities;
-using FluentValidation;
-using MediatR;
-using Shared.Wrappers;
+﻿using MediatR;
+using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace AILA.Application.Features.Authentication.Commands.Logout
 {
-    public class LogoutCommand : IRequest<ResponseDto<bool>>
+    using MediatR;
+
+    namespace AILA.Application.Features.Authentication.Commands.Logout
     {
-        public string RefreshToken { get; set; } = string.Empty;
-        public Guid UserId { get; set; } // Will be populated from Claims in Controller
-    }
-
-    public class LogoutCommandValidator : AbstractValidator<LogoutCommand>
-    {
-        public LogoutCommandValidator()
+        public class LogoutCommand : IRequest<bool>
         {
-            RuleFor(v => v.RefreshToken)
-                .NotEmpty().WithMessage("Refresh Token không được để trống.");
-        }
-    }
+            public string RefreshToken { get; }
 
-    public class LogoutCommandHandler : IRequestHandler<LogoutCommand, ResponseDto<bool>>
-    {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IPasswordHasher _passwordHasher;
+            public string Jti { get; }
 
-        public LogoutCommandHandler(IUnitOfWork unitOfWork, IPasswordHasher passwordHasher)
-        {
-            _unitOfWork = unitOfWork;
-            _passwordHasher = passwordHasher;
-        }
+            public DateTime AccessTokenExpiredAt { get; }
 
-        public async Task<ResponseDto<bool>> Handle(LogoutCommand request, CancellationToken cancellationToken)
-        {
-            // Lấy danh sách token của User hiện tại
-            var userTokens = await _unitOfWork.Repository<UserToken>().FindAsync(t => t.UserId == request.UserId && !t.IsRevoked);
 
-            var tokenToRevoke = userTokens.FirstOrDefault(t => _passwordHasher.Verify(request.RefreshToken, t.RefreshTokenHash));
-
-            if (tokenToRevoke != null)
+            public LogoutCommand(
+                string refreshToken,
+                string jti,
+                DateTime accessTokenExpiredAt)
             {
-                tokenToRevoke.Revoke();
-                _unitOfWork.Repository<UserToken>().Update(tokenToRevoke);
-                await _unitOfWork.SaveChangesAsync(cancellationToken);
+                RefreshToken = refreshToken;
+                Jti = jti;
+                AccessTokenExpiredAt = accessTokenExpiredAt;
             }
-
-            return ResponseDto<bool>.SuccessResult(true);
         }
     }
 }
