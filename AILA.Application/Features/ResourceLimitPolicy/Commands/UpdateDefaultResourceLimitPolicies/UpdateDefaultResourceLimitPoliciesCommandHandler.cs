@@ -12,9 +12,9 @@ using System.Threading.Tasks;
 namespace AILA.Application.Features.ResourceLimitPolicy.Commands.UpdateDefaultResourceLimitPolicies
 {
     public sealed class UpdateDefaultResourceLimitPoliciesCommandHandler
-       : IRequestHandler<
-           UpdateDefaultResourceLimitPoliciesCommand,
-           ResponseDto<string>>
+        : IRequestHandler<
+            UpdateDefaultResourceLimitPoliciesCommand,
+            ResponseDto<string>>
     {
         private readonly IUnitOfWork _unitOfWork;
 
@@ -38,7 +38,6 @@ namespace AILA.Application.Features.ResourceLimitPolicy.Commands.UpdateDefaultRe
             }
 
 
-            // Không cho phép cấu hình trùng một loại account
             var duplicateAccountType = request.Policies
                 .GroupBy(x => x.AccountType)
                 .Any(x => x.Count() > 1);
@@ -52,46 +51,60 @@ namespace AILA.Application.Features.ResourceLimitPolicy.Commands.UpdateDefaultRe
             }
 
 
-            foreach (var policyRequest in request.Policies)
+            await _unitOfWork.BeginTransactionAsync(
+                cancellationToken);
+
+            try
             {
-                var policy = await _unitOfWork.ResourceLimitPolicies
-                    .GetByAccountTypeAsync(
-                        policyRequest.AccountType,
-                        cancellationToken);
-
-
-                if (policy == null)
+                foreach (var policyRequest in request.Policies)
                 {
-                    return ResponseDto<string>.FailResult(
-                        "RESOURCE_LIMIT_POLICY_NOT_FOUND",
-                        $"Không tìm thấy chính sách giới hạn tài nguyên cho loại tài khoản {policyRequest.AccountType}.");
+                    var policy = await _unitOfWork.ResourceLimitPolicies
+                        .GetByAccountTypeAsync(
+                            policyRequest.AccountType,
+                            cancellationToken);
+
+
+                    if (policy == null)
+                    {
+                        return ResponseDto<string>.FailResult(
+                            "RESOURCE_LIMIT_POLICY_NOT_FOUND",
+                            $"Không tìm thấy chính sách giới hạn tài nguyên cho loại tài khoản {policyRequest.AccountType}.");
+                    }
+
+
+                    policy.UpdateLimits(
+                        policyRequest.AiTokenLimit,
+                        policyRequest.AiPracticeScenarioLimit,
+                        policyRequest.ExpertEvaluationRequestLimit);
                 }
 
 
-                policy.UpdateLimits(
-                    policyRequest.AiTokenLimit,
-                    policyRequest.AiPracticeScenarioLimit,
-                    policyRequest.ExpertEvaluationRequestLimit);
+                var activityLog = new AdminActivityLog(
+                    request.AdminId,
+                    AdminAction.Update,
+                    nameof(ResourceLimitPolicy),
+                    null,
+                    "Cập nhật chính sách giới hạn tài nguyên mặc định.");
+
+
+                await _unitOfWork.AdminActivityLogs
+                    .AddAsync(activityLog);
+
+
+                await _unitOfWork.CommitTransactionAsync(
+                    cancellationToken);
+
+
+                return ResponseDto<string>.SuccessResult(
+                    "Cập nhật chính sách giới hạn tài nguyên mặc định thành công.");
             }
+            catch
+            {
+                await _unitOfWork.RollbackTransactionAsync(
+                    cancellationToken);
 
-
-            var activityLog = new AdminActivityLog(
-                request.AdminId,
-                AdminAction.Update,
-                nameof(ResourceLimitPolicy),
-                null,
-                "Cập nhật chính sách giới hạn tài nguyên mặc định.");
-
-
-            await _unitOfWork.AdminActivityLogs
-                .AddAsync(activityLog);
-
-
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-
-            return ResponseDto<string>.SuccessResult(
-                "Cập nhật chính sách giới hạn tài nguyên mặc định thành công.");
+                throw;
+            }
         }
     }
 }

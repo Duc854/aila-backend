@@ -44,6 +44,7 @@ namespace AILA.Infrastructure.Persistence
         public IUserTokenRepository UserTokens { get; private set; }
         public IResourceLimitPolicyRepository ResourceLimitPolicies { get; private set; }
         public IAdminActivityLogRepository AdminActivityLogs { get; private set; }
+        public IAccountResourceLimitRepository AccountResourceLimits { get; private set; }
 
         public UnitOfWork(ApplicationDbContext context)
         {
@@ -70,6 +71,7 @@ namespace AILA.Infrastructure.Persistence
             UserTokens = new UserTokenRepository(_context);
             ResourceLimitPolicies = new ResourceLimitPolicyRepository(_context);
             AdminActivityLogs = new AdminActivityLogRepository(_context);
+            AccountResourceLimits = new AccountResourceLimitRepository(_context);
         }
         public IGenericRepository<T> Repository<T>() where T : class
         {

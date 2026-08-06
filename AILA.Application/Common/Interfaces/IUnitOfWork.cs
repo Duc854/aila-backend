@@ -32,6 +32,7 @@ namespace AILA.Application.Common.Interfaces
         IUserTokenRepository UserTokens { get; }
         IResourceLimitPolicyRepository ResourceLimitPolicies { get; }
         IAdminActivityLogRepository AdminActivityLogs { get; }
+        IAccountResourceLimitRepository AccountResourceLimits { get; }
 
         IGenericRepository<T> Repository<T>() where T : class;
 

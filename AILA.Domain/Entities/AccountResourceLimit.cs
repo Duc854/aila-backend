@@ -39,6 +39,8 @@ namespace AILA.Domain.Entities
             int? aiPracticeScenarioLimit = null,
             int? expertEvaluationRequestLimit = null)
         {
+            if (accountId == Guid.Empty)
+                throw new ArgumentException("Account không hợp lệ.");
             ValidateLimitValue(aiTokenLimit, nameof(aiTokenLimit));
             ValidateLimitValue(aiPracticeScenarioLimit, nameof(aiPracticeScenarioLimit));
             ValidateLimitValue(expertEvaluationRequestLimit, nameof(expertEvaluationRequestLimit));
