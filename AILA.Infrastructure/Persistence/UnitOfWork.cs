@@ -89,11 +89,27 @@ namespace AILA.Infrastructure.Persistence
             {
                 return await _context.SaveChangesAsync(cancellationToken);
             }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                // Xử lý xung đột concurrency: reload DB values rồi retry (client wins)
+                foreach (var entry in ex.Entries)
+                {
+                    var dbValues = await entry.GetDatabaseValuesAsync(cancellationToken);
+                    if (dbValues == null)
+                    {
+                        entry.State = EntityState.Detached;
+                    }
+                    else
+                    {
+                        entry.OriginalValues.SetValues(dbValues);
+                    }
+                }
+
+                return await _context.SaveChangesAsync(cancellationToken);
+            }
             catch (DbUpdateException ex)
                 when (ex.InnerException is PostgresException { SqlState: "23505" } pgEx)
             {
-                // Vi phạm unique index (mã 23505 của PostgreSQL) — dịch sang exception của tầng
-                // Application để handler map thành lỗi validation, thay vì để lộ lỗi hạ tầng.
                 throw new DuplicateKeyException(pgEx.ConstraintName ?? string.Empty, ex);
             }
         }

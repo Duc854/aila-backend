@@ -1,4 +1,4 @@
-﻿using AILA.Domain.Entities;
+using AILA.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -37,6 +37,17 @@ namespace AILA.Infrastructure.Persistence
         public DbSet<Subscription> Subscriptions => Set<Subscription>();
         public DbSet<Payment> Payments => Set<Payment>();
         public DbSet<CourseReviewRequest> CourseReviewRequests => Set<CourseReviewRequest>();
+        public DbSet<PracticeAttempt> PracticeAttempts => Set<PracticeAttempt>();
+        public DbSet<PromptSubmission> PromptSubmissions => Set<PromptSubmission>();
+        public DbSet<AITokenLog> AITokenLogs => Set<AITokenLog>();
+        public DbSet<UserTokenQuota> UserTokenQuotas => Set<UserTokenQuota>();
+        public DbSet<KnowledgeChunk> KnowledgeChunks => Set<KnowledgeChunk>();
+        public DbSet<KnowledgeDocument> KnowledgeDocuments => Set<KnowledgeDocument>();
+        public DbSet<CourseChatSession> CourseChatSessions => Set<CourseChatSession>();
+        public DbSet<CourseChatMessage> CourseChatMessages => Set<CourseChatMessage>();
+        public DbSet<ResourceLimitPolicy> ResourceLimitPolicies => Set<ResourceLimitPolicy>();
+        public DbSet<AccountResourceLimit> AccountResourceLimits => Set<AccountResourceLimit>();
+        public DbSet<AccountResourceUsage> AccountResourceUsages => Set<AccountResourceUsage>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

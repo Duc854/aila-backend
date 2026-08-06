@@ -1,8 +1,13 @@
+using Microsoft.SemanticKernel;
 using AILA.Application.Common.Interfaces;
+using AILA.Application.Common.Interfaces.AI;
+using AILA.Application.Common.Interfaces.Repositories;
 using AILA.Infrastructure.Persistence;
+using AILA.Infrastructure.Persistence.Repositories;
 using AILA.Infrastructure.Persistence.Seed;
 using AILA.Infrastructure.Security;
 using AILA.Infrastructure.Services;
+using AILA.Infrastructure.Services.AI;
 using AILA.Infrastructure.Services.Email;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -51,6 +56,45 @@ namespace AILA.Infrastructure
 
             // Application services
             services.AddScoped<IQuestionExcelService, QuestionExcelService>();
+            services.AddScoped<IAccountResourceRepository, AccountResourceRepository>();
+            services.AddScoped<IKnowledgeChunkRepository, KnowledgeChunkRepository>();
+            services.AddScoped<IPracticeAttemptRepository, PracticeAttemptRepository>();
+            services.AddScoped<IAIPracticeMaterialRepository, AIPracticeMaterialRepository>();
+            
+            services.AddScoped<IKnowledgeBaseService, KnowledgeBaseService>();
+            services.AddScoped<IModerationService, ModerationService>();
+            services.AddScoped<IPracticeChatService, PracticeChatService>();
+            services.AddScoped<IPrivacyService, PrivacyService>();
+            services.AddScoped<IPromptValidationService, PromptValidationService>();
+            services.AddScoped<IQuotaService, QuotaService>();
+            services.AddScoped<IRagChatService, RagChatService>();
+            services.AddScoped<IRoleParserService, RoleParserService>();
+            services.AddScoped<IScoringService, ScoringService>();
+
+            // 7. Cấu hình Semantic Kernel Chat Completion
+            services.AddSingleton<Microsoft.SemanticKernel.ChatCompletion.IChatCompletionService>(sp =>
+            {
+                var config = sp.GetRequiredService<IConfiguration>();
+                var apiKey = config["OpenAI:ApiKey"] ?? "dummy-key-for-build";
+                var modelId = config["OpenAI:ModelId"] ?? "gpt-4o";
+                var baseUrl = config["OpenAI:BaseUrl"];
+
+                var builder = Microsoft.SemanticKernel.Kernel.CreateBuilder();
+
+                if (!string.IsNullOrEmpty(baseUrl))
+                {
+                    // Đảm bảo ghi đè hoàn toàn Base URL của OpenAI sang Groq
+                    //var httpClient = new HttpClient(new CustomOpenAIHandler(baseUrl));
+                    //builder.AddOpenAIChatCompletion(modelId, apiKey, httpClient: httpClient);
+                }
+                else
+                {
+                    builder.AddOpenAIChatCompletion(modelId, apiKey);
+                }
+
+                var kernel = builder.Build();
+                return kernel.GetRequiredService<Microsoft.SemanticKernel.ChatCompletion.IChatCompletionService>();
+            });
 
             // Password Reset
             services.AddPasswordReset();

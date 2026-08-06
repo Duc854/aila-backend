@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Shared.Wrappers;
 
 namespace AILA.Application.Features.AnswerOptions.Commands.DeleteAnswerOption;

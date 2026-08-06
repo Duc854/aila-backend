@@ -7,28 +7,23 @@ using System.Threading.Tasks;
 
 namespace AILA.Application.Features.Authentication.Commands.Logout
 {
-    using MediatR;
-
-    namespace AILA.Application.Features.Authentication.Commands.Logout
+    public class LogoutCommand : IRequest<bool>
     {
-        public class LogoutCommand : IRequest<bool>
+        public string RefreshToken { get; }
+
+        public string Jti { get; }
+
+        public DateTime AccessTokenExpiredAt { get; }
+
+
+        public LogoutCommand(
+            string refreshToken,
+            string jti,
+            DateTime accessTokenExpiredAt)
         {
-            public string RefreshToken { get; }
-
-            public string Jti { get; }
-
-            public DateTime AccessTokenExpiredAt { get; }
-
-
-            public LogoutCommand(
-                string refreshToken,
-                string jti,
-                DateTime accessTokenExpiredAt)
-            {
-                RefreshToken = refreshToken;
-                Jti = jti;
-                AccessTokenExpiredAt = accessTokenExpiredAt;
-            }
+            RefreshToken = refreshToken;
+            Jti = jti;
+            AccessTokenExpiredAt = accessTokenExpiredAt;
         }
     }
 }

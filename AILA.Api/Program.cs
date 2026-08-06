@@ -22,6 +22,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "AILA.Api", Version = "v1" });
+    
+    // CustomSchemaIds to prevent 500 errors on duplicate DTO names (e.g. PromptTemplateDto)
+    options.CustomSchemaIds(type => type.FullName);
 
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {

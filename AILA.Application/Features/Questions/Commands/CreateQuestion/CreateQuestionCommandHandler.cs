@@ -1,4 +1,4 @@
-﻿using AILA.Application.Common.Interfaces;
+using AILA.Application.Common.Interfaces;
 using AILA.Application.Features.Questions.Dtos;
 using AILA.Application.Features.Questions.Mapping;
 using AILA.Domain.Entities;

@@ -1,5 +1,4 @@
 ﻿using AILA.Application.Common.Interfaces;
-using AILA.Application.Features.Authentication.Commands.Logout.AILA.Application.Features.Authentication.Commands.Logout;
 using MediatR;
 
 

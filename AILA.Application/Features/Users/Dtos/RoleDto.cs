@@ -1,4 +1,4 @@
-﻿using AILA.Domain.Enums;
+using AILA.Domain.Enums;
 
 namespace AILA.Application.Features.Users.Dtos
 {
