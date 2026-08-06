@@ -33,6 +33,11 @@ namespace AILA.Domain.Entities
         //--- CẤU HÌNH QUAN HỆ 1-NHIỀU VỚI Request Review
         private readonly List<CourseReviewRequest> _reviewRequests = new();
 
+        private readonly List<ContentReport> _contentReports = new();
+
+        public virtual IReadOnlyCollection<ContentReport> ContentReports
+            => _contentReports.AsReadOnly();
+
         public virtual IReadOnlyCollection<CourseReviewRequest> ReviewRequests
             => _reviewRequests.AsReadOnly();
 

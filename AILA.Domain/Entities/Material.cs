@@ -29,6 +29,11 @@ namespace AILA.Domain.Entities
 
         public virtual AIPracticeMaterial? AIPracticeDetails { get; private set; }
 
+        private readonly List<ContentReport> _contentReports = new();
+
+        public virtual IReadOnlyCollection<ContentReport> ContentReports
+            => _contentReports.AsReadOnly();
+
         // Constructor phục vụ EF Core
         private Material() { }
 

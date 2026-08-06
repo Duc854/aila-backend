@@ -39,7 +39,7 @@ namespace AILA.Application.Features.Reports.Queries.GetReports
             var result = reports.Select(r => new ReportDto
             {
                 Id          = r.Id,
-                CourseId    = r.CourseId ?? r.Material?.Module?.Course?.Id,
+                CourseId    = r.CourseId,
                 MaterialId  = r.MaterialId,
                 CourseName  = r.Course?.Name ?? r.Material?.Module?.Course?.Name,
                 MaterialName = r.Material?.Title,

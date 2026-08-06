@@ -45,7 +45,7 @@ namespace AILA.Application.Features.Reports.Queries.GetReportById
             return ResponseDto<ReportDetailDto>.SuccessResult(new ReportDetailDto
             {
                 Id           = report.Id,
-                CourseId     = report.CourseId ?? report.Material?.Module?.Course?.Id,
+                CourseId     = report.CourseId,
                 MaterialId   = report.MaterialId,
                 CourseName   = report.Course?.Name ?? report.Material?.Module?.Course?.Name,
                 MaterialName = report.Material?.Title,

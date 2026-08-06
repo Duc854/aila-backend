@@ -42,6 +42,14 @@ namespace AILA.Infrastructure.Persistence.Configurations
               .WithOne(a => a.Material)
               .HasForeignKey<AIPracticeMaterial>(a => a.MaterialId)
               .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(x => x.ContentReports)
+                .WithOne(x => x.Material)
+                .HasForeignKey(x => x.MaterialId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Navigation(x => x.ContentReports)
+                .UsePropertyAccessMode(PropertyAccessMode.Field);
         }
     }
 }
