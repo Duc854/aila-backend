@@ -49,6 +49,7 @@ namespace AILA.Infrastructure.Persistence
         public DbSet<AccountResourceLimit> AccountResourceLimits => Set<AccountResourceLimit>();
         public DbSet<AccountResourceUsage> AccountResourceUsages => Set<AccountResourceUsage>();
 
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

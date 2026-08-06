@@ -42,6 +42,8 @@ namespace AILA.Infrastructure.Persistence
         public IAIPracticeMaterialRepository AIPracticeMaterials { get; private set; }
         public ICourseReviewRequestRepository CourseReviewRequests { get; private set; }
         public IUserTokenRepository UserTokens { get; private set; }
+        public IResourceLimitPolicyRepository ResourceLimitPolicies { get; private set; }
+        public IAdminActivityLogRepository AdminActivityLogs { get; private set; }
 
         public UnitOfWork(ApplicationDbContext context)
         {
@@ -66,6 +68,8 @@ namespace AILA.Infrastructure.Persistence
             AIPracticeMaterials = new AIPracticeMaterialRepository(_context);
             CourseReviewRequests = new CourseReviewRequestRepository(_context);
             UserTokens = new UserTokenRepository(_context);
+            ResourceLimitPolicies = new ResourceLimitPolicyRepository(_context);
+            AdminActivityLogs = new AdminActivityLogRepository(_context);
         }
         public IGenericRepository<T> Repository<T>() where T : class
         {

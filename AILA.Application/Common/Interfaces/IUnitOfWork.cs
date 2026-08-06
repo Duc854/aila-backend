@@ -30,6 +30,8 @@ namespace AILA.Application.Common.Interfaces
         IAIPracticeMaterialRepository AIPracticeMaterials { get; }
         ICourseReviewRequestRepository CourseReviewRequests { get; }
         IUserTokenRepository UserTokens { get; }
+        IResourceLimitPolicyRepository ResourceLimitPolicies { get; }
+        IAdminActivityLogRepository AdminActivityLogs { get; }
 
         IGenericRepository<T> Repository<T>() where T : class;
 

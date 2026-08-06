@@ -77,10 +77,10 @@ namespace AILA.Domain.Entities
 
         private static void ValidateLimitValue(int? value, string propertyName)
         {
-            if (value.HasValue && value.Value <= 0)
+            if (value < 0)
             {
                 throw new ArgumentException(
-                    "Giới hạn tài nguyên phải lớn hơn 0",
+                    "Giới hạn tài nguyên không được nhỏ hơn 0.",
                     propertyName);
             }
         }
