@@ -1,4 +1,4 @@
-﻿namespace AILA.Application.Features.AnswerOptions.Dtos;
+namespace AILA.Application.Features.AnswerOptions.Dtos;
 
 public sealed class AnswerOptionDto
 {

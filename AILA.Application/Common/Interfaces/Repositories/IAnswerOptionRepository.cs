@@ -1,4 +1,4 @@
-﻿using AILA.Domain.Entities;
+using AILA.Domain.Entities;
 
 namespace AILA.Application.Common.Interfaces.Repositories;
 

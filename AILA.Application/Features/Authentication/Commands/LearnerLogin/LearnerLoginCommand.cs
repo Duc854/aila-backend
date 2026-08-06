@@ -2,6 +2,7 @@ using AILA.Application.Common.Interfaces;
 using AILA.Application.Features.Authentication.Dtos;
 using AILA.Domain.Entities;
 using AILA.Domain.Enums;
+using FluentValidation;
 using MediatR;
 using Shared.Wrappers;
 
@@ -11,6 +12,19 @@ namespace AILA.Application.Features.Authentication.Commands.LearnerLogin
     {
         public string Email { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
+    }
+
+    public class LearnerLoginCommandValidator : AbstractValidator<LearnerLoginCommand>
+    {
+        public LearnerLoginCommandValidator()
+        {
+            RuleFor(v => v.Email)
+                .NotEmpty().WithMessage("Email không được để trống.")
+                .EmailAddress().WithMessage("Email không đúng định dạng.");
+
+            RuleFor(v => v.Password)
+                .NotEmpty().WithMessage("Mật khẩu không được để trống.");
+        }
     }
 
     public class LearnerLoginCommandHandler : IRequestHandler<LearnerLoginCommand, ResponseDto<LoginResponseDto>>
@@ -32,6 +46,9 @@ namespace AILA.Application.Features.Authentication.Commands.LearnerLogin
             if (user == null || user.Role != UserRole.Learner)
                 return ResponseDto<LoginResponseDto>.FailResult("INVALID_CREDENTIALS", "Email hoặc mật khẩu không đúng.");
 
+            if (!user.IsActive)
+                return ResponseDto<LoginResponseDto>.FailResult("ACCOUNT_BANNED", "Tài khoản của bạn đã bị khóa.");
+
             if (!_passwordHasher.Verify(request.Password, user.PasswordHash!))
                 return ResponseDto<LoginResponseDto>.FailResult("INVALID_CREDENTIALS", "Email hoặc mật khẩu không đúng.");
 
@@ -45,6 +62,15 @@ namespace AILA.Application.Features.Authentication.Commands.LearnerLogin
                 DateTime.UtcNow.AddDays(7));
 
             _unitOfWork.UserTokens.Add(userToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            var refreshTokenHash = _passwordHasher.HashPassword(refreshToken);
+            var userToken = new AILA.Domain.Entities.UserToken(
+                userId: user.Id,
+                refreshTokenHash: refreshTokenHash,
+                expiredAt: DateTime.UtcNow.AddDays(7));
+            
+            await _unitOfWork.Repository<AILA.Domain.Entities.UserToken>().AddAsync(userToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             var response = new LoginResponseDto

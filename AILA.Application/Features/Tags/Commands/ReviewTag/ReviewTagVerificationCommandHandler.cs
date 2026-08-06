@@ -1,4 +1,4 @@
-﻿using AILA.Domain.Enums;
+using AILA.Domain.Enums;
 using MediatR;
 using AILA.Application.Common.Interfaces;
 using AILA.Domain.Entities;

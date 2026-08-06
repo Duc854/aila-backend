@@ -1,4 +1,4 @@
-﻿using AILA.Application.Common.Interfaces;
+using AILA.Application.Common.Interfaces;
 using AILA.Application.Features.Tags.Dtos;
 using AILA.Domain.Enums;
 using MediatR;

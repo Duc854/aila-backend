@@ -1,4 +1,4 @@
-﻿using AILA.Application.Common.Dtos;
+using AILA.Application.Common.Dtos;
 using AILA.Application.Common.Interfaces;
 using MediatR;
 using Shared.Wrappers;
