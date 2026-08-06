@@ -45,6 +45,9 @@ namespace AILA.Infrastructure.Persistence
         public DbSet<KnowledgeDocument> KnowledgeDocuments => Set<KnowledgeDocument>();
         public DbSet<CourseChatSession> CourseChatSessions => Set<CourseChatSession>();
         public DbSet<CourseChatMessage> CourseChatMessages => Set<CourseChatMessage>();
+        public DbSet<ResourceLimitPolicy> ResourceLimitPolicies => Set<ResourceLimitPolicy>();
+        public DbSet<AccountResourceLimit> AccountResourceLimits => Set<AccountResourceLimit>();
+        public DbSet<AccountResourceUsage> AccountResourceUsages => Set<AccountResourceUsage>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

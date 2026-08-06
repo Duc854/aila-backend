@@ -64,15 +64,6 @@ namespace AILA.Application.Features.Authentication.Commands.LearnerLogin
             _unitOfWork.UserTokens.Add(userToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            var refreshTokenHash = _passwordHasher.HashPassword(refreshToken);
-            var userToken = new AILA.Domain.Entities.UserToken(
-                userId: user.Id,
-                refreshTokenHash: refreshTokenHash,
-                expiredAt: DateTime.UtcNow.AddDays(7));
-            
-            await _unitOfWork.Repository<AILA.Domain.Entities.UserToken>().AddAsync(userToken);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
-
             var response = new LoginResponseDto
             {
                 AccessToken = accessToken,

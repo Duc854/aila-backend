@@ -84,8 +84,8 @@ namespace AILA.Infrastructure
                 if (!string.IsNullOrEmpty(baseUrl))
                 {
                     // Đảm bảo ghi đè hoàn toàn Base URL của OpenAI sang Groq
-                    var httpClient = new HttpClient(new CustomOpenAIHandler(baseUrl));
-                    builder.AddOpenAIChatCompletion(modelId, apiKey, httpClient: httpClient);
+                    //var httpClient = new HttpClient(new CustomOpenAIHandler(baseUrl));
+                    //builder.AddOpenAIChatCompletion(modelId, apiKey, httpClient: httpClient);
                 }
                 else
                 {
