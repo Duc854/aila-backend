@@ -188,7 +188,7 @@ namespace AILA.Application.Features.Quizzes.Commands.SubmitQuiz
                                 cancellationToken);
                         }
                     }
-                }
+                } 
 
                 await _uow.CommitTransactionAsync(cancellationToken);
 
