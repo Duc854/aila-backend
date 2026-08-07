@@ -48,6 +48,7 @@ namespace AILA.Infrastructure.Persistence
         public IAccountResourceLimitRepository AccountResourceLimits { get; private set; }
         public IAccountResourceUsageRepository AccountResourceUsages { get; private set; }
         public IPracticeAttemptRepository PracticeAttempts { get; private set; }
+        public IExpertEvaluationRequestRepository ExpertEvaluationRequests { get; private set; }
 
         public UnitOfWork(ApplicationDbContext context)
         {
@@ -78,6 +79,7 @@ namespace AILA.Infrastructure.Persistence
             AccountResourceLimits = new AccountResourceLimitRepository(_context);
             AccountResourceUsages = new AccountResourceUsageRepository(_context);
             PracticeAttempts = new PracticeAttemptRepository(_context);
+            ExpertEvaluationRequests = new ExpertEvaluationRequestRepository(_context);
         }
         public IGenericRepository<T> Repository<T>() where T : class
         {
