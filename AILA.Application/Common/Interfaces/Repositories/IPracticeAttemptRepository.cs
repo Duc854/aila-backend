@@ -10,4 +10,9 @@ public interface IPracticeAttemptRepository
     Task<List<PracticeAttempt>> GetByEnrollmentIdAsync(Guid enrollmentId, CancellationToken cancellationToken = default);
     Task AddAsync(PracticeAttempt attempt, CancellationToken cancellationToken = default);
     Task UpdateAsync(PracticeAttempt attempt, CancellationToken cancellationToken = default);
+    Task<int> GetPracticeAttemptsCountInScopeAsync(
+        List<Guid> courseIds, 
+        DateTime fromDate, 
+        DateTime toDate, 
+        CancellationToken cancellationToken = default);
 }
