@@ -39,7 +39,7 @@ namespace AILA.Domain.Entities
 
             Id = Guid.NewGuid();
 
-            AccountType = accountType;
+            AccountType = accountType;  
 
             AiTokenLimit = aiTokenLimit;
             AiPracticeScenarioLimit = aiPracticeScenarioLimit;

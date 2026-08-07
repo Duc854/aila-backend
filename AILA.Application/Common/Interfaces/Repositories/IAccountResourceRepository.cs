@@ -8,8 +8,7 @@ namespace AILA.Application.Common.Interfaces.Repositories;
 
 public interface IAccountResourceRepository
 {
-    Task<UserTokenQuota?> GetQuotaAsync(Guid accountId, CancellationToken cancellationToken = default);
-    Task AddQuotaAsync(UserTokenQuota quota, CancellationToken cancellationToken = default);
+    Task<int> GetTodayTokenUsageAsync(Guid accountId, CancellationToken cancellationToken = default);
     Task AddTokenLogAsync(AITokenLog log, CancellationToken cancellationToken = default);
     Task<List<AITokenLog>> GetTokenLogsForAccountAsync(Guid accountId, CancellationToken cancellationToken = default);
 }

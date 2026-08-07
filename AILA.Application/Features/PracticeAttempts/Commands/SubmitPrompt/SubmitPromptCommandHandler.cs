@@ -92,6 +92,20 @@ public class SubmitPromptCommandHandler : IRequestHandler<SubmitPromptCommand, P
                 validationReason ?? "Prompt vi phạm quy định", 
                 policyName ?? "PromptValidation");
 
+            Guid accountIdForViolation = (await _unitOfWork.Enrollments.GetByIdAsync(attempt.EnrollmentId))?.LearnerId ?? Guid.Empty;
+
+            if (accountIdForViolation != Guid.Empty)
+            {
+                var violationRecord = new UserViolationRecord(
+                    accountIdForViolation,
+                    "PromptValidationViolation",
+                    policyName ?? "PromptValidation",
+                    validationReason ?? "Prompt vi phạm quy định",
+                    attemptId: attempt.Id,
+                    severity: "Medium");
+                await _unitOfWork.Repository<UserViolationRecord>().AddAsync(violationRecord);
+            }
+
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return new PromptSubmissionDto
@@ -116,6 +130,20 @@ public class SubmitPromptCommandHandler : IRequestHandler<SubmitPromptCommand, P
                 moderationReason ?? "Vi phạm quy chuẩn an toàn nội dung", 
                 "ContentModeration");
 
+            Guid accountIdForViolation = (await _unitOfWork.Enrollments.GetByIdAsync(attempt.EnrollmentId))?.LearnerId ?? Guid.Empty;
+
+            if (accountIdForViolation != Guid.Empty)
+            {
+                var violationRecord = new UserViolationRecord(
+                    accountIdForViolation,
+                    "ContentModerationViolation",
+                    "ContentModeration",
+                    moderationReason ?? "Vi phạm quy chuẩn an toàn nội dung",
+                    attemptId: attempt.Id,
+                    severity: "High");
+                await _unitOfWork.Repository<UserViolationRecord>().AddAsync(violationRecord);
+            }
+
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return new PromptSubmissionDto
@@ -135,6 +163,7 @@ public class SubmitPromptCommandHandler : IRequestHandler<SubmitPromptCommand, P
         var enrollment = await _unitOfWork.Enrollments.GetByIdAsync(attempt.EnrollmentId)
             ?? throw new NotFoundException(nameof(Enrollment), attempt.EnrollmentId);
         var accountId = enrollment.LearnerId;
+
         var quotaResult = await _quotaService.CheckQuotaAsync(accountId, 1000, 0.80f, cancellationToken);
         if (!quotaResult.IsAllowed)
         {

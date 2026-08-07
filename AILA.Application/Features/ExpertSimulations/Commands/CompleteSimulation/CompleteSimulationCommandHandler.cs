@@ -1,69 +1,75 @@
-using AILA.Application.Common.Interfaces;
 using AILA.Application.Common.Dtos.AI;
 using AILA.Application.Common.Exceptions;
+using AILA.Application.Common.Interfaces;
 using AILA.Application.Common.Interfaces.AI;
 using AILA.Application.Common.Interfaces.Repositories;
 using AILA.Domain.Entities;
-using AILA.Domain.Enums;
 using MediatR;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace AILA.Application.Features.PracticeAttempts.Commands.CompleteAttempt;
+namespace AILA.Application.Features.ExpertSimulations.Commands.CompleteSimulation;
 
-public class CompleteAttemptCommandHandler : IRequestHandler<CompleteAttemptCommand, CompleteAttemptResponseDto>
+public class CompleteSimulationCommandHandler : IRequestHandler<CompleteSimulationCommand, CompleteAttemptResponseDto>
 {
-    private readonly IPracticeAttemptRepository _repository;
     private readonly IAIPracticeMaterialRepository _materialRepo;
     private readonly IScoringService _scoringService;
     private readonly IUnitOfWork _unitOfWork;
 
-    public CompleteAttemptCommandHandler(
-        IPracticeAttemptRepository repository,
+    public CompleteSimulationCommandHandler(
         IAIPracticeMaterialRepository materialRepo,
         IScoringService scoringService,
         IUnitOfWork unitOfWork)
     {
-        _repository = repository;
         _materialRepo = materialRepo;
         _scoringService = scoringService;
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<CompleteAttemptResponseDto> Handle(CompleteAttemptCommand request, CancellationToken cancellationToken)
+    public async Task<CompleteAttemptResponseDto> Handle(CompleteSimulationCommand request, CancellationToken cancellationToken)
     {
-        var attempt = await _repository.GetByIdAsync(request.AttemptId, cancellationToken)
-            ?? throw new NotFoundException(nameof(PracticeAttempt), request.AttemptId);
+        // 1. Fetch ExpertSimulationAttempt
+        var simulation = await _unitOfWork.Repository<ExpertSimulationAttempt>()
+            .GetByIdAsync(request.SimulationSessionId);
 
-        var enrollment = await _unitOfWork.Enrollments.GetByIdAsync(attempt.EnrollmentId)
-            ?? throw new NotFoundException(nameof(Enrollment), attempt.EnrollmentId);
-        var accountId = enrollment.LearnerId;
+        if (simulation == null)
+        {
+            throw new NotFoundException(nameof(ExpertSimulationAttempt), request.SimulationSessionId);
+        }
 
-        var material = await _materialRepo.GetByIdAsync(attempt.MaterialId);
+        // 2. Load Material & Scoring Criteria
+        var material = await _materialRepo.GetByIdAsync(simulation.MaterialId);
         var criteria = material?.ScoringCriterias.ToList() ?? new List<ScoringCriteria>();
 
-        var validSubmissions = attempt.Submissions
+        // 3. Load Submissions for this simulation session
+        var submissions = await _unitOfWork.Repository<PromptSubmission>()
+            .FindAsync(s => s.AttemptId == simulation.Id);
+
+        var validSubmissions = submissions
             .Where(s => !s.IsRejected)
             .OrderBy(s => s.CreatedAt)
             .ToList();
 
-        // Luôn tính toán chi tiết kết quả chấm điểm (dù attempt cũ đã bấm Complete hay mới bấm)
+        // 4. Run AI Scoring & Evaluation for Simulation Session
         var scoringResult = await _scoringService.GenerateOverallSuggestionAsync(
             validSubmissions,
             material?.Scenario ?? string.Empty,
             material?.LearnerTask ?? string.Empty,
             criteria,
             material?.AITask ?? string.Empty,
-            attemptId: attempt.Id,
-            accountId: accountId,
+            attemptId: simulation.Id,
+            accountId: simulation.ExpertId,
             cancellationToken: cancellationToken);
 
-        // Luôn cập nhật lại OverallSuggestion & FinalScore mới nhất với kết quả chấm điểm mới
-        attempt.Complete(scoringResult.Percentage, scoringResult.Summary);
+        // 5. Complete Expert Simulation Session
+        simulation.Complete(scoringResult.Percentage, scoringResult.Summary);
 
-        // Lưu nhận xét AI chi tiết vào bảng AIFeedback
+        // 6. Save AI Feedback for Expert Simulation
         var scoringJson = System.Text.Json.JsonSerializer.Serialize(scoringResult);
         var aiFeedback = new AIFeedback(
-            attempt.Id,
+            simulation.Id,
             scoringResult.Percentage,
             scoringResult.Summary,
             strengths: string.Join("; ", scoringResult.LearningSuggestions),

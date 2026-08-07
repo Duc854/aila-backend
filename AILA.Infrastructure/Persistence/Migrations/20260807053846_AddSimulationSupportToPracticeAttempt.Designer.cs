@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using AILA.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AILA.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260807053846_AddSimulationSupportToPracticeAttempt")]
+    partial class AddSimulationSupportToPracticeAttempt
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -827,47 +830,6 @@ namespace AILA.Infrastructure.Persistence.Migrations
                     b.ToTable("ExpertEvaluationRequests", (string)null);
                 });
 
-            modelBuilder.Entity("AILA.Domain.Entities.ExpertSimulationAttempt", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("ExpertId")
-                        .HasColumnType("uuid");
-
-                    b.Property<decimal?>("FinalScore")
-                        .HasPrecision(5, 2)
-                        .HasColumnType("numeric(5,2)");
-
-                    b.Property<Guid>("MaterialId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("OverallSuggestion")
-                        .IsRequired()
-                        .HasMaxLength(4000)
-                        .HasColumnType("character varying(4000)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ExpertId");
-
-                    b.ToTable("ExpertSimulationAttempts", (string)null);
-                });
-
             modelBuilder.Entity("AILA.Domain.Entities.KnowledgeChunk", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1247,8 +1209,14 @@ namespace AILA.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("EnrollmentId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("ExpertId")
+                        .HasColumnType("uuid");
+
                     b.Property<decimal?>("FinalScore")
                         .HasColumnType("numeric");
+
+                    b.Property<bool>("IsSimulation")
+                        .HasColumnType("boolean");
 
                     b.Property<Guid>("MaterialId")
                         .HasColumnType("uuid");
@@ -2172,17 +2140,6 @@ namespace AILA.Infrastructure.Persistence.Migrations
                     b.Navigation("PracticeAttempt");
                 });
 
-            modelBuilder.Entity("AILA.Domain.Entities.ExpertSimulationAttempt", b =>
-                {
-                    b.HasOne("AILA.Domain.Entities.User", "Expert")
-                        .WithMany()
-                        .HasForeignKey("ExpertId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Expert");
-                });
-
             modelBuilder.Entity("AILA.Domain.Entities.KnowledgeChunk", b =>
                 {
                     b.HasOne("AILA.Domain.Entities.KnowledgeDocument", "KnowledgeDocument")
@@ -2297,12 +2254,6 @@ namespace AILA.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("AILA.Domain.Entities.PromptSubmission", b =>
                 {
-                    b.HasOne("AILA.Domain.Entities.ExpertSimulationAttempt", null)
-                        .WithMany("Submissions")
-                        .HasForeignKey("AttemptId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("AILA.Domain.Entities.PracticeAttempt", null)
                         .WithMany("Submissions")
                         .HasForeignKey("AttemptId")
@@ -2534,11 +2485,6 @@ namespace AILA.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("AILA.Domain.Entities.ExpertEvaluationRequest", b =>
                 {
                     b.Navigation("ExpertEvaluation");
-                });
-
-            modelBuilder.Entity("AILA.Domain.Entities.ExpertSimulationAttempt", b =>
-                {
-                    b.Navigation("Submissions");
                 });
 
             modelBuilder.Entity("AILA.Domain.Entities.KnowledgeDocument", b =>

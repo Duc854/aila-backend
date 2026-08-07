@@ -84,9 +84,8 @@ namespace AILA.Infrastructure
 
                 if (!string.IsNullOrEmpty(baseUrl))
                 {
-                    // Đảm bảo ghi đè hoàn toàn Base URL của OpenAI sang Groq
-                    //var httpClient = new HttpClient(new CustomOpenAIHandler(baseUrl));
-                    //builder.AddOpenAIChatCompletion(modelId, apiKey, httpClient: httpClient);
+                    var httpClient = new HttpClient(new CustomOpenAIHandler(baseUrl));
+                    builder.AddOpenAIChatCompletion(modelId, apiKey, httpClient: httpClient);
                 }
                 else
                 {
@@ -162,6 +161,31 @@ namespace AILA.Infrastructure
             services.AddHostedService<EmailBackgroundService>();
 
             return services;
+        }
+    }
+
+    internal class CustomOpenAIHandler : DelegatingHandler
+    {
+        private readonly string _baseUrl;
+
+        public CustomOpenAIHandler(string baseUrl)
+            : base(new HttpClientHandler())
+        {
+            _baseUrl = baseUrl.TrimEnd('/');
+        }
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            if (request.RequestUri != null)
+            {
+                var targetUriStr = request.RequestUri.ToString();
+                if (targetUriStr.StartsWith("https://api.openai.com/v1", StringComparison.OrdinalIgnoreCase))
+                {
+                    var newUriStr = targetUriStr.Replace("https://api.openai.com/v1", _baseUrl);
+                    request.RequestUri = new Uri(newUriStr);
+                }
+            }
+            return base.SendAsync(request, cancellationToken);
         }
     }
 }
