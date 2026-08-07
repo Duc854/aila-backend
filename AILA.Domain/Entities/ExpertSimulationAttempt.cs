@@ -1,4 +1,3 @@
-namespace AILA.Domain.Entities;
 using AILA.Domain.Common;
 using AILA.Domain.Enums;
 using System;
@@ -6,27 +5,34 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 
-public class PracticeAttempt : BaseEntity
+namespace AILA.Domain.Entities;
+
+public class ExpertSimulationAttempt : BaseEntity
 {
-    public Guid EnrollmentId { get; private set; }
+    public Guid ExpertId { get; private set; }
     public Guid MaterialId { get; private set; }
     public PracticeAttemptStatus Status { get; private set; }
     public DateTime? CompletedAt { get; private set; }
     public decimal? FinalScore { get; private set; }
 
-    /// <summary>Gợi ý cải thiện tổng hợp từ AI sau khi HOÀN THÀNH bài thực hành</summary>
+    /// <summary>Gợi ý cải thiện tổng hợp từ AI sau khi HOÀN THÀNH simulation</summary>
     public string OverallSuggestion { get; private set; } = string.Empty;
 
     // Navigation properties
+    public virtual User Expert { get; private set; } = null!;
+
     [ForeignKey("AttemptId")]
     public List<PromptSubmission> Submissions { get; private set; } = new();
 
-    private PracticeAttempt() { }
+    private ExpertSimulationAttempt() { }
 
-    public PracticeAttempt(Guid enrollmentId, Guid materialId)
+    public ExpertSimulationAttempt(Guid expertId, Guid materialId)
     {
+        if (expertId == Guid.Empty) throw new ArgumentException("ExpertId không được để trống.", nameof(expertId));
+        if (materialId == Guid.Empty) throw new ArgumentException("MaterialId không được để trống.", nameof(materialId));
+
         Id = Guid.NewGuid();
-        EnrollmentId = enrollmentId;
+        ExpertId = expertId;
         MaterialId = materialId;
         Status = PracticeAttemptStatus.InProgress;
         Submissions = new List<PromptSubmission>();

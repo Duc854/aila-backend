@@ -1,4 +1,4 @@
-﻿using AILA.Domain.Common;
+using AILA.Domain.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -102,6 +102,15 @@ namespace AILA.Domain.Entities
         public bool IsExpired(DateTime currentDate)
         {
             return currentDate > PeriodEnd;
+        }
+
+        public void ClosePeriod(DateTime closeDate)
+        {
+            if (closeDate < PeriodStart)
+                closeDate = PeriodStart;
+
+            PeriodEnd = closeDate;
+            UpdateTimestamp();
         }
 
 

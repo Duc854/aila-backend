@@ -6,6 +6,7 @@ using AILA.Application.Common.Interfaces.Repositories;
 using AILA.Domain.Entities;
 using AILA.Domain.Enums;
 using MediatR;
+using System.Linq;
 
 namespace AILA.Application.Features.PracticeAttempts.Queries.GetAttemptDetail;
 
@@ -43,20 +44,38 @@ public class GetAttemptDetailQueryHandler : IRequestHandler<GetAttemptDetailQuer
 
         if (attempt.Status == PracticeAttemptStatus.Completed)
         {
-            var validSubmissions = attempt.Submissions
-                .Where(s => !s.IsRejected)
-                .OrderBy(s => s.CreatedAt)
-                .ToList();
+            // 1. Đọc AIFeedback đã lưu trong DB trước
+            var savedFeedback = (await _unitOfWork.Repository<AIFeedback>()
+                .FindAsync(f => f.AttemptId == attempt.Id))
+                .FirstOrDefault();
 
-            detailedScoring = await _scoringService.GenerateOverallSuggestionAsync(
-                validSubmissions,
-                material?.Scenario ?? string.Empty,
-                material?.LearnerTask ?? string.Empty,
-                criteriaList,
-                material?.AITask ?? string.Empty,
-                attemptId: attempt.Id,
-                accountId: enrollment.LearnerId,
-                cancellationToken: cancellationToken);
+            if (savedFeedback != null && !string.IsNullOrEmpty(savedFeedback.DetailedScoringJson))
+            {
+                try
+                {
+                    detailedScoring = System.Text.Json.JsonSerializer.Deserialize<OverallScoringResult>(savedFeedback.DetailedScoringJson);
+                }
+                catch { }
+            }
+
+            // 2. Nếu chưa có trong DB thì fallback gọi ScoringService
+            if (detailedScoring == null)
+            {
+                var validSubmissions = attempt.Submissions
+                    .Where(s => !s.IsRejected)
+                    .OrderBy(s => s.CreatedAt)
+                    .ToList();
+
+                detailedScoring = await _scoringService.GenerateOverallSuggestionAsync(
+                    validSubmissions,
+                    material?.Scenario ?? string.Empty,
+                    material?.LearnerTask ?? string.Empty,
+                    criteriaList,
+                    material?.AITask ?? string.Empty,
+                    attemptId: attempt.Id,
+                    accountId: enrollment.LearnerId,
+                    cancellationToken: cancellationToken);
+            }
         }
 
         return new PracticeAttemptDto

@@ -26,20 +26,20 @@ public class UpdateUserQuotaLimitCommandHandler : IRequestHandler<UpdateUserQuot
 
     public async Task<UserQuotaStatusDto> Handle(UpdateUserQuotaLimitCommand request, CancellationToken cancellationToken)
     {
-        var quota = await _repository.GetQuotaAsync(request.AccountId, cancellationToken);
-        if (quota == null)
+        var accountOverride = await _unitOfWork.AccountResourceLimits.GetByAccountIdAsync(request.AccountId, cancellationToken);
+        if (accountOverride == null)
         {
-            quota = new UserTokenQuota(request.AccountId, request.DailyLimit);
-            await _repository.AddQuotaAsync(quota, cancellationToken);
+            accountOverride = new AccountResourceLimit(request.AccountId, aiTokenLimit: request.DailyLimit);
+            await _unitOfWork.AccountResourceLimits.AddAsync(accountOverride);
         }
         else
         {
-            quota.UpdateDailyLimit(request.DailyLimit);
+            accountOverride.UpdateLimits(request.DailyLimit, accountOverride.AiPracticeScenarioLimit, accountOverride.ExpertEvaluationRequestLimit);
         }
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        int usedToday = quota.UsedAmountToday;
+        int usedToday = await _repository.GetTodayTokenUsageAsync(request.AccountId, cancellationToken);
         int remaining = Math.Max(0, request.DailyLimit - usedToday);
         int percentage = (int)Math.Min(100, Math.Round((double)usedToday / request.DailyLimit * 100));
 

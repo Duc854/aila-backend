@@ -1,4 +1,4 @@
-﻿using AILA.Domain.Entities;
+using AILA.Domain.Entities;
 using AILA.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -23,37 +23,36 @@ namespace AILA.Infrastructure.Persistence.Seed
 
         public async Task SeedAsync()
         {
-            bool exists = await _context.ResourceLimitPolicies
-                .AnyAsync();
+            var hasLearner = await _context.ResourceLimitPolicies
+                .AnyAsync(p => p.AccountType == ResourceAccountType.Learner);
 
-
-            if (exists)
-                return;
-
-
-            var policies = new List<ResourceLimitPolicy>
+            if (!hasLearner)
             {
-                new ResourceLimitPolicy(
+                await _context.ResourceLimitPolicies.AddAsync(new ResourceLimitPolicy(
                     ResourceAccountType.Learner,
                     aiTokenLimit: 100000,
                     aiPracticeScenarioLimit: 3,
                     expertEvaluationRequestLimit: 0
-                ),
+                ));
+            }
 
-                new ResourceLimitPolicy(
+            var hasExpert = await _context.ResourceLimitPolicies
+                .AnyAsync(p => p.AccountType == ResourceAccountType.Expert);
+
+            if (!hasExpert)
+            {
+                await _context.ResourceLimitPolicies.AddAsync(new ResourceLimitPolicy(
                     ResourceAccountType.Expert,
                     aiTokenLimit: 500000,
                     aiPracticeScenarioLimit: 20,
                     expertEvaluationRequestLimit: 0
-                )
-            };
+                ));
+            }
 
-
-            await _context.ResourceLimitPolicies
-                .AddRangeAsync(policies);
-
-
-            await _context.SaveChangesAsync();
+            if (!hasLearner || !hasExpert)
+            {
+                await _context.SaveChangesAsync();
+            }
         }
     }
 }
