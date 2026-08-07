@@ -39,9 +39,11 @@ namespace AILA.Infrastructure.Persistence
         public IQuestionRepository Questions { get; private set; }
         public IAnswerOptionRepository AnswerOptions { get; private set; }
         public ISubscriptionPlanRepository SubscriptionPlans { get; private set; }
+        public ISubscriptionRepository Subscriptions { get; private set; }
         public IAIPracticeMaterialRepository AIPracticeMaterials { get; private set; }
         public ICourseReviewRequestRepository CourseReviewRequests { get; private set; }
         public IUserTokenRepository UserTokens { get; private set; }
+        public IExpertDashboardRepository ExpertDashboards { get; private set; }
 
         public UnitOfWork(ApplicationDbContext context)
         {
@@ -63,9 +65,11 @@ namespace AILA.Infrastructure.Persistence
             Questions = new QuestionRepository(_context);
             AnswerOptions = new AnswerOptionRepository(_context);
             SubscriptionPlans = new SubscriptionPlanRepository(_context);
+            Subscriptions = new SubscriptionRepository(_context);
             AIPracticeMaterials = new AIPracticeMaterialRepository(_context);
             CourseReviewRequests = new CourseReviewRequestRepository(_context);
             UserTokens = new UserTokenRepository(_context);
+            ExpertDashboards = new ExpertDashboardRepository(_context);
         }
         public IGenericRepository<T> Repository<T>() where T : class
         {
