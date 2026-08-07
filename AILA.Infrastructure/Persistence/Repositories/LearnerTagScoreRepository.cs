@@ -54,5 +54,19 @@ namespace AILA.Infrastructure.Persistence.Repositories
                     ids.Contains(x.TagId))
                 .ToListAsync(cancellationToken);
         }
+
+        public async Task<List<LearnerTagScore>> GetForRecommendationAsync(
+            Guid learnerId,
+            int minimumScore,
+            CancellationToken cancellationToken = default)
+        {
+            return await _context.LearnerTagScores
+                .AsNoTracking()
+                .Where(x =>
+                    x.LearnerId == learnerId &&
+                    (x.ProfileSeed + x.BehaviorScore) >= minimumScore)
+                .Include(x => x.Tag)
+                .ToListAsync(cancellationToken);
+        }
     }
 }

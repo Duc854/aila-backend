@@ -1,3 +1,4 @@
+using AILA.Application.Common.Dtos.Recommendation;
 using AILA.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -59,5 +60,9 @@ namespace AILA.Application.Common.Interfaces.Repositories
         Task<Course?> GetWithTagsAsync(
             Guid courseId,
             CancellationToken cancellationToken = default);
+
+        Task<List<CourseRecommendationCandidateDto>>
+            GetCoursesForRecommendationAsync(
+                CancellationToken cancellationToken = default);
     }
 }

@@ -1,4 +1,5 @@
-﻿using AILA.Application.Common.Interfaces.Repositories;
+﻿using AILA.Application.Common.Dtos.Recommendation;
+using AILA.Application.Common.Interfaces.Repositories;
 using AILA.Domain.Entities;
 using AILA.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -193,6 +194,71 @@ namespace AILA.Infrastructure.Persistence.Repositories
                 .Include(c => c.CourseTags)
                 .FirstOrDefaultAsync(
                     c => c.Id == courseId,
+                    cancellationToken);
+        }
+
+        public async Task<List<CourseRecommendationCandidateDto>>
+            GetCoursesForRecommendationAsync(
+                CancellationToken cancellationToken = default)
+        {
+
+            return await _context.Courses
+
+                // chỉ lấy khóa học public
+                .Where(c =>
+                    c.IsPublished)
+
+
+                .Select(c => new CourseRecommendationCandidateDto
+                {
+                    CourseId = c.Id,
+
+
+                    Name = c.Name,
+
+
+                    ThumbnailUrl =
+                        c.ThumbnailUrl,
+
+
+                    CategoryName =
+                        c.Category.Name,
+
+
+                    ExpertName =
+                        c.Expert.User.FullName,
+
+
+                    Level =
+                        c.Level.ToString(),
+
+
+
+                    Tags =
+                c.CourseTags
+                    .Select(t =>
+                        new CourseTagCandidateDto
+                        {
+                            Id = t.Id,
+                            Name = t.Name
+                        })
+                    .ToList(),
+
+
+
+                    EnrollmentCount =
+                        _context.Enrollments
+                            .Count(e =>
+                                e.CourseId == c.Id),
+
+
+
+                    CreatedAt =
+                        c.CreatedAt
+                })
+
+
+                .ToListAsync(
                     cancellationToken);
         }
     }

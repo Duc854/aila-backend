@@ -2,6 +2,7 @@ using AILA.Api.Extensions;
 using AILA.Application.Features.Courses.Commands;
 using AILA.Application.Features.Courses.Queries;
 using AILA.Application.Features.Courses.Queries.GetCourseLearningView;
+using AILA.Application.Features.Recommendations.Queries.GetRecommendations;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -125,6 +126,32 @@ namespace AILA.Api.Controllers
         {
             var query = new Application.Features.Courses.Queries.GetTopCourses.GetTopCoursesQuery { Count = count };
             var result = await _sender.Send(query);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Lấy danh sách khóa học được đề xuất cho learner
+        /// </summary>
+        [Authorize(Roles = "Learner")]
+        [HttpGet("recommendation")]
+        public async Task<IActionResult> GetRecommendations(
+            [FromQuery] int limit = 10,
+            CancellationToken cancellationToken = default)
+        {
+
+            var identity = HttpContext.GetUserIdentity();
+            if (identity == null)
+                return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực người dùng thất bại hoặc mã token không hợp lệ."));
+
+
+            var result =
+                await _sender.Send(
+                    new GetRecommendationsQuery(
+                        identity.UserId,
+                        limit),
+                    cancellationToken);
+
+
             return Ok(result);
         }
     }
