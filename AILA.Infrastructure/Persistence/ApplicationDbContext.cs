@@ -49,6 +49,8 @@ namespace AILA.Infrastructure.Persistence
         public DbSet<AccountResourceLimit> AccountResourceLimits => Set<AccountResourceLimit>();
         public DbSet<AccountResourceUsage> AccountResourceUsages => Set<AccountResourceUsage>();
         public DbSet<AdminActivityLog> AdminActivityLogs => Set<AdminActivityLog>();
+        public DbSet<ExpertEvaluationRequest> ExpertEvaluationRequests => Set<ExpertEvaluationRequest>();
+        public DbSet<ExpertEvaluation> ExpertEvaluations => Set<ExpertEvaluation>();
         public DbSet<LearnerTagScore> LearnerTagScores => Set<LearnerTagScore>();
 
 
