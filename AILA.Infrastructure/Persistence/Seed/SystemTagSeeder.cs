@@ -32,14 +32,14 @@ namespace AILA.Infrastructure.Persistence.Seed
             AddIfMissing(
                 tags,
                 existingCodes,
-                "Student",
+                "Sinh viên",
                 ReservedTagCodes.Student);
 
 
             AddIfMissing(
                 tags,
                 existingCodes,
-                "Office Worker",
+                "Nhân viên văn phòng",
                 ReservedTagCodes.OfficeWorker);
 
 
@@ -53,21 +53,21 @@ namespace AILA.Infrastructure.Persistence.Seed
             AddIfMissing(
                 tags,
                 existingCodes,
-                "Business Owner",
+                "Chủ doanh nghiệp",
                 ReservedTagCodes.BusinessOwner);
 
 
             AddIfMissing(
                 tags,
                 existingCodes,
-                "Civil Servant",
+                "Công chức",
                 ReservedTagCodes.CivilServant);
 
 
             AddIfMissing(
                 tags,
                 existingCodes,
-                "Retired",
+                "Nghỉ hưu",
                 ReservedTagCodes.Retired);
 
 
@@ -75,21 +75,21 @@ namespace AILA.Infrastructure.Persistence.Seed
             AddIfMissing(
                 tags,
                 existingCodes,
-                "Beginner",
+                "Mới bắt đầu",
                 ReservedTagCodes.Beginner);
 
 
             AddIfMissing(
                 tags,
                 existingCodes,
-                "Intermediate",
+                "Cơ bản",
                 ReservedTagCodes.Intermediate);
 
 
             AddIfMissing(
                 tags,
                 existingCodes,
-                "Advanced",
+                "Nâng cao",
                 ReservedTagCodes.Advanced);
 
 
