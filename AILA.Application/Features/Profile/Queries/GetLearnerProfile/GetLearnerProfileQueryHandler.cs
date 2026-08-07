@@ -29,8 +29,14 @@ namespace AILA.Application.Features.Profile.Queries.GetLearnerProfile
             // UC-30, AC-4: lịch sử quiz đã làm (mọi khóa học), đọc nguyên trạng dữ liệu đã lưu (BR-02).
             var attempts = await uow.Quizzes.GetSubmittedAttemptsByLearnerAsync(request.UserId, ct);
 
+            // UC-30, AC-5: lịch sử AI scenario đã thực hành xong (mọi khóa học).
+            var aiScenarios = await uow.PracticeAttempts.GetCompletedScenarioHistoryByLearnerAsync(request.UserId, ct);
+
+            // Lượt thực hành có thể chưa lưu điểm tổng (dữ liệu cũ) → chỉ lấy trung bình trên các lượt có điểm.
+            var aiScores = aiScenarios.Where(s => s.Score.HasValue).Select(s => s.Score!.Value).ToList();
+
             // UC-30, AC-2: thống kê tóm tắt tính trên TOÀN BỘ dữ liệu (không phải chỉ 5 mục preview).
-            // AverageQuizScore = null khi chưa có quiz nào (tránh chia cho 0).
+            // Average* = null khi chưa có lượt nào (tránh chia cho 0).
             var summary = new LearningSummaryDto(
                 TotalCourses: enrollments.Count,
                 CoursesInProgress: enrollments.Count(e => e.Status == EnrollmentStatus.Active),
@@ -39,16 +45,17 @@ namespace AILA.Application.Features.Profile.Queries.GetLearnerProfile
                 QuizzesPassed: attempts.Count(a => a.IsPassed),
                 AverageQuizScore: attempts.Count > 0
                     ? Math.Round(attempts.Average(a => a.Score), 2)
+                    : null,
+                TotalAiScenariosPracticed: aiScenarios.Count,
+                AverageAiScenarioScore: aiScores.Count > 0
+                    ? Math.Round(aiScores.Average(), 2)
                     : null
             );
 
             // Chỉ preview 5 mục mới nhất mỗi khối; FE dùng Summary.Total* để quyết định hiện nút "Xem tất cả".
             var recentEnrollments = enrollments.Take(PreviewCount).Select(e => e.ToSummaryDto());
             var recentQuizHistory = attempts.Take(PreviewCount).Select(a => a.ToHistoryDto());
-
-            // UC-30, AC-5: lịch sử AI scenario. Luồng AI practice chưa lưu bản ghi nào ở tầng domain,
-            // nên nguồn dữ liệu upstream đang rỗng → trả về danh sách rỗng (khối hiển thị empty, không lỗi).
-            var recentAiScenarios = Enumerable.Empty<AiScenarioHistoryItemDto>();
+            var recentAiScenarios = aiScenarios.Take(PreviewCount);
 
             var dto = new LearnerProfileDto(
                 learner.User.Id,

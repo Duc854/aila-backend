@@ -78,7 +78,7 @@ namespace AILA.Api.Controllers
 
         /// <summary>
         /// UC-30 — "Xem tất cả lịch sử AI scenario đã làm" (có phân trang). Chỉ dữ liệu của chính Learner (BR-01).
-        /// Hiện trả về trang rỗng cho tới khi có luồng lưu bản ghi AI practice.
+        /// Chỉ liệt kê các lượt thực hành đã hoàn thành.
         /// </summary>
         [HttpGet("learner/me/ai-scenarios")]
         [Authorize(Roles = "Learner")]

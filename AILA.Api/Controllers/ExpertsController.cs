@@ -2,7 +2,10 @@ using AILA.Api.Extensions;
 using AILA.Application.Common.Dtos;
 using AILA.Application.Features.Courses.Commands;
 using AILA.Application.Features.Courses.Queries;
+using AILA.Application.Features.Experts.Dtos;
 using AILA.Application.Features.Experts.Queries;
+using AILA.Application.Features.Experts.Queries.GetExpertDashboard;
+using AILA.Application.Features.Experts.Queries.GetExpertAiResourceUsage;
 using AILA.Application.Features.Materials.Queries.GetMaterialDetail;
 using AILA.Application.Features.Profile.Commands.UpdateExpertProfile;
 using MediatR;
@@ -288,6 +291,67 @@ namespace AILA.Api.Controllers
                     ResponseDto<object>.FailResult("FORBIDDEN", "Bạn không có quyền xem trước khóa học này."));
 
             return Ok(ResponseDto<CourseDetailDto>.SuccessResult(course));
+        }
+
+        /// <summary>
+        /// UC-65 — Review Expert Dashboard.
+        /// Tổng hợp thông tin hiệu suất và tương tác của các khóa học đã xuất bản của Expert (BR-01 - BR-05, AF-01 - AF-03).
+        /// </summary>
+        [HttpGet("me/dashboard")]
+        [Authorize(Roles = "Expert")]
+        [ProducesResponseType(typeof(ResponseDto<ExpertDashboardDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResponseDto<object>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ResponseDto<object>), StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> GetDashboard(
+            [FromQuery] Guid? courseId,
+            [FromQuery] string reportingPeriod = "Last30Days",
+            [FromQuery] DateTime? startDate = null,
+            [FromQuery] DateTime? endDate = null,
+            CancellationToken ct = default)
+        {
+            var identity = HttpContext.GetUserIdentity();
+            if (identity is null)
+                return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực người dùng thất bại."));
+
+            var query = new GetExpertDashboardQuery(
+                identity.UserId,
+                courseId,
+                reportingPeriod,
+                startDate,
+                endDate);
+
+            var result = await _sender.Send(query, ct);
+
+            if (!result.Success)
+            {
+                return result.ErrorCode switch
+                {
+                    "INVALID_REPORTING_SCOPE" => BadRequest(result),
+                    _ => BadRequest(result)
+                };
+            }
+
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// UC-66 — Review Expert AI Resource Usage.
+        /// Xem hạn mức AI Token được cấp, số lượng đã sử dụng và số lượng còn lại của Chuyên gia (BR-01, BR-02, BR-03, AF-01).
+        /// </summary>
+        [HttpGet("me/ai-resource-usage")]
+        [Authorize(Roles = "Expert")]
+        [ProducesResponseType(typeof(ResponseDto<ExpertAiResourceUsageDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResponseDto<object>), StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> GetAiResourceUsage(CancellationToken ct)
+        {
+            var identity = HttpContext.GetUserIdentity();
+            if (identity is null)
+                return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực người dùng thất bại."));
+
+            var query = new GetExpertAiResourceUsageQuery(identity.UserId);
+            var result = await _sender.Send(query, ct);
+
+            return Ok(result);
         }
     }
 

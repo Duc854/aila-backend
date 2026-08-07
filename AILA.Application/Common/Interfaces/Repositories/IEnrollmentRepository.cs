@@ -1,4 +1,8 @@
 using AILA.Domain.Entities;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AILA.Application.Common.Interfaces.Repositories
 {
@@ -19,6 +23,15 @@ namespace AILA.Application.Common.Interfaces.Repositories
         /// </summary>
         Task<(IEnumerable<Enrollment> Items, int TotalCount)> GetPagedEnrollmentsByLearnerAsync(
             Guid learnerId, int pageIndex, int pageSize, CancellationToken ct = default);
+
+        /// <summary>
+        /// Lấy danh sách các bản ghi Enrollment theo phạm vi khóa học và khoảng thời gian (UC-65)
+        /// </summary>
+        Task<List<Enrollment>> GetEnrollmentsInScopeAsync(
+            List<Guid> courseIds, 
+            DateTime fromDate, 
+            DateTime toDate, 
+            CancellationToken ct = default);
 
         void Update(Enrollment enrollment);
     }

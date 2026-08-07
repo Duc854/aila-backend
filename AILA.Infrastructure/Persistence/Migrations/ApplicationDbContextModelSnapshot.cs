@@ -23,6 +23,96 @@ namespace AILA.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("AILA.Domain.Entities.AIApiCostSetting", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("CostPerInputToken")
+                        .HasPrecision(18, 8)
+                        .HasColumnType("numeric(18,8)");
+
+                    b.Property<decimal>("CostPerOutputToken")
+                        .HasPrecision(18, 8)
+                        .HasColumnType("numeric(18,8)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasDefaultValue("USD");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("ModelId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("ServiceName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AIApiCostSettings");
+                });
+
+            modelBuilder.Entity("AILA.Domain.Entities.AIFeedback", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AreasForImprovement")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("AttemptId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DetailedScoringJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("FinalScore")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)");
+
+                    b.Property<DateTime>("GradedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("OverallSuggestion")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Strengths")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AttemptId");
+
+                    b.ToTable("AIFeedbacks");
+                });
+
             modelBuilder.Entity("AILA.Domain.Entities.AIPracticeMaterial", b =>
                 {
                     b.Property<Guid>("MaterialId")
@@ -735,6 +825,47 @@ namespace AILA.Infrastructure.Persistence.Migrations
                     b.HasIndex("PracticeAttemptId");
 
                     b.ToTable("ExpertEvaluationRequests", (string)null);
+                });
+
+            modelBuilder.Entity("AILA.Domain.Entities.ExpertSimulationAttempt", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ExpertId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal?>("FinalScore")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)");
+
+                    b.Property<Guid>("MaterialId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("OverallSuggestion")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpertId");
+
+                    b.ToTable("ExpertSimulationAttempts", (string)null);
                 });
 
             modelBuilder.Entity("AILA.Domain.Entities.KnowledgeChunk", b =>
@@ -1719,33 +1850,49 @@ namespace AILA.Infrastructure.Persistence.Migrations
                     b.ToTable("UserTokens");
                 });
 
-            modelBuilder.Entity("AILA.Domain.Entities.UserTokenQuota", b =>
+            modelBuilder.Entity("AILA.Domain.Entities.UserViolationRecord", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("AccountId")
+                    b.Property<Guid?>("AttemptId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("DailyLimit")
-                        .HasColumnType("integer");
+                    b.Property<string>("PolicyName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
-                    b.Property<DateTime>("LastUsageDate")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("Severity")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasDefaultValue("Medium");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("UsedAmountToday")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ViolationType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("UserTokenQuotas");
+                    b.ToTable("UserViolationRecords");
                 });
 
             modelBuilder.Entity("AILA.Domain.Entities.VideoMaterial", b =>
@@ -1803,6 +1950,17 @@ namespace AILA.Infrastructure.Persistence.Migrations
                     b.HasIndex("TagId");
 
                     b.ToTable("LearnerLearningGoals");
+                });
+
+            modelBuilder.Entity("AILA.Domain.Entities.AIFeedback", b =>
+                {
+                    b.HasOne("AILA.Domain.Entities.PracticeAttempt", "Attempt")
+                        .WithMany()
+                        .HasForeignKey("AttemptId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Attempt");
                 });
 
             modelBuilder.Entity("AILA.Domain.Entities.AIPracticeMaterial", b =>
@@ -2014,6 +2172,17 @@ namespace AILA.Infrastructure.Persistence.Migrations
                     b.Navigation("PracticeAttempt");
                 });
 
+            modelBuilder.Entity("AILA.Domain.Entities.ExpertSimulationAttempt", b =>
+                {
+                    b.HasOne("AILA.Domain.Entities.User", "Expert")
+                        .WithMany()
+                        .HasForeignKey("ExpertId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Expert");
+                });
+
             modelBuilder.Entity("AILA.Domain.Entities.KnowledgeChunk", b =>
                 {
                     b.HasOne("AILA.Domain.Entities.KnowledgeDocument", "KnowledgeDocument")
@@ -2128,6 +2297,12 @@ namespace AILA.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("AILA.Domain.Entities.PromptSubmission", b =>
                 {
+                    b.HasOne("AILA.Domain.Entities.ExpertSimulationAttempt", null)
+                        .WithMany("Submissions")
+                        .HasForeignKey("AttemptId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("AILA.Domain.Entities.PracticeAttempt", null)
                         .WithMany("Submissions")
                         .HasForeignKey("AttemptId")
@@ -2359,6 +2534,11 @@ namespace AILA.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("AILA.Domain.Entities.ExpertEvaluationRequest", b =>
                 {
                     b.Navigation("ExpertEvaluation");
+                });
+
+            modelBuilder.Entity("AILA.Domain.Entities.ExpertSimulationAttempt", b =>
+                {
+                    b.Navigation("Submissions");
                 });
 
             modelBuilder.Entity("AILA.Domain.Entities.KnowledgeDocument", b =>

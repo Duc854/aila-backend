@@ -1,6 +1,5 @@
 using AILA.Application.Common.Dtos.AI;
-using AILA.Application.Common.Interfaces.Repositories;
-using AILA.Domain.Entities;
+using AILA.Application.Common.Interfaces.AI;
 using MediatR;
 using System;
 using System.Threading;
@@ -12,42 +11,28 @@ public record GetMyQuotaQuery(Guid AccountId) : IRequest<UserQuotaStatusDto>;
 
 public class GetMyQuotaQueryHandler : IRequestHandler<GetMyQuotaQuery, UserQuotaStatusDto>
 {
-    private readonly IAccountResourceRepository _repository;
+    private readonly IQuotaService _quotaService;
 
-    public GetMyQuotaQueryHandler(IAccountResourceRepository repository)
+    public GetMyQuotaQueryHandler(IQuotaService quotaService)
     {
-        _repository = repository;
+        _quotaService = quotaService;
     }
 
     public async Task<UserQuotaStatusDto> Handle(GetMyQuotaQuery request, CancellationToken cancellationToken)
     {
-        var quota = await _repository.GetQuotaAsync(request.AccountId, cancellationToken);
-
-        int dailyLimit = quota?.DailyLimit ?? 50000;
-        int usedToday = quota?.UsedAmountToday ?? 0;
-        int remaining = Math.Max(0, dailyLimit - usedToday);
-        int percentage = (int)Math.Min(100, Math.Round((double)usedToday / dailyLimit * 100));
-
-        bool isExceeded = usedToday >= dailyLimit;
-        bool isNearLimit = percentage >= 80;
-
-        string message = isExceeded
-            ? "Bạn đã sử dụng hết hạn mức Token hôm nay."
-            : isNearLimit
-                ? $"⚠️ Cảnh báo: Bạn đã sử dụng {percentage}% hạn mức Token hôm nay."
-                : "Hạn mức Token bình thường.";
+        var checkResult = await _quotaService.CheckQuotaAsync(request.AccountId, 0, 0.80f, cancellationToken);
 
         return new UserQuotaStatusDto
         {
             AccountId = request.AccountId,
-            DailyLimit = dailyLimit,
-            MonthlyLimit = dailyLimit * 30,
-            UsedToday = usedToday,
-            RemainingToday = remaining,
-            PercentageUsed = percentage,
-            IsNearLimit = isNearLimit,
-            IsExceeded = isExceeded,
-            StatusMessage = message
+            DailyLimit = checkResult.DailyLimit,
+            MonthlyLimit = checkResult.DailyLimit * 30,
+            UsedToday = checkResult.UsedAmount,
+            RemainingToday = checkResult.RemainingTokens,
+            PercentageUsed = checkResult.PercentageUsed,
+            IsNearLimit = checkResult.IsNearLimit,
+            IsExceeded = !checkResult.IsAllowed,
+            StatusMessage = checkResult.WarningMessage ?? "Hạn mức Token bình thường."
         };
     }
 }

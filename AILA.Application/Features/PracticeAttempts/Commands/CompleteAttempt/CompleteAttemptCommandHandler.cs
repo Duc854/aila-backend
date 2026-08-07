@@ -36,6 +36,7 @@ public class CompleteAttemptCommandHandler : IRequestHandler<CompleteAttemptComm
 
         var enrollment = await _unitOfWork.Enrollments.GetByIdAsync(attempt.EnrollmentId)
             ?? throw new NotFoundException(nameof(Enrollment), attempt.EnrollmentId);
+        var accountId = enrollment.LearnerId;
 
         var material = await _materialRepo.GetByIdAsync(attempt.MaterialId);
         var criteria = material?.ScoringCriterias.ToList() ?? new List<ScoringCriteria>();
@@ -53,11 +54,23 @@ public class CompleteAttemptCommandHandler : IRequestHandler<CompleteAttemptComm
             criteria,
             material?.AITask ?? string.Empty,
             attemptId: attempt.Id,
-            accountId: enrollment.LearnerId,
+            accountId: accountId,
             cancellationToken: cancellationToken);
 
         // Luôn cập nhật lại OverallSuggestion & FinalScore mới nhất với kết quả chấm điểm mới
         attempt.Complete(scoringResult.Percentage, scoringResult.Summary);
+
+        // Lưu nhận xét AI chi tiết vào bảng AIFeedback
+        var scoringJson = System.Text.Json.JsonSerializer.Serialize(scoringResult);
+        var aiFeedback = new AIFeedback(
+            attempt.Id,
+            scoringResult.Percentage,
+            scoringResult.Summary,
+            strengths: string.Join("; ", scoringResult.LearningSuggestions),
+            areasForImprovement: string.Join("; ", scoringResult.DetectedIssues),
+            detailedScoringJson: scoringJson);
+
+        await _unitOfWork.Repository<AIFeedback>().AddAsync(aiFeedback);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new CompleteAttemptResponseDto

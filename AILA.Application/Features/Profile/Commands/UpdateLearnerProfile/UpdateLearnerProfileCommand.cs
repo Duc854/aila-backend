@@ -9,8 +9,8 @@ namespace AILA.Application.Features.Profile.Commands.UpdateLearnerProfile
         Guid UserId,
         string FullName,
         string? AvatarUrl,
-        LearnerType? LearnerType,
-        KnowledgeLevel? KnowledgeLevel,
+        LearnerType LearnerType,
+        KnowledgeLevel KnowledgeLevel,
         Guid[] LearningGoalTagIds
     ) : IRequest<ResponseDto<LearnerProfileDto>>;
 }

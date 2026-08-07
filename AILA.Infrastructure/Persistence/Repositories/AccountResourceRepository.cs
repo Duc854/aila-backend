@@ -18,15 +18,12 @@ public class AccountResourceRepository : IAccountResourceRepository
         _context = context;
     }
 
-    public async Task<UserTokenQuota?> GetQuotaAsync(Guid accountId, CancellationToken cancellationToken = default)
+    public async Task<int> GetTodayTokenUsageAsync(Guid accountId, CancellationToken cancellationToken = default)
     {
-        return await _context.UserTokenQuotas
-            .FirstOrDefaultAsync(x => x.AccountId == accountId, cancellationToken);
-    }
-
-    public async Task AddQuotaAsync(UserTokenQuota quota, CancellationToken cancellationToken = default)
-    {
-        await _context.UserTokenQuotas.AddAsync(quota, cancellationToken);
+        var startOfDay = DateTime.UtcNow.Date;
+        return await _context.AITokenLogs
+            .Where(x => x.AccountId == accountId && x.CreatedAt >= startOfDay)
+            .SumAsync(x => (int?)(x.PromptTokens + x.CompletionTokens), cancellationToken) ?? 0;
     }
 
     public async Task AddTokenLogAsync(AITokenLog log, CancellationToken cancellationToken = default)

@@ -1,4 +1,4 @@
-﻿using AILA.Infrastructure.Persistence;
+using AILA.Infrastructure.Persistence;
 using AILA.Infrastructure.Persistence.Seed;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;

@@ -39,12 +39,17 @@ namespace AILA.Infrastructure.Persistence
         public IQuestionRepository Questions { get; private set; }
         public IAnswerOptionRepository AnswerOptions { get; private set; }
         public ISubscriptionPlanRepository SubscriptionPlans { get; private set; }
+        public ISubscriptionRepository Subscriptions { get; private set; }
         public IAIPracticeMaterialRepository AIPracticeMaterials { get; private set; }
         public ICourseReviewRequestRepository CourseReviewRequests { get; private set; }
         public IUserTokenRepository UserTokens { get; private set; }
         public IResourceLimitPolicyRepository ResourceLimitPolicies { get; private set; }
         public IAdminActivityLogRepository AdminActivityLogs { get; private set; }
         public IAccountResourceLimitRepository AccountResourceLimits { get; private set; }
+        public ILearnerTagScoreRepository LearnerTagScores { get; private set; }
+        public IAccountResourceUsageRepository AccountResourceUsages { get; private set; }
+        public IPracticeAttemptRepository PracticeAttempts { get; private set; }
+        public IExpertEvaluationRequestRepository ExpertEvaluationRequests { get; private set; }
 
         public UnitOfWork(ApplicationDbContext context)
         {
@@ -66,12 +71,17 @@ namespace AILA.Infrastructure.Persistence
             Questions = new QuestionRepository(_context);
             AnswerOptions = new AnswerOptionRepository(_context);
             SubscriptionPlans = new SubscriptionPlanRepository(_context);
+            Subscriptions = new SubscriptionRepository(_context);
             AIPracticeMaterials = new AIPracticeMaterialRepository(_context);
             CourseReviewRequests = new CourseReviewRequestRepository(_context);
             UserTokens = new UserTokenRepository(_context);
             ResourceLimitPolicies = new ResourceLimitPolicyRepository(_context);
             AdminActivityLogs = new AdminActivityLogRepository(_context);
             AccountResourceLimits = new AccountResourceLimitRepository(_context);
+            LearnerTagScores = new LearnerTagScoreRepository(_context);
+            AccountResourceUsages = new AccountResourceUsageRepository(_context);
+            PracticeAttempts = new PracticeAttemptRepository(_context);
+            ExpertEvaluationRequests = new ExpertEvaluationRequestRepository(_context);
         }
         public IGenericRepository<T> Repository<T>() where T : class
         {
@@ -131,7 +141,7 @@ namespace AILA.Infrastructure.Persistence
         {
             try
             {
-                await _context.SaveChangesAsync(cancellationToken);
+                await SaveChangesAsync(cancellationToken);
                 if (_currentTransaction != null)
                 {
                     await _currentTransaction.CommitAsync(cancellationToken);

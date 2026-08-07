@@ -38,9 +38,12 @@ namespace AILA.Infrastructure.Persistence
         public DbSet<Payment> Payments => Set<Payment>();
         public DbSet<CourseReviewRequest> CourseReviewRequests => Set<CourseReviewRequest>();
         public DbSet<PracticeAttempt> PracticeAttempts => Set<PracticeAttempt>();
+        public DbSet<ExpertSimulationAttempt> ExpertSimulationAttempts => Set<ExpertSimulationAttempt>();
         public DbSet<PromptSubmission> PromptSubmissions => Set<PromptSubmission>();
         public DbSet<AITokenLog> AITokenLogs => Set<AITokenLog>();
-        public DbSet<UserTokenQuota> UserTokenQuotas => Set<UserTokenQuota>();
+        public DbSet<UserViolationRecord> UserViolationRecords => Set<UserViolationRecord>();
+        public DbSet<AIApiCostSetting> AIApiCostSettings => Set<AIApiCostSetting>();
+        public DbSet<AIFeedback> AIFeedbacks => Set<AIFeedback>();
         public DbSet<KnowledgeChunk> KnowledgeChunks => Set<KnowledgeChunk>();
         public DbSet<KnowledgeDocument> KnowledgeDocuments => Set<KnowledgeDocument>();
         public DbSet<CourseChatSession> CourseChatSessions => Set<CourseChatSession>();
@@ -49,6 +52,9 @@ namespace AILA.Infrastructure.Persistence
         public DbSet<AccountResourceLimit> AccountResourceLimits => Set<AccountResourceLimit>();
         public DbSet<AccountResourceUsage> AccountResourceUsages => Set<AccountResourceUsage>();
         public DbSet<AdminActivityLog> AdminActivityLogs => Set<AdminActivityLog>();
+        public DbSet<ExpertEvaluationRequest> ExpertEvaluationRequests => Set<ExpertEvaluationRequest>();
+        public DbSet<ExpertEvaluation> ExpertEvaluations => Set<ExpertEvaluation>();
+        public DbSet<LearnerTagScore> LearnerTagScores => Set<LearnerTagScore>();
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
