@@ -68,7 +68,7 @@ namespace AILA.Application.Features.Reports.Commands.ReportCourse
                         : "Bạn đã báo cáo khóa học này và đang chờ xử lý.");
 
             // AC-3 / AC-4: tạo report ở trạng thái Pending (moderation queue).
-            var report = new ContentReport(request.LearnerId, reportCourseId, reportMaterialId, request.Reason, description);
+            var report = new ContentReport(request.LearnerId, reportCourseId.Value, reportMaterialId, request.Reason, description);
 
             await uow.ContentReports.AddAsync(report);
             await uow.SaveChangesAsync(ct);

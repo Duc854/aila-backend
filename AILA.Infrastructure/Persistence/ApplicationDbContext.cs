@@ -48,6 +48,8 @@ namespace AILA.Infrastructure.Persistence
         public DbSet<ResourceLimitPolicy> ResourceLimitPolicies => Set<ResourceLimitPolicy>();
         public DbSet<AccountResourceLimit> AccountResourceLimits => Set<AccountResourceLimit>();
         public DbSet<AccountResourceUsage> AccountResourceUsages => Set<AccountResourceUsage>();
+        public DbSet<AdminActivityLog> AdminActivityLogs => Set<AdminActivityLog>();
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

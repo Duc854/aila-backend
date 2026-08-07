@@ -53,6 +53,7 @@ namespace AILA.Infrastructure
             // Core
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<AdminSeeder>();
+            services.AddScoped<ResourceLimitPolicySeeder>();
 
             // Application services
             services.AddScoped<IQuestionExcelService, QuestionExcelService>();

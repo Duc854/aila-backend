@@ -1,0 +1,79 @@
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
+
+#nullable disable
+
+namespace AILA.Infrastructure.Persistence.Migrations
+{
+    /// <inheritdoc />
+    public partial class UpdateContentReportRelationship : Migration
+    {
+        /// <inheritdoc />
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropForeignKey(
+                name: "FK_ContentReport_Materials_MaterialId",
+                table: "ContentReport");
+
+            migrationBuilder.DropCheckConstraint(
+                name: "CK_ContentReport_Target",
+                table: "ContentReport");
+
+            migrationBuilder.AlterColumn<Guid>(
+                name: "CourseId",
+                table: "ContentReport",
+                type: "uuid",
+                nullable: false,
+                defaultValue: new Guid("00000000-0000-0000-0000-000000000000"),
+                oldClrType: typeof(Guid),
+                oldType: "uuid",
+                oldNullable: true);
+
+            migrationBuilder.AddCheckConstraint(
+                name: "CK_ContentReport_CourseRequired",
+                table: "ContentReport",
+                sql: "\"CourseId\" IS NOT NULL");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_ContentReport_Materials_MaterialId",
+                table: "ContentReport",
+                column: "MaterialId",
+                principalTable: "Materials",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Restrict);
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropForeignKey(
+                name: "FK_ContentReport_Materials_MaterialId",
+                table: "ContentReport");
+
+            migrationBuilder.DropCheckConstraint(
+                name: "CK_ContentReport_CourseRequired",
+                table: "ContentReport");
+
+            migrationBuilder.AlterColumn<Guid>(
+                name: "CourseId",
+                table: "ContentReport",
+                type: "uuid",
+                nullable: true,
+                oldClrType: typeof(Guid),
+                oldType: "uuid");
+
+            migrationBuilder.AddCheckConstraint(
+                name: "CK_ContentReport_Target",
+                table: "ContentReport",
+                sql: "(\r\n                    (\"CourseId\" IS NOT NULL AND \"MaterialId\" IS NULL)\r\n                    OR\r\n                    (\"CourseId\" IS NULL AND \"MaterialId\" IS NOT NULL)\r\n                )");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_ContentReport_Materials_MaterialId",
+                table: "ContentReport",
+                column: "MaterialId",
+                principalTable: "Materials",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+        }
+    }
+}

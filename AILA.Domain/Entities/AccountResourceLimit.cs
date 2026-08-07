@@ -39,6 +39,8 @@ namespace AILA.Domain.Entities
             int? aiPracticeScenarioLimit = null,
             int? expertEvaluationRequestLimit = null)
         {
+            if (accountId == Guid.Empty)
+                throw new ArgumentException("Account không hợp lệ.");
             ValidateLimitValue(aiTokenLimit, nameof(aiTokenLimit));
             ValidateLimitValue(aiPracticeScenarioLimit, nameof(aiPracticeScenarioLimit));
             ValidateLimitValue(expertEvaluationRequestLimit, nameof(expertEvaluationRequestLimit));
@@ -77,10 +79,10 @@ namespace AILA.Domain.Entities
 
         private static void ValidateLimitValue(int? value, string propertyName)
         {
-            if (value.HasValue && value.Value <= 0)
+            if (value < 0)
             {
                 throw new ArgumentException(
-                    "Giới hạn tài nguyên phải lớn hơn 0",
+                    "Giới hạn tài nguyên không được nhỏ hơn 0.",
                     propertyName);
             }
         }
