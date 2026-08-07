@@ -184,5 +184,16 @@ namespace AILA.Infrastructure.Persistence.Repositories
                     .ThenInclude(m => m.Materials)
                 .FirstOrDefaultAsync(c => c.Id == courseId, ct);
         }
+
+        public async Task<Course?> GetWithTagsAsync(
+            Guid courseId,
+            CancellationToken cancellationToken = default)
+        {
+            return await _context.Courses
+                .Include(c => c.CourseTags)
+                .FirstOrDefaultAsync(
+                    c => c.Id == courseId,
+                    cancellationToken);
+        }
     }
 }

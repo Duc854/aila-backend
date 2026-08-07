@@ -1,5 +1,6 @@
 using AILA.Application.Common.Dtos;
 using AILA.Application.Common.Interfaces;
+using AILA.Domain.Constants;
 using AILA.Domain.Entities;
 using MediatR;
 
@@ -9,10 +10,15 @@ namespace AILA.Application.Features.Courses.Commands
         : IRequestHandler<EnrollCourseCommand, EnrollmentResultDto>
     {
         private readonly IUnitOfWork _uow;
+        private readonly ILearnerBehaviorService _behaviorService;
 
-        public EnrollCourseCommandHandler(IUnitOfWork uow)
+
+        public EnrollCourseCommandHandler(
+            IUnitOfWork uow,
+            ILearnerBehaviorService behaviorService)
         {
             _uow = uow;
+            _behaviorService = behaviorService;
         }
 
         public async Task<EnrollmentResultDto> Handle(
@@ -20,7 +26,10 @@ namespace AILA.Application.Features.Courses.Commands
             CancellationToken cancellationToken)
         {
             // 1. Kiểm tra khóa học tồn tại và đã công khai
-            var course = await _uow.Courses.GetByIdAsync(request.CourseId);
+            var course = await _uow.Courses
+                .GetWithTagsAsync(
+                    request.CourseId,
+                    cancellationToken);
             if (course == null)
                 throw new InvalidOperationException("Khóa học không tồn tại.");
             if (!course.IsPublished)
@@ -39,21 +48,64 @@ namespace AILA.Application.Features.Courses.Commands
 
             // 4. Đếm tổng số bài học của khóa học
             var totalMaterials = await _uow.Courses.CountMaterialsAsync(request.CourseId);
+            await _uow.BeginTransactionAsync(cancellationToken);
 
-            // 5. Tạo Enrollment mới theo DDD constructor
-            var enrollment = new Enrollment(request.LearnerId, request.CourseId, totalMaterials);
-
-            await _uow.Enrollments.AddAsync(enrollment);
-            await _uow.SaveChangesAsync(cancellationToken);
-
-            return new EnrollmentResultDto
+            try
             {
-                EnrollmentId = enrollment.Id,
-                CourseId = enrollment.CourseId,
-                LearnerId = enrollment.LearnerId,
-                Status = enrollment.Status.ToString(),
-                EnrolledAt = enrollment.EnrolledAt
-            };
+                // 5. Tạo enrollment
+                var enrollment = new Enrollment(
+                    request.LearnerId,
+                    request.CourseId,
+                    totalMaterials);
+
+
+                await _uow.Enrollments.AddAsync(enrollment);
+
+
+
+                // 6. Chỉ lấy interest tags để cộng behavior
+                var behaviorTags = course.CourseTags
+                    .Where(t =>
+                        !ReservedTagCodes.LevelTags.Contains(t.Code)
+                        &&
+                        !ReservedTagCodes.LearnerTypeTags.Contains(t.Code))
+                    .ToList();
+
+
+
+                if (behaviorTags.Any())
+                {
+                    await _behaviorService.IncreaseScoreAsync(
+                        request.LearnerId,
+                        behaviorTags,
+                        BehaviorScoreConstants.EnrollCourse,
+                        cancellationToken);
+                }
+
+
+
+                // 7. Commit transaction
+                await _uow.CommitTransactionAsync(
+                    cancellationToken);
+
+
+
+                return new EnrollmentResultDto
+                {
+                    EnrollmentId = enrollment.Id,
+                    CourseId = enrollment.CourseId,
+                    LearnerId = enrollment.LearnerId,
+                    Status = enrollment.Status.ToString(),
+                    EnrolledAt = enrollment.EnrolledAt
+                };
+            }
+            catch
+            {
+                await _uow.RollbackTransactionAsync(
+                    cancellationToken);
+
+                throw;
+            }
         }
     }
 }

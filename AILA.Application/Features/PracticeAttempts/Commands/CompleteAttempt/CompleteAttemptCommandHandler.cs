@@ -1,8 +1,9 @@
-using AILA.Application.Common.Interfaces;
 using AILA.Application.Common.Dtos.AI;
 using AILA.Application.Common.Exceptions;
+using AILA.Application.Common.Interfaces;
 using AILA.Application.Common.Interfaces.AI;
 using AILA.Application.Common.Interfaces.Repositories;
+using AILA.Domain.Constants;
 using AILA.Domain.Entities;
 using AILA.Domain.Enums;
 using MediatR;
@@ -16,17 +17,20 @@ public class CompleteAttemptCommandHandler : IRequestHandler<CompleteAttemptComm
     private readonly IAIPracticeMaterialRepository _materialRepo;
     private readonly IScoringService _scoringService;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ILearnerBehaviorService _learnerBehaviorService;
 
     public CompleteAttemptCommandHandler(
         IPracticeAttemptRepository repository,
         IAIPracticeMaterialRepository materialRepo,
         IScoringService scoringService,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        ILearnerBehaviorService learnerBehaviorService)
     {
         _repository = repository;
         _materialRepo = materialRepo;
         _scoringService = scoringService;
         _unitOfWork = unitOfWork;
+        _learnerBehaviorService = learnerBehaviorService;
     }
 
     public async Task<CompleteAttemptResponseDto> Handle(CompleteAttemptCommand request, CancellationToken cancellationToken)
@@ -34,8 +38,13 @@ public class CompleteAttemptCommandHandler : IRequestHandler<CompleteAttemptComm
         var attempt = await _repository.GetByIdAsync(request.AttemptId, cancellationToken)
             ?? throw new NotFoundException(nameof(PracticeAttempt), request.AttemptId);
 
-        var enrollment = await _unitOfWork.Enrollments.GetByIdAsync(attempt.EnrollmentId)
-            ?? throw new NotFoundException(nameof(Enrollment), attempt.EnrollmentId);
+        var enrollment = await _unitOfWork.Enrollments
+            .GetWithCourseTagsByIdAsync(
+                attempt.EnrollmentId,
+                cancellationToken)
+            ?? throw new NotFoundException(
+                nameof(Enrollment),
+                attempt.EnrollmentId);
         var accountId = enrollment.LearnerId;
 
         var material = await _materialRepo.GetByIdAsync(attempt.MaterialId);
@@ -57,27 +66,60 @@ public class CompleteAttemptCommandHandler : IRequestHandler<CompleteAttemptComm
             accountId: accountId,
             cancellationToken: cancellationToken);
 
-        // Luôn cập nhật lại OverallSuggestion & FinalScore mới nhất với kết quả chấm điểm mới
-        attempt.Complete(scoringResult.Percentage, scoringResult.Summary);
-
-        // Lưu nhận xét AI chi tiết vào bảng AIFeedback
-        var scoringJson = System.Text.Json.JsonSerializer.Serialize(scoringResult);
-        var aiFeedback = new AIFeedback(
-            attempt.Id,
-            scoringResult.Percentage,
-            scoringResult.Summary,
-            strengths: string.Join("; ", scoringResult.LearningSuggestions),
-            areasForImprovement: string.Join("; ", scoringResult.DetectedIssues),
-            detailedScoringJson: scoringJson);
-
-        await _unitOfWork.Repository<AIFeedback>().AddAsync(aiFeedback);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-        return new CompleteAttemptResponseDto
+        await _unitOfWork.BeginTransactionAsync(cancellationToken);
+        try
         {
-            FinalScore = scoringResult.Percentage,
-            OverallSuggestion = scoringResult.Summary,
-            DetailedScoring = scoringResult
-        };
+            // Chỉ ghi nhận behavior ở lần đầu hoàn thành
+            var firstCompleted =
+                attempt.Status != PracticeAttemptStatus.Completed;
+
+            attempt.Complete(
+                scoringResult.Percentage,
+                scoringResult.Summary);
+
+            var scoringJson =
+                System.Text.Json.JsonSerializer.Serialize(scoringResult);
+
+            var aiFeedback = new AIFeedback(
+                attempt.Id,
+                scoringResult.Percentage,
+                scoringResult.Summary,
+                strengths: string.Join("; ", scoringResult.LearningSuggestions),
+                areasForImprovement: string.Join("; ", scoringResult.DetectedIssues),
+                detailedScoringJson: scoringJson);
+
+            await _unitOfWork.Repository<AIFeedback>()
+                .AddAsync(aiFeedback);
+
+            if (firstCompleted)
+            {
+                var behaviorTags = enrollment.Course.CourseTags
+                    .Where(t =>
+                        !ReservedTagCodes.LevelTags.Contains(t.Code)
+                        &&
+                        !ReservedTagCodes.LearnerTypeTags.Contains(t.Code))
+                    .ToList();
+
+                await _learnerBehaviorService.IncreaseScoreAsync(
+                    enrollment.LearnerId,
+                    behaviorTags,
+                    BehaviorScoreConstants.CompleteAIPractice,
+                    cancellationToken);
+            }
+
+            await _unitOfWork.CommitTransactionAsync(cancellationToken);
+
+            return new CompleteAttemptResponseDto
+            {
+                FinalScore = scoringResult.Percentage,
+                OverallSuggestion = scoringResult.Summary,
+                DetailedScoring = scoringResult
+            };
+        }
+        catch
+        {
+            await _unitOfWork.RollbackTransactionAsync(cancellationToken);
+            throw;
+        }
     }
 }

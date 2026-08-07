@@ -1,5 +1,6 @@
 using AILA.Application.Common.Interfaces;
 using AILA.Application.Features.Quizzes.Dtos;
+using AILA.Domain.Constants;
 using AILA.Domain.Entities;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -12,21 +13,26 @@ namespace AILA.Application.Features.Quizzes.Commands.SubmitQuiz
     {
         private readonly IUnitOfWork _uow;
         private readonly ILogger<SubmitQuizCommandHandler> _logger;
+        private readonly ILearnerBehaviorService _learnerBehaviorService;
 
         public SubmitQuizCommandHandler(
             IUnitOfWork uow,
-            ILogger<SubmitQuizCommandHandler> logger)
+            ILogger<SubmitQuizCommandHandler> logger,
+            ILearnerBehaviorService learnerBehaviorService)
         {
             _uow = uow;
             _logger = logger;
+            _learnerBehaviorService = learnerBehaviorService;
         }
 
         public async Task<ResponseDto<QuizResultDto>> Handle(
             SubmitQuizCommand request, CancellationToken cancellationToken)
         {
             // 1. Kiểm soát quyền: chỉ Learner đã enroll (BR-01, AC-7).
-            var enrollment = await _uow.Enrollments.GetByCourseAndLearnerAsync(
-                request.CourseId, request.LearnerId, cancellationToken);
+            var enrollment = await _uow.Enrollments.GetWithCourseTagsAsync(
+                request.LearnerId,
+                request.CourseId,
+                cancellationToken);
             if (enrollment == null)
             {
                 return ResponseDto<QuizResultDto>.FailResult(
@@ -146,19 +152,41 @@ namespace AILA.Application.Features.Quizzes.Commands.SubmitQuiz
                 if (isPassed)
                 {
                     var progress = await _uow.LearningProgresses.GetByCompositeKeyAsync(
-                        enrollment.Id, request.MaterialId, cancellationToken);
+                        enrollment.Id,
+                        request.MaterialId,
+                        cancellationToken);
+
                     if (progress == null)
                     {
-                        progress = new LearningProgress(enrollment.Id, request.MaterialId);
-                        await _uow.LearningProgresses.AddAsync(progress, cancellationToken);
+                        progress = new LearningProgress(
+                            enrollment.Id,
+                            request.MaterialId);
+
+                        await _uow.LearningProgresses.AddAsync(
+                            progress,
+                            cancellationToken);
                     }
 
-                    // Idempotent: chỉ cộng tiến độ lần đầu học liệu này được hoàn thành.
                     if (!progress.IsCompleted)
                     {
                         progress.Complete();
                         enrollment.CompleteMaterial();
-                        _uow.Enrollments.Update(enrollment);
+
+                        if (score == 100m)
+                        {
+                            var behaviorTags = enrollment.Course.CourseTags
+                                .Where(t =>
+                                    !ReservedTagCodes.LevelTags.Contains(t.Code)
+                                    &&
+                                    !ReservedTagCodes.LearnerTypeTags.Contains(t.Code))
+                                .ToList();
+
+                            await _learnerBehaviorService.IncreaseScoreAsync(
+                                request.LearnerId,
+                                behaviorTags,
+                                BehaviorScoreConstants.PerfectQuiz,
+                                cancellationToken);
+                        }
                     }
                 }
 

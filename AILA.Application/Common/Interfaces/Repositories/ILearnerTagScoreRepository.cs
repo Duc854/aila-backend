@@ -16,5 +16,9 @@ namespace AILA.Application.Common.Interfaces.Repositories
         Task<List<LearnerTagScore>> GetByLearnerIdAsync(
             Guid learnerId,
             CancellationToken cancellationToken = default);
+        Task<List<LearnerTagScore>> GetByLearnerIdAndTagIdsAsync(
+            Guid learnerId,
+            IEnumerable<Guid> tagIds,
+            CancellationToken cancellationToken = default);
     }
 }
