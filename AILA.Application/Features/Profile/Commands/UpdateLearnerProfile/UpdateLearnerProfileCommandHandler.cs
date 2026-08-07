@@ -89,7 +89,7 @@ namespace AILA.Application.Features.Profile.Commands.UpdateLearnerProfile
                 ),
                 Enumerable.Empty<EnrollmentSummaryDto>(),
                 // Màn cập nhật hồ sơ không tổng hợp dashboard học tập (UC-30) — trả về giá trị rỗng.
-                new LearningSummaryDto(0, 0, 0, 0, 0, null),
+                new LearningSummaryDto(0, 0, 0, 0, 0, null, 0, null),
                 Enumerable.Empty<QuizHistoryItemDto>(),
                 Enumerable.Empty<AiScenarioHistoryItemDto>()
             );

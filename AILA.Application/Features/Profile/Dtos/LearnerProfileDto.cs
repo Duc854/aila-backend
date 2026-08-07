@@ -27,7 +27,8 @@ namespace AILA.Application.Features.Profile.Dtos
 
     /// <summary>
     /// Thống kê tóm tắt (UC-30, AC-2). Chỉ đọc, tính từ dữ liệu đã lưu.
-    /// AverageQuizScore = null khi Learner chưa làm quiz nào (tránh chia cho 0; FE hiển thị "—").
+    /// AverageQuizScore / AverageAiScenarioScore = null khi Learner chưa có lượt nào
+    /// (tránh chia cho 0; FE hiển thị "—").
     /// </summary>
     public record LearningSummaryDto(
         int TotalCourses,
@@ -35,7 +36,9 @@ namespace AILA.Application.Features.Profile.Dtos
         int CoursesCompleted,
         int TotalQuizzesTaken,
         int QuizzesPassed,
-        decimal? AverageQuizScore
+        decimal? AverageQuizScore,
+        int TotalAiScenariosPracticed,
+        decimal? AverageAiScenarioScore
     );
 
     /// <summary>
@@ -55,15 +58,21 @@ namespace AILA.Application.Features.Profile.Dtos
     );
 
     /// <summary>
-    /// Một mục trong lịch sử luyện tập AI scenario (UC-30, AC-5).
-    /// Hiện chưa có nguồn dữ liệu upstream (luồng AI practice chưa lưu bản ghi),
-    /// nên danh sách này tạm rỗng — khối hiển thị empty chứ không lỗi.
+    /// Một mục trong lịch sử luyện tập AI scenario (UC-30, AC-5) — mỗi mục là một lượt
+    /// thực hành đã HOÀN THÀNH (PracticeAttempt.Completed). Kèm CourseId + MaterialId +
+    /// AttemptId để FE liên kết sang màn xem kết quả chi tiết lượt thực hành.
+    /// Score = null nếu lượt đó được lưu mà chưa có điểm tổng (dữ liệu cũ).
     /// </summary>
     public record AiScenarioHistoryItemDto(
+        Guid AttemptId,
+        Guid CourseId,
         Guid MaterialId,
         string ScenarioName,
-        DateTime PerformedAt,
-        decimal? Score
+        string CourseName,
+        string? Difficulty,
+        decimal? Score,
+        DateTime StartedAt,
+        DateTime? CompletedAt
     );
 
     public record LearnerProfileDto(

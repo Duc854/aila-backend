@@ -1,13 +1,13 @@
-﻿using AILA.Domain.Common;
+using AILA.Domain.Common;
 using AILA.Domain.Enums;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AILA.Domain.Entities
 {
+    /// <summary>
+    /// Aggregate root của luồng nhờ chuyên gia đánh giá một lượt thực hành.
+    /// Vòng đời: Pending -> InProgress -> Completed, có thể Cancelled khi chưa hoàn tất.
+    /// </summary>
     public class ExpertEvaluationRequest : BaseEntity
     {
         public Guid PracticeAttemptId { get; private set; }
@@ -30,6 +30,13 @@ namespace AILA.Domain.Entities
 
         public ExpertEvaluationRequest(Guid practiceAttemptId, Guid learnerId)
         {
+            if (practiceAttemptId == Guid.Empty)
+                throw new ArgumentException("Mã lượt thực hành không hợp lệ.", nameof(practiceAttemptId));
+
+            if (learnerId == Guid.Empty)
+                throw new ArgumentException("Mã học viên không hợp lệ.", nameof(learnerId));
+
+            Id = Guid.NewGuid();
             PracticeAttemptId = practiceAttemptId;
             LearnerId = learnerId;
 
@@ -37,8 +44,18 @@ namespace AILA.Domain.Entities
             RequestedAt = DateTime.UtcNow;
         }
 
+        /// <summary>
+        /// Giao yêu cầu cho chuyên gia tác giả khóa học (BR-04). Chỉ hợp lệ khi đang chờ gán.
+        /// </summary>
         public void AssignExpert(Guid expertId)
         {
+            if (expertId == Guid.Empty)
+                throw new ArgumentException("Mã chuyên gia không hợp lệ.", nameof(expertId));
+
+            if (Status != ExpertEvaluationRequestStatus.Pending)
+                throw new InvalidOperationException(
+                    "Chỉ yêu cầu đang chờ mới được giao cho chuyên gia.");
+
             ExpertId = expertId;
             AssignedAt = DateTime.UtcNow;
             Status = ExpertEvaluationRequestStatus.InProgress;
@@ -46,17 +63,35 @@ namespace AILA.Domain.Entities
             UpdateTimestamp();
         }
 
+        /// <summary>
+        /// Chốt yêu cầu sau khi chuyên gia đã nộp kết quả. Chỉ hợp lệ khi đang được xử lý.
+        /// </summary>
         public void Complete()
         {
+            if (Status != ExpertEvaluationRequestStatus.InProgress)
+                throw new InvalidOperationException(
+                    "Chỉ yêu cầu đang được chuyên gia xử lý mới được hoàn tất.");
+
             Status = ExpertEvaluationRequestStatus.Completed;
             CompletedAt = DateTime.UtcNow;
 
             UpdateTimestamp();
         }
 
+        /// <summary>
+        /// Hủy yêu cầu khi chưa hoàn tất. Kết quả đã chốt là bất biến nên không thể hủy.
+        /// </summary>
         public void Cancel()
         {
+            if (Status == ExpertEvaluationRequestStatus.Completed)
+                throw new InvalidOperationException(
+                    "Không thể hủy yêu cầu đã hoàn tất.");
+
+            if (Status == ExpertEvaluationRequestStatus.Cancelled)
+                return;
+
             Status = ExpertEvaluationRequestStatus.Cancelled;
+
             UpdateTimestamp();
         }
     }
