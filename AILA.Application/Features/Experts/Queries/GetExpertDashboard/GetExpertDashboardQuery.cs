@@ -34,8 +34,8 @@ namespace AILA.Application.Features.Experts.Queries.GetExpertDashboard
             GetExpertDashboardQuery request, 
             CancellationToken cancellationToken)
         {
-            // 1. Kiểm tra danh sách khóa học đã xuất bản của Expert - BR-01, AF-01
-            var publishedCourses = await _uow.ExpertDashboards.GetPublishedCoursesByExpertAsync(
+            // 1. Kiểm tra danh sách khóa học đã xuất bản của Expert - ICourseRepository
+            var publishedCourses = await _uow.Courses.GetPublishedByExpertAsync(
                 request.ExpertId, cancellationToken);
 
             var availableCourseOptions = publishedCourses.Select(c => new CourseOptionDto
@@ -121,14 +121,14 @@ namespace AILA.Application.Features.Experts.Queries.GetExpertDashboard
                 targetCourseIds = publishedCourses.Select(c => c.Id).ToList();
             }
 
-            // 3. Lấy dữ liệu phân tích trong phạm vi (BR-04, BR-05)
-            var enrollments = await _uow.ExpertDashboards.GetEnrollmentsInScopeAsync(
+            // 3. Lấy dữ liệu phân tích trong phạm vi từ các repo tương ứng (BR-04, BR-05)
+            var enrollments = await _uow.Enrollments.GetEnrollmentsInScopeAsync(
                 targetCourseIds, fromDate, toDate, cancellationToken);
 
-            var totalQuizAttempts = await _uow.ExpertDashboards.GetQuizAttemptsCountInScopeAsync(
+            var totalQuizAttempts = await _uow.Quizzes.GetQuizAttemptsCountInScopeAsync(
                 targetCourseIds, fromDate, toDate, cancellationToken);
 
-            var totalPracticeAttempts = await _uow.ExpertDashboards.GetPracticeAttemptsCountInScopeAsync(
+            var totalPracticeAttempts = await _uow.PracticeAttempts.GetPracticeAttemptsCountInScopeAsync(
                 targetCourseIds, fromDate, toDate, cancellationToken);
 
             // AF-02: Không có dữ liệu phân tích trong khoảng thời gian đã chọn

@@ -46,7 +46,8 @@ namespace AILA.Infrastructure.Persistence
         public IResourceLimitPolicyRepository ResourceLimitPolicies { get; private set; }
         public IAdminActivityLogRepository AdminActivityLogs { get; private set; }
         public IAccountResourceLimitRepository AccountResourceLimits { get; private set; }
-        public IExpertDashboardRepository ExpertDashboards { get; private set; }
+        public IAccountResourceUsageRepository AccountResourceUsages { get; private set; }
+        public IPracticeAttemptRepository PracticeAttempts { get; private set; }
 
         public UnitOfWork(ApplicationDbContext context)
         {
@@ -75,7 +76,8 @@ namespace AILA.Infrastructure.Persistence
             ResourceLimitPolicies = new ResourceLimitPolicyRepository(_context);
             AdminActivityLogs = new AdminActivityLogRepository(_context);
             AccountResourceLimits = new AccountResourceLimitRepository(_context);
-            ExpertDashboards = new ExpertDashboardRepository(_context);
+            AccountResourceUsages = new AccountResourceUsageRepository(_context);
+            PracticeAttempts = new PracticeAttemptRepository(_context);
         }
         public IGenericRepository<T> Repository<T>() where T : class
         {

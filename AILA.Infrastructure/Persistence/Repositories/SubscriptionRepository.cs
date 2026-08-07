@@ -31,34 +31,5 @@ namespace AILA.Infrastructure.Persistence.Repositories
                 .OrderByDescending(s => s.ActivatedAt)
                 .FirstOrDefaultAsync(cancellationToken);
         }
-
-        public async Task<AccountResourceUsage?> GetResourceUsageByAccountIdAsync(
-            Guid accountId,
-            CancellationToken cancellationToken = default)
-        {
-            return await _context.AccountResourceUsages
-                .AsNoTracking()
-                .Where(u => u.AccountId == accountId)
-                .OrderByDescending(u => u.PeriodEnd)
-                .FirstOrDefaultAsync(cancellationToken);
-        }
-
-        public async Task<AccountResourceLimit?> GetResourceLimitByAccountIdAsync(
-            Guid accountId,
-            CancellationToken cancellationToken = default)
-        {
-            return await _context.AccountResourceLimits
-                .AsNoTracking()
-                .FirstOrDefaultAsync(l => l.AccountId == accountId, cancellationToken);
-        }
-
-        public async Task<ResourceLimitPolicy?> GetDefaultPolicyAsync(
-            ResourceAccountType accountType = ResourceAccountType.Learner,
-            CancellationToken cancellationToken = default)
-        {
-            return await _context.ResourceLimitPolicies
-                .AsNoTracking()
-                .FirstOrDefaultAsync(p => p.AccountType == accountType, cancellationToken);
-        }
     }
 }

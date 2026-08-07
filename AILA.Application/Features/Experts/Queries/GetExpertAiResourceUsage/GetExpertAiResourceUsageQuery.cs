@@ -26,16 +26,16 @@ namespace AILA.Application.Features.Experts.Queries.GetExpertAiResourceUsage
             GetExpertAiResourceUsageQuery request, 
             CancellationToken cancellationToken)
         {
-            // 1. Lấy thông tin hạn mức ghi đè riêng của tài khoản Expert (nếu có) - BR-02
-            var accountLimit = await _uow.Subscriptions.GetResourceLimitByAccountIdAsync(
+            // 1. Lấy thông tin hạn mức ghi đè riêng của tài khoản Expert (nếu có) - IAccountResourceLimitRepository
+            var accountLimit = await _uow.AccountResourceLimits.GetByAccountIdAsync(
                 request.ExpertId, cancellationToken);
 
-            // 2. Lấy chính sách hạn mức mặc định cho tài khoản Expert từ cấu hình nền tảng - BR-02
-            var defaultPolicy = await _uow.Subscriptions.GetDefaultPolicyAsync(
+            // 2. Lấy chính sách hạn mức mặc định cho tài khoản Expert từ cấu hình nền tảng - IResourceLimitPolicyRepository
+            var defaultPolicy = await _uow.ResourceLimitPolicies.GetByAccountTypeAsync(
                 ResourceAccountType.Expert, cancellationToken);
 
-            // 3. Lấy dữ liệu tiêu thụ tài nguyên thực tế của Expert - BR-01
-            var usage = await _uow.Subscriptions.GetResourceUsageByAccountIdAsync(
+            // 3. Lấy dữ liệu tiêu thụ tài nguyên thực tế của Expert - IAccountResourceUsageRepository
+            var usage = await _uow.AccountResourceUsages.GetByAccountIdAsync(
                 request.ExpertId, cancellationToken);
 
             // Xác định hạn mức AI Token được cấp (Allocated Amount)

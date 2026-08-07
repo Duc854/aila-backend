@@ -31,16 +31,16 @@ namespace AILA.Application.Features.Subscriptions.Queries.GetSubscriptionResourc
             var activeSubscription = await _uow.Subscriptions.GetActiveSubscriptionByLearnerIdAsync(
                 request.LearnerId, cancellationToken);
 
-            // 2. Lấy thông tin giới hạn tài nguyên ghi đè riêng của tài khoản (nếu có)
-            var accountLimit = await _uow.Subscriptions.GetResourceLimitByAccountIdAsync(
+            // 2. Lấy thông tin giới hạn tài nguyên ghi đè riêng của tài khoản (nếu có) - IAccountResourceLimitRepository
+            var accountLimit = await _uow.AccountResourceLimits.GetByAccountIdAsync(
                 request.LearnerId, cancellationToken);
 
-            // 3. Lấy thông tin sử dụng tài nguyên thực tế của học viên - BR-03
-            var usage = await _uow.Subscriptions.GetResourceUsageByAccountIdAsync(
+            // 3. Lấy thông tin sử dụng tài nguyên thực tế của học viên - IAccountResourceUsageRepository
+            var usage = await _uow.AccountResourceUsages.GetByAccountIdAsync(
                 request.LearnerId, cancellationToken);
 
-            // 4. Lấy chính sách tài nguyên mặc định của nền tảng (dùng cho AF-01 khi không có gói active)
-            var defaultPolicy = await _uow.Subscriptions.GetDefaultPolicyAsync(
+            // 4. Lấy chính sách tài nguyên mặc định của nền tảng - IResourceLimitPolicyRepository
+            var defaultPolicy = await _uow.ResourceLimitPolicies.GetByAccountTypeAsync(
                 ResourceAccountType.Learner, cancellationToken);
 
             // Xác định định ngạch (Allocated Quota) từng loại tài nguyên
