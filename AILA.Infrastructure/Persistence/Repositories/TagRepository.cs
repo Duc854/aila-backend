@@ -101,6 +101,23 @@ namespace AILA.Infrastructure.Persistence.Repositories
             return await _context.Courses
                 .CountAsync(c => c.CourseTags.Any(t => t.Id == tagId), ct);
         }
+
+        public async Task<List<Tag>> GetPublishedByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken)
+        {
+            return await _context.Tags
+                .Where(x => ids.Contains(x.Id)
+                         && x.IsPublished)
+                .ToListAsync(cancellationToken);
+        }
+
+        public async Task<List<Tag>> GetByCodesAsync(
+    List<string> codes,
+    CancellationToken cancellationToken = default)
+        {
+            return await _context.Tags
+                .Where(x => codes.Contains(x.Code))
+                .ToListAsync(cancellationToken);
+        }
     }
 }
 
