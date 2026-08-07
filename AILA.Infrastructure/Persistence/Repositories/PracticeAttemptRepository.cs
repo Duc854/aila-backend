@@ -55,4 +55,24 @@ public class PracticeAttemptRepository : IPracticeAttemptRepository
         _context.PracticeAttempts.Update(attempt);
         await _context.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task<int> GetPracticeAttemptsCountInScopeAsync(
+        List<Guid> courseIds, 
+        DateTime fromDate, 
+        DateTime toDate, 
+        CancellationToken cancellationToken = default)
+    {
+        if (courseIds == null || courseIds.Count == 0)
+            return 0;
+
+        return await _context.PracticeAttempts
+            .AsNoTracking()
+            .Where(pa => _context.Enrollments
+                            .Where(e => courseIds.Contains(e.CourseId))
+                            .Select(e => e.Id)
+                            .Contains(pa.EnrollmentId)
+                      && pa.CreatedAt >= fromDate
+                      && pa.CreatedAt <= toDate)
+            .CountAsync(cancellationToken);
+    }
 }

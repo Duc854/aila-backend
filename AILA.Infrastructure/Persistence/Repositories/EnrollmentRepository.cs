@@ -60,5 +60,22 @@ namespace AILA.Infrastructure.Persistence.Repositories
         {
             _context.Enrollments.Update(enrollment);
         }
+
+        public async Task<List<Enrollment>> GetEnrollmentsInScopeAsync(
+            List<Guid> courseIds, 
+            DateTime fromDate, 
+            DateTime toDate, 
+            CancellationToken ct = default)
+        {
+            if (courseIds == null || courseIds.Count == 0)
+                return new List<Enrollment>();
+
+            return await _context.Enrollments
+                .AsNoTracking()
+                .Where(e => courseIds.Contains(e.CourseId) 
+                         && e.EnrolledAt >= fromDate 
+                         && e.EnrolledAt <= toDate)
+                .ToListAsync(ct);
+        }
     }
 }

@@ -40,6 +40,15 @@ namespace AILA.Application.Common.Interfaces.Repositories
         Task<(IEnumerable<QuizAttempt> Items, int TotalCount)> GetPagedSubmittedAttemptsByLearnerAsync(
             Guid learnerId, int pageIndex, int pageSize, CancellationToken cancellationToken = default);
 
+        /// <summary>
+        /// Đếm tổng số lượt làm bài Quiz trong phạm vi khóa học và khoảng thời gian (UC-65)
+        /// </summary>
+        Task<int> GetQuizAttemptsCountInScopeAsync(
+            List<Guid> courseIds, 
+            DateTime fromDate, 
+            DateTime toDate, 
+            CancellationToken cancellationToken = default);
+
         Task AddAttemptAsync(QuizAttempt attempt, CancellationToken cancellationToken = default);
 
         /// <summary>
