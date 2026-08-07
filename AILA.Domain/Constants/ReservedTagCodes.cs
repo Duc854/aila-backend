@@ -21,6 +21,21 @@ namespace AILA.Domain.Constants
         public const string Intermediate = "co-ban";
         public const string Advanced = "nang-cao";
 
+        public static readonly IReadOnlySet<string> LearnerTypeTags = new HashSet<string>
+            {
+                Student,
+                OfficeWorker,
+                Freelancer,
+                BusinessOwner,
+                CivilServant,
+                Retired
+            };
+        public static readonly IReadOnlySet<string> LevelTags = new HashSet<string>
+            {
+                Beginner,
+                Intermediate,
+                Advanced
+            };
 
         public static readonly IReadOnlySet<string> All =
             new HashSet<string>

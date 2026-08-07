@@ -1,4 +1,5 @@
 using AILA.Application.Common.Interfaces.Repositories;
+using AILA.Domain.Constants;
 using AILA.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -116,6 +117,38 @@ namespace AILA.Infrastructure.Persistence.Repositories
         {
             return await _context.Tags
                 .Where(x => codes.Contains(x.Code))
+                .ToListAsync(cancellationToken);
+        }
+
+        public async Task<List<Tag>> GetPublishedSelectableTagsAsync(
+            CancellationToken cancellationToken = default)
+        {
+            var levelCodes = ReservedTagCodes.LevelTags.ToList();
+
+            return await _context.Tags
+                .AsNoTracking()
+                .Where(t =>
+                    t.IsPublished
+                    && !levelCodes.Contains(t.Code))
+                .OrderBy(t => t.Name)
+                .ToListAsync(cancellationToken);
+        }
+
+        public async Task<List<Tag>> GetLearnerInterestTagsAsync(
+            CancellationToken cancellationToken = default)
+        {
+            var learnerTypeCodes = ReservedTagCodes.LearnerTypeTags.ToList();
+            var levelCodes = ReservedTagCodes.LevelTags.ToList();
+
+            return await _context.Tags
+                .AsNoTracking()
+                .Where(t =>
+                    t.IsPublished
+                    &&
+                    !learnerTypeCodes.Contains(t.Code)
+                    &&
+                    !levelCodes.Contains(t.Code))
+                .OrderBy(t => t.Name)
                 .ToListAsync(cancellationToken);
         }
     }

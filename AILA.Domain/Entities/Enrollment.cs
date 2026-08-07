@@ -57,16 +57,28 @@ namespace AILA.Domain.Entities
         /// <summary>
         /// Ghi nhận khi học viên hoàn thành thêm 1 học liệu (Video, Doc, Quiz...) trong khóa học
         /// </summary>
-        public void CompleteMaterial()
+        public bool CompleteMaterial()
         {
-            if (Status == EnrollmentStatus.Completed) return;
+            if (Status == EnrollmentStatus.Completed)
+                return false;
+
 
             if (CompletedMaterials >= TotalMaterials)
-                throw new InvalidOperationException("Số học liệu hoàn thành không thể vượt quá tổng số học liệu của khóa học.");
+                throw new InvalidOperationException(
+                    "Số học liệu hoàn thành không thể vượt quá tổng số học liệu.");
+
 
             CompletedMaterials++;
+
+            var wasCompleted = Status == EnrollmentStatus.Completed;
+
             CalculateProgress();
+
             TrackAccess();
+
+
+            return !wasCompleted
+                && Status == EnrollmentStatus.Completed;
         }
 
         /// <summary>
@@ -119,6 +131,11 @@ namespace AILA.Domain.Entities
                 Status = EnrollmentStatus.Completed;
                 CompletedAt = DateTime.UtcNow;
             }
+        }
+
+        public bool IsCompleted()
+        {
+            return CompletedMaterials >= TotalMaterials;
         }
     }
 }

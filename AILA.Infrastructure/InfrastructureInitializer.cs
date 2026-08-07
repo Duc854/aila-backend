@@ -28,6 +28,9 @@ namespace AILA.Infrastructure
                 await adminSeeder.SeedAsync();
                 var resourceLimitPolicySeeder = provider.GetRequiredService<ResourceLimitPolicySeeder>();
                 await resourceLimitPolicySeeder.SeedAsync();
+                var systemTagSeeder = provider.GetRequiredService<SystemTagSeeder>();
+                await systemTagSeeder.SeedAsync();
+
             }
             catch (Exception ex)
             {

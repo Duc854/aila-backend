@@ -52,5 +52,11 @@ namespace AILA.Application.Common.Interfaces.Repositories
         Task<List<Tag>> GetByCodesAsync(
     List<string> codes,
     CancellationToken cancellationToken = default);
+
+        Task<List<Tag>> GetPublishedSelectableTagsAsync(
+            CancellationToken cancellationToken = default);
+
+        Task<List<Tag>> GetLearnerInterestTagsAsync(
+            CancellationToken cancellationToken = default);
     }
 }
