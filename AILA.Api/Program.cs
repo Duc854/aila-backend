@@ -66,7 +66,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAll", policy =>
     {
         policy.WithOrigins(
-                "https://localhost:5173",
+                "http://localhost:5173",
                 "https://aila.io.vn",
                 "https://www.aila.io.vn"
             )

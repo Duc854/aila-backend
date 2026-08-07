@@ -1,4 +1,5 @@
-﻿using AILA.Domain.Enums;
+﻿using AILA.Domain.Constants;
+using AILA.Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -53,6 +54,9 @@ namespace AILA.Domain.Entities
             // Domain Validation: Chỉ cho phép chọn các Tag đã được Admin duyệt (IsPublished = true)
             if (selectedTags.Any(t => !t.IsPublished))
                 throw new InvalidOperationException("Không thể chọn mục tiêu học tập chưa được phê duyệt.");
+            if (selectedTags.Any(t => ReservedTagCodes.All.Contains(t.Code)))
+                throw new InvalidOperationException(
+                    "Không thể chọn tag hệ thống làm mục tiêu học tập.");
 
             if (selectedTags.Select(t => t.Id).Distinct().Count() != selectedTags.Count)
                 throw new InvalidOperationException("Danh sách mục tiêu học tập không được chứa mục tiêu trùng lặp.");
@@ -78,7 +82,9 @@ namespace AILA.Domain.Entities
 
             if (newTags.Any(t => !t.IsPublished))
                 throw new InvalidOperationException("Mục tiêu học tập chỉ được chọn trong danh sách đã có");
-
+            if (newTags.Any(t => ReservedTagCodes.All.Contains(t.Code)))
+                throw new InvalidOperationException(
+                    "Không thể chọn tag hệ thống làm mục tiêu học tập.");
             if (newTags.Select(t => t.Id).Distinct().Count() != newTags.Count)
                 throw new InvalidOperationException("Danh sách mục tiêu học tập không được chứa mục tiêu trùng lặp.");
 
