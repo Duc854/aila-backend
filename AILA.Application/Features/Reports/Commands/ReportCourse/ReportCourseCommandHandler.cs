@@ -40,9 +40,8 @@ namespace AILA.Application.Features.Reports.Commands.ReportCourse
                     "NOT_ENROLLED", "Bạn cần tham gia khóa học này trước khi báo cáo.");
 
             // Xác định đối tượng bị báo cáo: một học liệu cụ thể (nếu có MaterialId) hoặc cả khóa học.
-            // ContentReport chỉ gắn với đúng một đối tượng (XOR) nên chỉ một trong hai ID được set.
-            Guid? reportCourseId;
-            Guid? reportMaterialId;
+            // ContentReport luôn gắn với courseId (required), materialId là tùy chọn.
+            Guid? reportMaterialId = null;
             if (request.MaterialId is { } materialId)
             {
                 // Học liệu phải tồn tại và thuộc đúng khóa học đang báo cáo.
@@ -50,17 +49,11 @@ namespace AILA.Application.Features.Reports.Commands.ReportCourse
                     return ResponseDto<ReportCourseResponseDto>.FailResult(
                         "MATERIAL_NOT_FOUND", "Không tìm thấy học liệu trong khóa học này.");
 
-                reportCourseId = null;
                 reportMaterialId = materialId;
-            }
-            else
-            {
-                reportCourseId = request.CourseId;
-                reportMaterialId = null;
             }
 
             // Edge case: chống nộp trùng — đã có báo cáo đang chờ xử lý cho cùng đối tượng.
-            if (await uow.ContentReports.HasPendingReportAsync(request.LearnerId, reportCourseId, reportMaterialId, ct))
+            if (await uow.ContentReports.HasPendingReportAsync(request.LearnerId, request.CourseId, reportMaterialId, ct))
                 return ResponseDto<ReportCourseResponseDto>.FailResult(
                     "ALREADY_REPORTED",
                     reportMaterialId != null
@@ -68,7 +61,7 @@ namespace AILA.Application.Features.Reports.Commands.ReportCourse
                         : "Bạn đã báo cáo khóa học này và đang chờ xử lý.");
 
             // AC-3 / AC-4: tạo report ở trạng thái Pending (moderation queue).
-            var report = new ContentReport(request.LearnerId, reportCourseId.Value, reportMaterialId, request.Reason, description);
+            var report = new ContentReport(request.LearnerId, request.CourseId, reportMaterialId, request.Reason, description);
 
             await uow.ContentReports.AddAsync(report);
             await uow.SaveChangesAsync(ct);
