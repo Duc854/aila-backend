@@ -1,4 +1,4 @@
-﻿using AILA.Application.Features.AIPracticeMaterials.Commands.CreateAIPracticeMaterial;
+using AILA.Application.Features.AIPracticeMaterials.Commands.CreateAIPracticeMaterial;
 using FluentValidation;
 using System;
 using System.Collections.Generic;

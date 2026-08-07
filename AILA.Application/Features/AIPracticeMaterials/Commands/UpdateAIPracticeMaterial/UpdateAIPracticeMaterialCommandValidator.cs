@@ -1,4 +1,4 @@
-﻿using AILA.Application.Features.AIPracticeMaterials.Validators;
+using AILA.Application.Features.AIPracticeMaterials.Validators;
 using FluentValidation;
 using System;
 using System.Collections.Generic;

@@ -1,7 +1,9 @@
+using AILA.Application.Common.Dtos;
 using AILA.Application.Common.Interfaces.Repositories;
 using AILA.Domain.Entities;
 using AILA.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using Shared.Wrappers;
 
 namespace AILA.Infrastructure.Persistence.Repositories
 {
@@ -282,6 +284,61 @@ namespace AILA.Infrastructure.Persistence.Repositories
         }
 
         #endregion
+
+        public async Task<(List<AccountOverrideAccountDto> Items, int TotalItems)>
+    GetOverrideEligibleAccountsAsync(
+        string? keyword,
+        PageRequest pageRequest,
+        CancellationToken cancellationToken = default)
+        {
+            var query = _context.Users
+                .AsNoTracking()
+                .Where(x => x.Role != UserRole.Admin);
+
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                keyword = keyword.Trim();
+
+                query = query.Where(x =>
+                    x.Email.Contains(keyword)
+                    ||
+                    x.FullName.Contains(keyword));
+            }
+
+
+            var totalItems = await query.CountAsync(
+                cancellationToken);
+
+
+            var items = await query
+                .OrderBy(x => x.Email)
+
+                .Skip(
+                    pageRequest.PageIndex
+                    * pageRequest.PageSize)
+
+                .Take(pageRequest.PageSize)
+
+                .Select(x => new AccountOverrideAccountDto
+                {
+                    AccountId = x.Id,
+
+                    Email = x.Email,
+
+                    FullName = x.FullName,
+
+                    Role = x.Role.ToString(),
+
+                    HasOverride = _context.AccountResourceLimits
+                        .Any(r => r.AccountId == x.Id)
+                })
+
+                .ToListAsync(cancellationToken);
+
+
+            return (items, totalItems);
+        }
     }
 }
 

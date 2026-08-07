@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 
 namespace AILA.Application.Features.VideoMaterials.Commands.UpdateVideoDetail;
 

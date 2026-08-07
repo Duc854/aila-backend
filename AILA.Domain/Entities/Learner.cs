@@ -21,6 +21,11 @@ namespace AILA.Domain.Entities
         // Chỉ expose ra ngoài dưới dạng ReadOnly, không cho phép dùng .Add() trực tiếp từ bên ngoài
         public virtual IReadOnlyCollection<Tag> LearningGoals => _learningGoals.AsReadOnly();
 
+        private readonly List<LearnerTagScore> _tagScores = new();
+
+        public IReadOnlyCollection<LearnerTagScore> TagScores
+            => _tagScores.AsReadOnly();
+
         public virtual User User { get; private set; }
 
         private Learner() { }

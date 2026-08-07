@@ -1,4 +1,4 @@
-﻿using AILA.Application.Common.Interfaces.Repositories;
+using AILA.Application.Common.Interfaces.Repositories;
 using AILA.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -16,6 +16,15 @@ namespace AILA.Infrastructure.Persistence.Repositories
         public AIPracticeMaterialRepository(ApplicationDbContext context)
             : base(context)
         {
+        }
+
+        public async Task<AIPracticeMaterial?> GetByIdWithDetailsAsync(Guid materialId, CancellationToken cancellationToken = default)
+        {
+            return await _context.AIPracticeMaterials
+                .Include(x => x.PromptTemplates)
+                .Include(x => x.StepGuidances)
+                .Include(x => x.ScoringCriterias)
+                .FirstOrDefaultAsync(x => x.MaterialId == materialId, cancellationToken);
         }
 
         public async Task<AIPracticeMaterial?> GetDetailForExpertAsync(Guid materialId,CancellationToken cancellationToken = default)

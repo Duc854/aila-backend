@@ -1,4 +1,4 @@
-﻿namespace AILA.Application.Features.QuizMaterials.Dtos;
+namespace AILA.Application.Features.QuizMaterials.Dtos;
 
 public sealed class QuizMaterialDto
 {

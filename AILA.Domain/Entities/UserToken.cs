@@ -1,4 +1,4 @@
-﻿using AILA.Domain.Common;
+using AILA.Domain.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
