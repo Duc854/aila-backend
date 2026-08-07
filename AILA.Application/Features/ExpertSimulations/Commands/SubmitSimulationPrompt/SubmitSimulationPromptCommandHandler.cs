@@ -4,8 +4,10 @@ using AILA.Application.Common.Interfaces;
 using AILA.Application.Common.Interfaces.AI;
 using AILA.Application.Common.Interfaces.Repositories;
 using AILA.Domain.Entities;
+using AILA.Domain.Enums;
 using MediatR;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,37 +20,40 @@ public class SubmitSimulationPromptCommandHandler : IRequestHandler<SubmitSimula
     private readonly IPrivacyService _privacyService;
     private readonly IModerationService _moderationService;
     private readonly IQuotaService _quotaService;
+    private readonly IPracticeChatService _chatService;
 
     public SubmitSimulationPromptCommandHandler(
         IUnitOfWork unitOfWork,
         IAIPracticeMaterialRepository materialRepo,
         IPrivacyService privacyService,
         IModerationService moderationService,
-        IQuotaService quotaService)
+        IQuotaService quotaService,
+        IPracticeChatService chatService)
     {
         _unitOfWork = unitOfWork;
         _materialRepo = materialRepo;
         _privacyService = privacyService;
         _moderationService = moderationService;
         _quotaService = quotaService;
+        _chatService = chatService;
     }
 
     public async Task<PromptSubmissionDto> Handle(SubmitSimulationPromptCommand request, CancellationToken cancellationToken)
     {
-        // 1. Get ExpertSimulationAttempt
+        // 1. Get ExpertSimulationAttempt (load kèm submissions để build history)
         var attempt = await _unitOfWork.Repository<ExpertSimulationAttempt>().GetByIdAsync(request.SimulationAttemptId)
             ?? throw new NotFoundException(nameof(ExpertSimulationAttempt), request.SimulationAttemptId);
 
         var material = await _materialRepo.GetByIdAsync(attempt.MaterialId)
             ?? throw new NotFoundException("AIPracticeMaterial", attempt.MaterialId);
 
-        // 2. Check maximum prompt attempts
+        // 2. Check maximum prompt attempts — AF-07 (BR-04)
         if (!attempt.CanSubmitMore(material.MaxPromptAttempts))
         {
             throw new InvalidOperationException($"Simulation đã đạt giới hạn tối đa ({material.MaxPromptAttempts} lượt) hoặc đã kết thúc.");
         }
 
-        // 3. PII & Basic Prompt Validation (BR-07)
+        // 3. PII masking + basic validation (BR-07, AF-04)
         if (string.IsNullOrWhiteSpace(request.UserPrompt) || request.UserPrompt.Length < 5)
         {
             return new PromptSubmissionDto
@@ -64,31 +69,32 @@ public class SubmitSimulationPromptCommandHandler : IRequestHandler<SubmitSimula
             };
         }
 
+        var sanitizedPrompt = _privacyService.MaskSensitiveData(request.UserPrompt);
+
         if (_privacyService.HasSensitiveData(request.UserPrompt))
         {
             var piiTypes = _privacyService.GetSensitiveDataTypes(request.UserPrompt);
             var validationReason = $"Phát hiện thông tin cá nhân: {string.Join(", ", piiTypes)}.";
 
             var rejectedSubmission = attempt.AddRejectedSubmission(
-                request.UserPrompt,
+                sanitizedPrompt,
                 validationReason,
                 "PIIProtection");
 
-            var violationRecord = new UserViolationRecord(
+            await _unitOfWork.Repository<UserViolationRecord>().AddAsync(new UserViolationRecord(
                 attempt.ExpertId,
                 "PromptValidationViolation",
                 "PIIProtection",
                 validationReason,
                 attemptId: attempt.Id,
-                severity: "Medium");
-            await _unitOfWork.Repository<UserViolationRecord>().AddAsync(violationRecord);
+                severity: "Medium"));
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return new PromptSubmissionDto
             {
                 Id = rejectedSubmission.Id,
-                UserPrompt = request.UserPrompt,
+                UserPrompt = sanitizedPrompt,
                 AiResponse = string.Empty,
                 Status = "Violation",
                 IsViolation = true,
@@ -98,30 +104,29 @@ public class SubmitSimulationPromptCommandHandler : IRequestHandler<SubmitSimula
             };
         }
 
-        // 4. Content Moderation Check
-        var (isSafe, moderationReason) = await _moderationService.CheckContentSafetyAsync(request.UserPrompt, cancellationToken);
+        // 4. Content Moderation (BR-07)
+        var (isSafe, moderationReason) = await _moderationService.CheckContentSafetyAsync(sanitizedPrompt, cancellationToken);
         if (!isSafe)
         {
             var rejectedSubmission = attempt.AddRejectedSubmission(
-                request.UserPrompt,
+                sanitizedPrompt,
                 moderationReason ?? "Vi phạm quy chuẩn an toàn nội dung",
                 "ContentModeration");
 
-            var violationRecord = new UserViolationRecord(
+            await _unitOfWork.Repository<UserViolationRecord>().AddAsync(new UserViolationRecord(
                 attempt.ExpertId,
                 "ContentModerationViolation",
                 "ContentModeration",
                 moderationReason ?? "Vi phạm quy chuẩn an toàn nội dung",
                 attemptId: attempt.Id,
-                severity: "High");
-            await _unitOfWork.Repository<UserViolationRecord>().AddAsync(violationRecord);
+                severity: "High"));
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return new PromptSubmissionDto
             {
                 Id = rejectedSubmission.Id,
-                UserPrompt = request.UserPrompt,
+                UserPrompt = sanitizedPrompt,
                 AiResponse = string.Empty,
                 Status = "Violation",
                 IsViolation = true,
@@ -131,35 +136,78 @@ public class SubmitSimulationPromptCommandHandler : IRequestHandler<SubmitSimula
             };
         }
 
-        // 5. Check Quota Limit (BR-01)
+        // 5. Quota check (BR-01, AF-03)
         var quotaResult = await _quotaService.CheckQuotaAsync(attempt.ExpertId, 1000, 0.80f, cancellationToken);
         if (!quotaResult.IsAllowed)
         {
             return new PromptSubmissionDto
             {
                 Id = Guid.NewGuid(),
-                UserPrompt = request.UserPrompt,
+                UserPrompt = sanitizedPrompt,
                 AiResponse = string.Empty,
                 Status = "QuotaExceeded",
                 IsViolation = false,
-                WarningMessage = "Hạn mức Token AI của Expert không đủ để tiếp tục simulation.",
+                WarningMessage = quotaResult.WarningMessage ?? "Hạn mức Token AI của Expert không đủ để tiếp tục simulation.",
                 CreatedAt = DateTime.UtcNow
             };
         }
 
-        // Mock simulation AI response for testing / execution pipeline
-        var mockAiResponse = $"[Simulation Persona Response] Cảm ơn bạn. Câu trả lời thử nghiệm của Expert: '{request.UserPrompt}'";
-        var submission = attempt.AddSubmission(request.UserPrompt, mockAiResponse);
+        // 6. Build conversation history từ submissions đã lưu (BR-02 — dùng draft config)
+        var existingSubmissions = (await _unitOfWork.Repository<PromptSubmission>()
+            .FindAsync(s => s.AttemptId == attempt.Id))
+            .Where(s => !s.IsRejected)
+            .OrderBy(s => s.CreatedAt)
+            .ToList();
+
+        var history = existingSubmissions
+            .SelectMany(s => new[]
+            {
+                new ChatMessage("user",      s.UserPrompt),
+                new ChatMessage("assistant", s.AiResponse),
+            })
+            .ToList();
+
+        // 7. Gọi AI thật (Step 7-9, AF-05/06) — dùng AITask làm system prompt
+        string aiResponse;
+        try
+        {
+            aiResponse = await _chatService.GetChatResponseAsync(
+                systemPrompt: material.AITask,
+                userPrompt: sanitizedPrompt,
+                conversationHistory: history,
+                attemptId: attempt.Id,
+                accountId: attempt.ExpertId,
+                cancellationToken: cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            // AF-06 — AI response generation fails: không lưu, báo lỗi để expert retry
+            return new PromptSubmissionDto
+            {
+                Id = Guid.NewGuid(),
+                UserPrompt = sanitizedPrompt,
+                AiResponse = string.Empty,
+                Status = "AiError",
+                IsViolation = false,
+                WarningMessage = $"AI tạm thời không phản hồi. Vui lòng thử lại. ({ex.Message})",
+                CreatedAt = DateTime.UtcNow
+            };
+        }
+
+        // 8. Mask AI response và lưu submission
+        var sanitizedAiResponse = _privacyService.MaskSensitiveData(aiResponse);
+        var submission = attempt.AddSubmission(sanitizedPrompt, sanitizedAiResponse);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new PromptSubmissionDto
         {
             Id = submission.Id,
-            UserPrompt = request.UserPrompt,
-            AiResponse = mockAiResponse,
+            UserPrompt = sanitizedPrompt,
+            AiResponse = sanitizedAiResponse,
             Status = "Success",
             IsViolation = false,
+            WarningMessage = quotaResult.WarningMessage,
             CreatedAt = submission.CreatedAt
         };
     }

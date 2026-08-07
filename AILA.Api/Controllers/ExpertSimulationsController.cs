@@ -1,9 +1,9 @@
 using AILA.Application.Common.Dtos.AI;
 using AILA.Application.Features.ExpertSimulations.Commands.StartSimulation;
 using AILA.Application.Features.ExpertSimulations.Dtos;
+using AILA.Application.Features.ExpertSimulations.Queries.GetSimulationDetail;
 using AILA.Application.Features.PracticeAttempts.Commands.CompleteAttempt;
 using AILA.Application.Features.PracticeAttempts.Commands.SubmitPrompt;
-using AILA.Application.Features.PracticeAttempts.Queries.GetAttemptDetail;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -61,7 +61,7 @@ public class ExpertSimulationsController : ControllerBase
     [HttpGet("{sessionId:guid}")]
     public async Task<ActionResult<PracticeAttemptDto>> GetSimulationDetail(Guid sessionId)
     {
-        var result = await _mediator.Send(new GetAttemptDetailQuery(sessionId));
+        var result = await _mediator.Send(new GetSimulationDetailQuery(sessionId));
         return Ok(result);
     }
 }
