@@ -8,9 +8,19 @@ namespace AILA.Domain.Enums
 {
     public enum NotificationType
     {
-        System,        // Thông báo chung từ Admin/Hệ thống
-        CourseUpdate,  // Khóa học có bài mới, module mới
-        Enrollment,    // Đăng ký học thành công
-        Assignment     // Có bài tập mới hoặc được chấm điểm
+        //Learner
+        RegisterSuccessful,
+        ResetPasswordSuccessful,
+        PurchaseSubcriptionSuccesful,
+        EnrollACourse,
+        ReceiveExpertEvaluation,
+        //Expert
+        NewEvaluationRequest,
+        CourseModerationResult,
+        TagVerificationResult,
+        //Admin
+        NewContentReport,
+        NewCourseReviewRequest,
+        NewTagVerificationRequest,
     }
 }
