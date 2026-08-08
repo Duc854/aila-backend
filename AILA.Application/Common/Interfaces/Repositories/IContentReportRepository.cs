@@ -38,6 +38,14 @@ namespace AILA.Application.Common.Interfaces.Repositories
         Task<ContentReport?> GetReportWithCourseForUpdateAsync(
             Guid reportId,
             CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Lấy tất cả báo cáo liên quan đến một course cụ thể (cả course report lẫn content report).
+        /// Dùng để admin tra cứu lịch sử vi phạm khi xét yêu cầu mở lại khóa học.
+        /// </summary>
+        Task<IEnumerable<ContentReport>> GetReportsByCourseAsync(
+            Guid courseId,
+            CancellationToken cancellationToken = default);
     }
 }
 

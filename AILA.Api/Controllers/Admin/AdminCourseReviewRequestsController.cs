@@ -2,6 +2,7 @@ using AILA.Application.Features.CourseReviewRequests.Commands.ApproveCourseReRev
 using AILA.Application.Features.CourseReviewRequests.Commands.RejectCourseReReview;
 using AILA.Application.Features.CourseReviewRequests.Queries.GetCourseReReviewRequests;
 using AILA.Application.Features.Materials.Queries.GetMaterialDetail;
+using AILA.Application.Features.Reports.Queries.GetReportsByCourse;
 using AILA.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -92,6 +93,20 @@ public class AdminCourseReviewRequestsController : ControllerBase
             };
         }
 
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Admin xem tất cả báo cáo liên quan đến một khóa học (tra cứu lịch sử vi phạm
+    /// khi xét yêu cầu mở lại).
+    /// GET /api/admin/courses/{courseId}/reports
+    /// </summary>
+    [HttpGet("/api/admin/courses/{courseId:guid}/reports")]
+    public async Task<IActionResult> GetReportsByCourse(
+        Guid courseId,
+        CancellationToken ct)
+    {
+        var result = await _sender.Send(new GetReportsByCourseQuery(courseId), ct);
         return Ok(result);
     }
 
