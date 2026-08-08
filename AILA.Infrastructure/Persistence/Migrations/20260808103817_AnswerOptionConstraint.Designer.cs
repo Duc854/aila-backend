@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using AILA.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AILA.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260808103817_AnswerOptionConstraint")]
+    partial class AnswerOptionConstraint
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1270,12 +1273,6 @@ namespace AILA.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("EnrollmentId");
-
-                    b.HasIndex("MaterialId");
-
-                    b.HasIndex("EnrollmentId", "MaterialId");
-
                     b.ToTable("PracticeAttempts");
                 });
 
@@ -1452,9 +1449,9 @@ namespace AILA.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("QuizMaterialId");
+                    b.HasIndex("EnrollmentId");
 
-                    b.HasIndex("EnrollmentId", "QuizMaterialId");
+                    b.HasIndex("QuizMaterialId");
 
                     b.ToTable("QuizAttempts");
                 });

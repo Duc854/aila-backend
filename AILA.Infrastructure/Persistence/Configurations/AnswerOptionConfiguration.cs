@@ -23,6 +23,12 @@ namespace AILA.Infrastructure.Persistence.Configurations
 
             builder.Property(x => x.OrderIndex)
                 .IsRequired();
+
+            builder.HasIndex(x => new
+            {
+                x.QuestionId,
+                x.OrderIndex
+            }).IsUnique();
         }
     }
 }

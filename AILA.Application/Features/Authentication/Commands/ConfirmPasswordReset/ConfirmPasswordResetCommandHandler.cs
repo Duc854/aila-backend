@@ -1,6 +1,7 @@
 using AILA.Application.Common.Exceptions;
 using AILA.Application.Common.Helpers;
 using AILA.Application.Common.Interfaces;
+using AILA.Application.Common.Notifications;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -99,6 +100,13 @@ namespace AILA.Application.Features.Authentication.Commands.ConfirmPasswordReset
 
                 // --- BR-03: hash một chiều (BCrypt), không bao giờ encrypt hai chiều ---
                 user.UpdatePassword(_passwordHasher.HashPassword(request.NewPassword));
+
+                // Lưu dấu vết cho chính chủ biết mật khẩu đã bị đổi vào lúc nào.
+                // Áp dụng cho mọi vai trò vì luồng reset này dùng chung.
+                await _uow.Notifications.AddAsync(
+                    NotificationTemplates.PasswordResetSucceeded(user.Id, DateTime.UtcNow));
+
+                // Một SaveChanges duy nhất => password mới và thông báo cùng một transaction.
                 await _uow.SaveChangesAsync(cancellationToken);
 
                 _logger.LogInformation(

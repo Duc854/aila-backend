@@ -31,6 +31,13 @@ namespace AILA.Infrastructure.Persistence.Configurations
                 .WithMany()
                 .HasForeignKey(x => x.CourseId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasIndex(x => new
+            {
+                x.LearnerId,
+                x.CourseId
+            })
+            .IsUnique();
         }
     }
 }

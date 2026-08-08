@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using AILA.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AILA.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260808093855_UpdateContentReportRelationshipCourse")]
+    partial class UpdateContentReportRelationshipCourse
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -322,8 +325,7 @@ namespace AILA.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("QuestionId", "OrderIndex")
-                        .IsUnique();
+                    b.HasIndex("QuestionId");
 
                     b.ToTable("AnswerOptions");
                 });
@@ -716,8 +718,7 @@ namespace AILA.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CourseId");
 
-                    b.HasIndex("LearnerId", "CourseId")
-                        .IsUnique();
+                    b.HasIndex("LearnerId");
 
                     b.ToTable("Enrollments");
                 });
@@ -1062,8 +1063,7 @@ namespace AILA.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ModuleId", "OrderIndex")
-                        .IsUnique();
+                    b.HasIndex("ModuleId");
 
                     b.ToTable("Materials");
                 });
@@ -1096,7 +1096,7 @@ namespace AILA.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CourseId", "OrderIndex");
+                    b.HasIndex("CourseId");
 
                     b.ToTable("Modules");
                 });
@@ -1269,12 +1269,6 @@ namespace AILA.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("EnrollmentId");
-
-                    b.HasIndex("MaterialId");
-
-                    b.HasIndex("EnrollmentId", "MaterialId");
 
                     b.ToTable("PracticeAttempts");
                 });
@@ -1452,9 +1446,9 @@ namespace AILA.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("QuizMaterialId");
+                    b.HasIndex("EnrollmentId");
 
-                    b.HasIndex("EnrollmentId", "QuizMaterialId");
+                    b.HasIndex("QuizMaterialId");
 
                     b.ToTable("QuizAttempts");
                 });

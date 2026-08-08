@@ -26,6 +26,11 @@ namespace AILA.Infrastructure.Persistence.Configurations
 
             builder.Navigation(x => x.Materials)
                 .UsePropertyAccessMode(PropertyAccessMode.Field);
+            builder.HasIndex(x => new
+            {
+                x.CourseId,
+                x.OrderIndex
+            });
         }
     }
 }
