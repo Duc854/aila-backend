@@ -6,5 +6,6 @@ namespace AILA.Application.Features.AnswerOptions.Queries.GetAnswerOptions;
 
 public sealed record GetAnswerOptionsQuery(
     Guid QuestionId,
-    Guid ExpertId
+    Guid ExpertId,
+    bool IsAdminOverride = false
 ) : IRequest<ResponseDto<List<AnswerOptionDto>>>;

@@ -17,6 +17,8 @@ namespace AILA.Application.Common.Dtos
 
     public class CourseProgressDto
     {
+        public Guid? EnrollmentId { get; set; }
+
         public int CompletedMaterials { get; set; }
 
         public int TotalMaterials { get; set; }

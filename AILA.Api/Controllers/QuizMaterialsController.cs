@@ -11,11 +11,10 @@ using Shared.Wrappers;
 
 namespace AILA.Api.Controllers;
 
-[Authorize(Roles = "Expert")]
+[Authorize]
 [ApiController]
 [Route("api/quiz-materials")]
-public class QuizMaterialsController : ControllerBase
-{
+public class QuizMaterialsController : ControllerBase{
     private readonly ISender _sender;
 
     public QuizMaterialsController(
@@ -28,6 +27,7 @@ public class QuizMaterialsController : ControllerBase
     /// Lấy thông tin chi tiết Quiz Material.
     /// </summary>
     [HttpGet("{materialId:guid}")]
+    [Authorize(Roles = "Expert,Admin")]
     public async Task<IActionResult> GetQuizDetail(
         Guid materialId,
         CancellationToken ct)
@@ -42,9 +42,12 @@ public class QuizMaterialsController : ControllerBase
                     "Xác thực thất bại."));
         }
 
+        var isAdmin = identity.Role == "Admin";
+
         var query = new GetQuizDetailQuery(
             materialId,
-            identity.UserId);
+            identity.UserId,
+            IsAdminOverride: isAdmin);
 
         var result = await _sender.Send(query, ct);
 
@@ -65,6 +68,7 @@ public class QuizMaterialsController : ControllerBase
     /// Cập nhật thông tin Quiz Material.
     /// </summary>
     [HttpPut("{materialId:guid}")]
+    [Authorize(Roles = "Expert")]
     public async Task<IActionResult> UpdateQuizDetail(
         Guid materialId,
         [FromBody] UpdateQuizDetailRequest request,
@@ -106,6 +110,7 @@ public class QuizMaterialsController : ControllerBase
     /// Tạo nhanh toàn bộ Quiz (Question + AnswerOption) trong một Transaction.
     /// </summary>
     [HttpPost("{materialId:guid}/bulk")]
+    [Authorize(Roles = "Expert")]
     public async Task<IActionResult> BulkCreateQuiz(
         Guid materialId,
         [FromBody] BulkCreateQuizRequest request,

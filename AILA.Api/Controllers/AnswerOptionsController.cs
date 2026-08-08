@@ -12,11 +12,10 @@ using Shared.Wrappers;
 
 namespace AILA.Api.Controllers;
 
-[Authorize(Roles = "Expert")]
+[Authorize]
 [ApiController]
 [Route("api/questions/{questionId:guid}/answer-options")]
-public class AnswerOptionsController : ControllerBase
-{
+public class AnswerOptionsController : ControllerBase{
     private readonly ISender _sender;
 
     public AnswerOptionsController(
@@ -29,6 +28,7 @@ public class AnswerOptionsController : ControllerBase
     /// Lấy danh sách đáp án của câu hỏi.
     /// </summary>
     [HttpGet]
+    [Authorize(Roles = "Expert,Admin")]
     public async Task<IActionResult> GetAnswerOptions(
         Guid questionId,
         CancellationToken ct)
@@ -43,9 +43,12 @@ public class AnswerOptionsController : ControllerBase
                     "Xác thực thất bại."));
         }
 
+        var isAdmin = identity.Role == "Admin";
+
         var query = new GetAnswerOptionsQuery(
             questionId,
-            identity.UserId);
+            identity.UserId,
+            IsAdminOverride: isAdmin);
 
         var result = await _sender.Send(query, ct);
 
@@ -66,6 +69,7 @@ public class AnswerOptionsController : ControllerBase
     /// Tạo đáp án mới.
     /// </summary>
     [HttpPost]
+    [Authorize(Roles = "Expert")]
     public async Task<IActionResult> CreateAnswerOption(
         Guid questionId,
         [FromBody] SaveAnswerOptionRequest request,
@@ -106,6 +110,7 @@ public class AnswerOptionsController : ControllerBase
     /// Cập nhật đáp án.
     /// </summary>
     [HttpPut("{answerOptionId:guid}")]
+    [Authorize(Roles = "Expert")]
     public async Task<IActionResult> UpdateAnswerOption(
         Guid questionId,
         Guid answerOptionId,
@@ -147,6 +152,7 @@ public class AnswerOptionsController : ControllerBase
     /// Xóa đáp án.
     /// </summary>
     [HttpDelete("{answerOptionId:guid}")]
+    [Authorize(Roles = "Expert")]
     public async Task<IActionResult> DeleteAnswerOption(
         Guid questionId,
         Guid answerOptionId,
@@ -185,6 +191,7 @@ public class AnswerOptionsController : ControllerBase
     /// Sắp xếp lại thứ tự đáp án.
     /// </summary>
     [HttpPut("reorder")]
+    [Authorize(Roles = "Expert")]
     public async Task<IActionResult> ReorderAnswerOptions(
         Guid questionId,
         [FromBody] ReorderAnswerOptionsRequest request,

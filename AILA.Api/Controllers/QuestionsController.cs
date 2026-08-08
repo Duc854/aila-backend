@@ -12,11 +12,10 @@ using Shared.Wrappers;
 
 namespace AILA.Api.Controllers;
 
-[Authorize(Roles = "Expert")]
+[Authorize]
 [ApiController]
 [Route("api/quiz-materials/{quizMaterialId:guid}/questions")]
-public class QuestionsController : ControllerBase
-{
+public class QuestionsController : ControllerBase{
     private readonly ISender _sender;
 
     public QuestionsController(ISender sender)
@@ -24,6 +23,7 @@ public class QuestionsController : ControllerBase
         _sender = sender;
     }
     [HttpGet]
+    [Authorize(Roles = "Expert,Admin")]
     public async Task<IActionResult> GetQuestions(
     Guid quizMaterialId,
     CancellationToken ct)
@@ -38,9 +38,12 @@ public class QuestionsController : ControllerBase
                     "Xác thực thất bại."));
         }
 
+        var isAdmin = identity.Role == "Admin";
+
         var query = new GetQuestionsQuery(
             quizMaterialId,
-            identity.UserId);
+            identity.UserId,
+            IsAdminOverride: isAdmin);
 
         var result = await _sender.Send(query, ct);
 
@@ -57,6 +60,7 @@ public class QuestionsController : ControllerBase
         return Ok(result);
     }
     [HttpPost]
+    [Authorize(Roles = "Expert")]
     public async Task<IActionResult> CreateQuestion(
     Guid quizMaterialId,
     [FromBody] SaveQuestionRequest request,
@@ -93,6 +97,7 @@ public class QuestionsController : ControllerBase
         return Ok(result);
     }
     [HttpPut("{questionId:guid}")]
+    [Authorize(Roles = "Expert")]
     public async Task<IActionResult> UpdateQuestion(
     Guid quizMaterialId,
     Guid questionId,
@@ -130,6 +135,7 @@ public class QuestionsController : ControllerBase
         return Ok(result);
     }
     [HttpDelete("{questionId:guid}")]
+    [Authorize(Roles = "Expert")]
     public async Task<IActionResult> DeleteQuestion(
     Guid quizMaterialId,
     Guid questionId,
@@ -164,6 +170,7 @@ public class QuestionsController : ControllerBase
         return NoContent();
     }
     [HttpPut("reorder")]
+    [Authorize(Roles = "Expert")]
     public async Task<IActionResult> ReorderQuestions(
     Guid quizMaterialId,
     [FromBody] ReorderQuestionsRequest request,
