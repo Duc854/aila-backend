@@ -27,7 +27,7 @@ namespace AILA.Infrastructure.Persistence.Configurations
             {
                 x.ModuleId,
                 x.OrderIndex
-            });
+            }).IsUnique();
 
             builder.HasOne(x => x.QuizDetails)
                 .WithOne(x => x.Material)
