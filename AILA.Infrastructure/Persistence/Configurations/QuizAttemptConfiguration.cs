@@ -28,6 +28,12 @@ public class QuizAttemptConfiguration : IEntityTypeConfiguration<QuizAttempt>
         builder.Property(x => x.IsPassed)
             .IsRequired();
 
+        builder.HasIndex(x => new
+        {
+            x.EnrollmentId,
+            x.QuizMaterialId
+        });
+
         builder.HasOne(x => x.Enrollment)
             .WithMany()
             .HasForeignKey(x => x.EnrollmentId)
