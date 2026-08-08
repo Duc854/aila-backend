@@ -87,6 +87,116 @@ namespace AILA.Application.Common.Notifications
                 NotificationType.ReceiveExpertEvaluation,
                 $"/learner/expert-evaluations/{requestId}");
 
+        // ----------------------------------------------------------------------------------
+        // Kiểm duyệt khóa học (Course Moderation)
+        // ----------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Báo cho chuyên gia biết khóa học của họ vừa bị khoá do báo cáo vi phạm.
+        /// </summary>
+        /// <param name="expertUserId">UserId của chuyên gia sở hữu khóa học.</param>
+        /// <param name="courseId">Id khóa học bị khoá.</param>
+        /// <param name="courseName">Tên khóa học để expert định vị nhanh.</param>
+        public static Notification CourseLocked(Guid expertUserId, Guid courseId, string courseName)
+            => new(
+                expertUserId,
+                "Khóa học của bạn đã bị khoá",
+                $"Khóa học \"{courseName}\" đã bị khoá do vi phạm chính sách nội dung sau khi admin xử lý báo cáo. "
+                + "Khóa học sẽ không còn hiển thị với học viên cho đến khi được phục hồi. "
+                + "Bạn có thể gửi yêu cầu xem xét lại nếu cho rằng quyết định này chưa chính xác.",
+                NotificationType.CourseModerationResult,
+                $"/expert/my-courses/{courseId}");
+
+        /// <summary>
+        /// Báo cho chuyên gia biết khóa học của họ đã được phục hồi (unlock trực tiếp từ admin).
+        /// </summary>
+        /// <param name="expertUserId">UserId của chuyên gia sở hữu khóa học.</param>
+        /// <param name="courseId">Id khóa học được phục hồi.</param>
+        /// <param name="courseName">Tên khóa học.</param>
+        public static Notification CourseUnlocked(Guid expertUserId, Guid courseId, string courseName)
+            => new(
+                expertUserId,
+                "Khóa học của bạn đã được phục hồi",
+                $"Khóa học \"{courseName}\" đã được admin phục hồi và hiển thị trở lại với học viên.",
+                NotificationType.CourseModerationResult,
+                $"/expert/my-courses/{courseId}");
+
+        /// <summary>
+        /// Báo cho chuyên gia biết yêu cầu xem xét lại khóa học đã được duyệt và khóa học được mở.
+        /// </summary>
+        /// <param name="expertUserId">UserId của chuyên gia sở hữu khóa học.</param>
+        /// <param name="courseId">Id khóa học.</param>
+        /// <param name="courseName">Tên khóa học.</param>
+        /// <param name="reviewComment">Nhận xét của admin.</param>
+        public static Notification CourseReReviewApproved(
+            Guid expertUserId,
+            Guid courseId,
+            string courseName,
+            string? reviewComment)
+            => new(
+                expertUserId,
+                "Yêu cầu xem xét lại khóa học đã được chấp thuận",
+                $"Yêu cầu xem xét lại khóa học \"{courseName}\" đã được admin phê duyệt. "
+                + "Khóa học đã được phục hồi và hiển thị trở lại với học viên."
+                + (string.IsNullOrWhiteSpace(reviewComment)
+                    ? string.Empty
+                    : $" Nhận xét của admin: \"{reviewComment}\"."),
+                NotificationType.CourseModerationResult,
+                $"/expert/my-courses/{courseId}");
+
+        /// <summary>
+        /// Báo cho chuyên gia biết yêu cầu xem xét lại khóa học bị từ chối, khóa học vẫn bị khoá.
+        /// </summary>
+        /// <param name="expertUserId">UserId của chuyên gia sở hữu khóa học.</param>
+        /// <param name="courseId">Id khóa học.</param>
+        /// <param name="courseName">Tên khóa học.</param>
+        /// <param name="reviewComment">Lý do từ chối của admin.</param>
+        public static Notification CourseReReviewRejected(
+            Guid expertUserId,
+            Guid courseId,
+            string courseName,
+            string reviewComment)
+            => new(
+                expertUserId,
+                "Yêu cầu xem xét lại khóa học bị từ chối",
+                $"Yêu cầu xem xét lại khóa học \"{courseName}\" đã bị admin từ chối. "
+                + $"Lý do: \"{reviewComment}\". "
+                + "Khóa học vẫn đang bị khoá và không hiển thị với học viên.",
+                NotificationType.CourseModerationResult,
+                $"/expert/my-courses/{courseId}");
+
+        // ----------------------------------------------------------------------------------
+        // Kiểm duyệt tag (Tag Verification)
+        // ----------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Báo cho chuyên gia kết quả duyệt tag mà họ đã gửi yêu cầu.
+        /// </summary>
+        /// <param name="expertUserId">UserId của chuyên gia đã gửi yêu cầu duyệt tag.</param>
+        /// <param name="tagId">Id của tag vừa được xử lý.</param>
+        /// <param name="tagName">Tên tag để expert nhận ra ngay.</param>
+        /// <param name="isApproved">
+        ///     <c>true</c> nếu admin phê duyệt; <c>false</c> nếu từ chối.
+        /// </param>
+        /// <param name="reviewComment">Ghi chú phản hồi của admin (thường chỉ có khi từ chối).</param>
+        public static Notification TagVerificationReviewed(
+            Guid expertUserId,
+            Guid tagId,
+            string tagName,
+            bool isApproved,
+            string? reviewComment = null)
+            => new(
+                expertUserId,
+                isApproved ? "Tag của bạn đã được duyệt" : "Tag của bạn bị từ chối",
+                isApproved
+                    ? $"Tag \"{tagName}\" đã được admin phê duyệt và có thể sử dụng trong các khóa học."
+                    : $"Tag \"{tagName}\" đã bị admin từ chối."
+                      + (string.IsNullOrWhiteSpace(reviewComment)
+                          ? string.Empty
+                          : $" Lý do: \"{reviewComment}\"."),
+                NotificationType.TagVerificationResult,
+                $"/expert/tags");
+
         /// <summary>Đổi mốc UTC sang giờ Việt Nam để người đọc không phải tự quy đổi.</summary>
         private static string FormatVietnamTime(DateTime utc)
             => $"{utc.Add(VietnamOffset):HH:mm 'ngày' dd/MM/yyyy} (giờ Việt Nam)";

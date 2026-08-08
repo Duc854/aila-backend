@@ -88,10 +88,50 @@ public class PracticeChatService : IPracticeChatService
             Temperature = 0.7
         };
 
-        var response = await _chatCompletion.GetChatMessageContentAsync(
-            chatHistory,
-            executionSettings,
-            cancellationToken: cancellationToken);
+        ChatMessageContent? response = null;
+        int maxRetries = 3;
+        Exception? lastException = null;
+
+        for (int attempt = 0; attempt < maxRetries; attempt++)
+        {
+            try
+            {
+                response = await _chatCompletion.GetChatMessageContentAsync(
+                    chatHistory,
+                    executionSettings,
+                    cancellationToken: cancellationToken);
+                break; // thành công → thoát loop
+            }
+            catch (Exception ex)
+            {
+                lastException = ex;
+                Console.WriteLine($"❌ [PracticeChatService] Attempt {attempt + 1}/{maxRetries} failed: {ex.GetType().Name}: {ex.Message}");
+
+                bool isRateLimit =
+                    ex.Message.Contains("429") ||
+                    ex.Message.Contains("rate limit", StringComparison.OrdinalIgnoreCase) ||
+                    ex.Message.Contains("Too Many Requests", StringComparison.OrdinalIgnoreCase) ||
+                    ex.Message.Contains("overloaded", StringComparison.OrdinalIgnoreCase);
+
+                if (isRateLimit && attempt < maxRetries - 1)
+                {
+                    var delaySeconds = (attempt + 1) * 5;
+                    Console.WriteLine($"⚠️ [PracticeChatService Rate Limit] Retrying in {delaySeconds}s...");
+                    await Task.Delay(delaySeconds * 1000, cancellationToken);
+                }
+                else
+                {
+                    // Không phải rate limit → throw ngay, không retry
+                    throw;
+                }
+            }
+        }
+
+        if (response == null)
+        {
+            throw new InvalidOperationException(
+                $"AI service không phản hồi sau {maxRetries} lần thử. Lỗi cuối: {lastException?.Message}");
+        }
 
         int promptTokens = 0;
         int completionTokens = 0;

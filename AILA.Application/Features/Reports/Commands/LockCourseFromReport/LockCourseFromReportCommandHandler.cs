@@ -1,4 +1,5 @@
 using AILA.Application.Common.Interfaces;
+using AILA.Application.Common.Notifications;
 using AILA.Application.Features.Reports.Dtos;
 using AILA.Domain.Enums;
 using MediatR;
@@ -44,6 +45,9 @@ public sealed class LockCourseFromReportCommandHandler
         // 4. Domain actions
         course.LockVisibility();
         report.Resolve();
+
+        await _uow.Notifications.AddAsync(
+            NotificationTemplates.CourseLocked(course.ExpertId, course.Id, course.Name));
 
         await _uow.SaveChangesAsync(ct);
 
