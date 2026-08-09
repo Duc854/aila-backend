@@ -76,24 +76,18 @@ public class SubmitSimulationPromptCommandHandler : IRequestHandler<SubmitSimula
             var piiTypes = _privacyService.GetSensitiveDataTypes(request.UserPrompt);
             var validationReason = $"Phát hiện thông tin cá nhân: {string.Join(", ", piiTypes)}.";
 
-            var rejectedSubmission = attempt.AddRejectedSubmission(
-                sanitizedPrompt,
-                validationReason,
-                "PIIProtection");
-
             await _unitOfWork.Repository<UserViolationRecord>().AddAsync(new UserViolationRecord(
                 attempt.ExpertId,
                 "PromptValidationViolation",
                 "PIIProtection",
                 validationReason,
-                attemptId: attempt.Id,
-                severity: "Medium"));
+                sanitizedPrompt));
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return new PromptSubmissionDto
             {
-                Id = rejectedSubmission.Id,
+                Id = Guid.NewGuid(),
                 UserPrompt = sanitizedPrompt,
                 AiResponse = string.Empty,
                 Status = "Violation",
@@ -108,30 +102,24 @@ public class SubmitSimulationPromptCommandHandler : IRequestHandler<SubmitSimula
         var (isSafe, moderationReason) = await _moderationService.CheckContentSafetyAsync(sanitizedPrompt, cancellationToken);
         if (!isSafe)
         {
-            var rejectedSubmission = attempt.AddRejectedSubmission(
-                sanitizedPrompt,
-                moderationReason ?? "Vi phạm quy chuẩn an toàn nội dung",
-                "ContentModeration");
-
             await _unitOfWork.Repository<UserViolationRecord>().AddAsync(new UserViolationRecord(
                 attempt.ExpertId,
                 "ContentModerationViolation",
                 "ContentModeration",
                 moderationReason ?? "Vi phạm quy chuẩn an toàn nội dung",
-                attemptId: attempt.Id,
-                severity: "High"));
+                sanitizedPrompt));
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return new PromptSubmissionDto
             {
-                Id = rejectedSubmission.Id,
+                Id = Guid.NewGuid(),
                 UserPrompt = sanitizedPrompt,
                 AiResponse = string.Empty,
                 Status = "Violation",
                 IsViolation = true,
-                ViolationMessage = moderationReason ?? "Vi phạm quy chuẩn an toàn nội dung",
-                WarningMessage = moderationReason ?? "Vi phạm quy chuẩn an toàn nội dung",
+                ViolationMessage = moderationReason,
+                WarningMessage = moderationReason,
                 CreatedAt = DateTime.UtcNow
             };
         }
@@ -155,7 +143,6 @@ public class SubmitSimulationPromptCommandHandler : IRequestHandler<SubmitSimula
         // 6. Build conversation history từ submissions đã lưu (BR-02 — dùng draft config)
         var existingSubmissions = (await _unitOfWork.Repository<PromptSubmission>()
             .FindAsync(s => s.AttemptId == attempt.Id))
-            .Where(s => !s.IsRejected)
             .OrderBy(s => s.CreatedAt)
             .ToList();
 

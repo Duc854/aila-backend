@@ -65,7 +65,7 @@ public sealed class GetSimulationDetailQueryHandler
             // Fallback: gọi lại ScoringService nếu chưa có
             if (detailedScoring == null)
             {
-                var validSubs = submissions.Where(s => !s.IsRejected).ToList();
+                var validSubs = submissions.OrderBy(s => s.CreatedAt).ToList();
                 detailedScoring = await _scoringService.GenerateOverallSuggestionAsync(
                     validSubs,
                     material?.Scenario ?? string.Empty,
@@ -81,7 +81,7 @@ public sealed class GetSimulationDetailQueryHandler
         return new PracticeAttemptDto
         {
             Id               = simulation.Id,
-            EnrollmentId     = Guid.Empty, // simulation không có EnrollmentId
+            EnrollmentId     = Guid.Empty,
             MaterialId       = simulation.MaterialId,
             Status           = simulation.Status.ToString(),
             CreatedAt        = simulation.CreatedAt,
@@ -94,9 +94,9 @@ public sealed class GetSimulationDetailQueryHandler
                 Id               = s.Id,
                 UserPrompt       = s.UserPrompt,
                 AiResponse       = s.AiResponse,
-                Status           = s.IsRejected ? "Violation" : "Success",
-                IsViolation      = s.IsRejected,
-                ViolationMessage = s.RejectionReason,
+                Status           = "Success",
+                IsViolation      = false,
+                ViolationMessage = null,
                 CreatedAt        = s.CreatedAt
             }).ToList()
         };
