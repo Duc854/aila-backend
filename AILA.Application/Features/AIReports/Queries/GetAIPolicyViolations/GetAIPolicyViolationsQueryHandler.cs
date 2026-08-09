@@ -22,8 +22,7 @@ public class GetAIPolicyViolationsQueryHandler : IRequestHandler<GetAIPolicyViol
     public async Task<PaginatedViolationListDto> Handle(GetAIPolicyViolationsQuery request, CancellationToken cancellationToken)
     {
         var records = await _unitOfWork.Repository<UserViolationRecord>().FindAsync(v =>
-            (string.IsNullOrEmpty(request.ViolationType) || v.ViolationType.ToLower() == request.ViolationType.ToLower()) &&
-            (string.IsNullOrEmpty(request.Severity) || v.Severity.ToLower() == request.Severity.ToLower()));
+            string.IsNullOrEmpty(request.ViolationType) || v.ViolationType.ToLower() == request.ViolationType.ToLower());
 
         var recordList = records.OrderByDescending(v => v.CreatedAt).ToList();
         var totalCount = recordList.Count;
@@ -39,11 +38,10 @@ public class GetAIPolicyViolationsQueryHandler : IRequestHandler<GetAIPolicyViol
             {
                 Id = v.Id,
                 UserId = v.UserId,
-                AttemptId = v.AttemptId,
                 ViolationType = v.ViolationType,
                 PolicyName = v.PolicyName,
                 Reason = v.Reason,
-                Severity = v.Severity,
+                ViolatingPrompt = v.ViolatingPrompt,
                 CreatedAt = v.CreatedAt
             })
             .ToList();

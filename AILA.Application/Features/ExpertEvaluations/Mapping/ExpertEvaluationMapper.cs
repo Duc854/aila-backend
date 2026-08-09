@@ -51,11 +51,6 @@ namespace AILA.Application.Features.ExpertEvaluations.Mapping
                     Id = s.Id,
                     UserPrompt = s.UserPrompt,
                     AiResponse = s.AiResponse,
-                    SuggestedPrompt = string.IsNullOrWhiteSpace(s.SuggestedPrompt)
-                        ? null
-                        : s.SuggestedPrompt,
-                    IsRejected = s.IsRejected,
-                    RejectionReason = s.RejectionReason,
                     CreatedAt = s.CreatedAt
                 })
                 .ToList();

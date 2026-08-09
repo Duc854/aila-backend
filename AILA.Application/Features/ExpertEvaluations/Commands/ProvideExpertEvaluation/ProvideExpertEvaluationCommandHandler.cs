@@ -1,4 +1,5 @@
 using AILA.Application.Common.Interfaces;
+using AILA.Application.Common.Notifications;
 using AILA.Application.Features.ExpertEvaluations.Dtos;
 using AILA.Application.Features.ExpertEvaluations.Mapping;
 using AILA.Domain.Entities;
@@ -60,7 +61,15 @@ namespace AILA.Application.Features.ExpertEvaluations.Commands.ProvideExpertEval
             await _uow.Repository<ExpertEvaluation>().AddAsync(evaluation);
             evaluationRequest.Complete();
 
-            // Tạo kết quả và chốt trạng thái đi cùng một transaction nên học viên
+            // Báo cho học viên đã gửi yêu cầu. LearnerId dùng chung khóa chính với User
+            // nên gán thẳng làm người nhận thông báo được.
+            await _uow.Notifications.AddAsync(
+                NotificationTemplates.ExpertEvaluationCompleted(
+                    evaluationRequest.LearnerId,
+                    evaluationRequest.Id,
+                    evaluation.OverallScore));
+
+            // Tạo kết quả, chốt trạng thái và phát thông báo đi cùng một transaction nên học viên
             // không bao giờ đọc được Completed mà thiếu kết quả (E30-2).
             await _uow.SaveChangesAsync(ct);
 

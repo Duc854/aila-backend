@@ -1,4 +1,5 @@
 using AILA.Application.Common.Interfaces;
+using AILA.Application.Common.Notifications;
 using AILA.Application.Features.ExpertEvaluations.Dtos;
 using AILA.Domain.Entities;
 using AILA.Domain.Enums;
@@ -88,8 +89,16 @@ namespace AILA.Application.Features.ExpertEvaluations.Commands.RequestExpertEval
 
             await _uow.ExpertEvaluationRequests.AddAsync(evaluationRequest);
 
-            // Một lần SaveChanges duy nhất => tạo yêu cầu và trừ quota nằm chung một
-            // transaction, hỏng bước nào thì quota cũng không bị trừ (AC-29.6, E29-5).
+            // 7. Báo cho chuyên gia tác giả biết có việc mới. authorAccount đã được xác nhận
+            //    tồn tại và còn hoạt động ở bước 4 nên không cần kiểm tra lại.
+            await _uow.Notifications.AddAsync(
+                NotificationTemplates.ExpertEvaluationRequested(
+                    course.ExpertId,
+                    evaluationRequest.Id,
+                    course.Name));
+
+            // Một lần SaveChanges duy nhất => tạo yêu cầu, trừ quota và phát thông báo nằm chung
+            // một transaction, hỏng bước nào thì quota cũng không bị trừ (AC-29.6, E29-5).
             await _uow.SaveChangesAsync(ct);
 
             var remainingQuota = Math.Max(0, quota.Limit - quota.Usage.ExpertEvaluationRequestUsed);

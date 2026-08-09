@@ -87,6 +87,20 @@ namespace AILA.Application.Features.Users.Commands.CreateExpertAccount
                     expert,
                     cancellationToken);
 
+                // Ghi nhật ký AdminActivityLog
+                var adminId = (await _unitOfWork.Users.GetAdminUserIdsAsync(cancellationToken)).FirstOrDefault();
+                if (adminId != Guid.Empty)
+                {
+                    var activityLog = new AdminActivityLog(
+                        adminId,
+                        AdminAction.Create,
+                        nameof(User),
+                        user.Id,
+                        $"Admin đã khởi tạo tài khoản Chuyên gia (Expert) mới cho '{user.Email}'.");
+                    await _unitOfWork.AdminActivityLogs.AddAsync(activityLog);
+                    await _unitOfWork.SaveChangesAsync(cancellationToken);
+                }
+
                 var result = new UserDetailDto
                 {
                     Id = user.Id,

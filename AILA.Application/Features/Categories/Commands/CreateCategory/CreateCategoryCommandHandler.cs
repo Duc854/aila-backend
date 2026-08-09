@@ -57,6 +57,19 @@ namespace AILA.Application.Features.Categories.Commands.CreateCategory
 
             await uow.Categories.AddAsync(category);
 
+            // Ghi nhật ký AdminActivityLog
+            var adminId = (await uow.Users.GetAdminUserIdsAsync(ct)).FirstOrDefault();
+            if (adminId != Guid.Empty)
+            {
+                var activityLog = new AdminActivityLog(
+                    adminId,
+                    Domain.Enums.AdminAction.Create,
+                    nameof(Category),
+                    category.Id,
+                    $"Admin đã tạo danh mục khóa học mới '{category.Name}'.");
+                await uow.AdminActivityLogs.AddAsync(activityLog);
+            }
+
             await uow.SaveChangesAsync(ct);
 
             var dto = new CategoryDto(

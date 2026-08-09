@@ -68,33 +68,27 @@ public class SubmitSimulationPromptCommandHandler : IRequestHandler<SubmitSimula
         {
             var piiTypes = _privacyService.GetSensitiveDataTypes(request.UserPrompt);
             var validationReason = $"Phát hiện thông tin cá nhân: {string.Join(", ", piiTypes)}.";
-
-            var rejectedSubmission = attempt.AddRejectedSubmission(
-                request.UserPrompt,
-                validationReason,
-                "PIIProtection");
+            var maskedPrompt = _privacyService.MaskSensitiveData(request.UserPrompt);
 
             var violationRecord = new UserViolationRecord(
                 attempt.ExpertId,
                 "PromptValidationViolation",
                 "PIIProtection",
                 validationReason,
-                attemptId: attempt.Id,
-                severity: "Medium");
+                maskedPrompt);
             await _unitOfWork.Repository<UserViolationRecord>().AddAsync(violationRecord);
-
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return new PromptSubmissionDto
             {
-                Id = rejectedSubmission.Id,
-                UserPrompt = request.UserPrompt,
+                Id = Guid.NewGuid(),
+                UserPrompt = maskedPrompt,
                 AiResponse = string.Empty,
                 Status = "Violation",
                 IsViolation = true,
                 ViolationMessage = validationReason,
                 WarningMessage = validationReason,
-                CreatedAt = rejectedSubmission.CreatedAt
+                CreatedAt = DateTime.UtcNow
             };
         }
 
@@ -102,32 +96,26 @@ public class SubmitSimulationPromptCommandHandler : IRequestHandler<SubmitSimula
         var (isSafe, moderationReason) = await _moderationService.CheckContentSafetyAsync(request.UserPrompt, cancellationToken);
         if (!isSafe)
         {
-            var rejectedSubmission = attempt.AddRejectedSubmission(
-                request.UserPrompt,
-                moderationReason ?? "Vi phạm quy chuẩn an toàn nội dung",
-                "ContentModeration");
-
+            var maskedPrompt = _privacyService.MaskSensitiveData(request.UserPrompt);
             var violationRecord = new UserViolationRecord(
                 attempt.ExpertId,
                 "ContentModerationViolation",
                 "ContentModeration",
                 moderationReason ?? "Vi phạm quy chuẩn an toàn nội dung",
-                attemptId: attempt.Id,
-                severity: "High");
+                maskedPrompt);
             await _unitOfWork.Repository<UserViolationRecord>().AddAsync(violationRecord);
-
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return new PromptSubmissionDto
             {
-                Id = rejectedSubmission.Id,
+                Id = Guid.NewGuid(),
                 UserPrompt = request.UserPrompt,
                 AiResponse = string.Empty,
                 Status = "Violation",
                 IsViolation = true,
-                ViolationMessage = moderationReason,
-                WarningMessage = moderationReason,
-                CreatedAt = rejectedSubmission.CreatedAt
+                ViolationMessage = moderationReason ?? "Vi phạm quy chuẩn an toàn nội dung",
+                WarningMessage = moderationReason ?? "Vi phạm quy chuẩn an toàn nội dung",
+                CreatedAt = DateTime.UtcNow
             };
         }
 

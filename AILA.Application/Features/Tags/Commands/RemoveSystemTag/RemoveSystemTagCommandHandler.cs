@@ -68,6 +68,20 @@ namespace AILA.Application.Features.Tags.Commands.RemoveSystemTag
 
 
             tagRepository.Delete(tag);
+
+            // Ghi nhật ký AdminActivityLog
+            var adminId = (await _unitOfWork.Users.GetAdminUserIdsAsync(cancellationToken)).FirstOrDefault();
+            if (adminId != Guid.Empty)
+            {
+                var activityLog = new AdminActivityLog(
+                    adminId,
+                    Domain.Enums.AdminAction.Delete,
+                    nameof(Tag),
+                    tag.Id,
+                    $"Admin đã xóa thẻ tag hệ thống '{tag.Name}'.");
+                await _unitOfWork.AdminActivityLogs.AddAsync(activityLog);
+            }
+
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return ResponseDto<bool>.SuccessResult(true);
