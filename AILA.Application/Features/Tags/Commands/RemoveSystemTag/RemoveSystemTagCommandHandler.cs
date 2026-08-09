@@ -76,8 +76,6 @@ namespace AILA.Application.Features.Tags.Commands.RemoveSystemTag
                 var activityLog = new AdminActivityLog(
                     adminId,
                     Domain.Enums.AdminAction.Delete,
-                    nameof(Tag),
-                    tag.Id,
                     $"Admin đã xóa thẻ tag hệ thống '{tag.Name}'.");
                 await _unitOfWork.AdminActivityLogs.AddAsync(activityLog);
             }

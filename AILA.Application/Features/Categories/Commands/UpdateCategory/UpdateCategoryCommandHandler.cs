@@ -66,8 +66,6 @@ namespace AILA.Application.Features.Categories.Commands.UpdateCategory
                 var activityLog = new Domain.Entities.AdminActivityLog(
                     adminId,
                     Domain.Enums.AdminAction.Update,
-                    nameof(Domain.Entities.Category),
-                    category.Id,
                     $"Admin đã cập nhật thông tin danh mục khóa học '{category.Name}'.");
                 await uow.AdminActivityLogs.AddAsync(activityLog);
             }

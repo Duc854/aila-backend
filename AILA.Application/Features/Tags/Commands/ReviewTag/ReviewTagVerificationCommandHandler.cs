@@ -104,8 +104,6 @@ namespace AILA.Application.Features.Tags.Commands.ReviewTagVerifications
                 var activityLog = new AdminActivityLog(
                     adminId,
                     action,
-                    nameof(Tag),
-                    tag.Id,
                     $"Admin đã {(request.Status == TagPublishRequestStatus.Approved ? "phê duyệt" : "từ chối")} yêu cầu xác minh thẻ tag '{tag.Name}'.");
                 await _unitOfWork.AdminActivityLogs.AddAsync(activityLog);
             }

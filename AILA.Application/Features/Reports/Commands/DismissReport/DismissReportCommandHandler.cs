@@ -43,8 +43,6 @@ public sealed class DismissReportCommandHandler
             var activityLog = new Domain.Entities.AdminActivityLog(
                 adminId,
                 AdminAction.Reject,
-                nameof(Domain.Entities.ContentReport),
-                report.Id,
                 $"Admin đã bác bỏ báo cáo nội dung {report.Id}. Lý do: {request.Note ?? "Nội dung không vi phạm."}");
             await _uow.AdminActivityLogs.AddAsync(activityLog);
         }

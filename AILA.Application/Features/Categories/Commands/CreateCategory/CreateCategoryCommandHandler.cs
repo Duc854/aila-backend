@@ -64,8 +64,6 @@ namespace AILA.Application.Features.Categories.Commands.CreateCategory
                 var activityLog = new AdminActivityLog(
                     adminId,
                     Domain.Enums.AdminAction.Create,
-                    nameof(Category),
-                    category.Id,
                     $"Admin đã tạo danh mục khóa học mới '{category.Name}'.");
                 await uow.AdminActivityLogs.AddAsync(activityLog);
             }

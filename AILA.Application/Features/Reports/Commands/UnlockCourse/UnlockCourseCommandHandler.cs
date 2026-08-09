@@ -41,8 +41,6 @@ public sealed class UnlockCourseCommandHandler
             var activityLog = new Domain.Entities.AdminActivityLog(
                 adminId,
                 Domain.Enums.AdminAction.Unlock,
-                nameof(Domain.Entities.Course),
-                course.Id,
                 $"Admin đã mở khóa phục hồi khóa học '{course.Name}'.");
             await _uow.AdminActivityLogs.AddAsync(activityLog);
         }

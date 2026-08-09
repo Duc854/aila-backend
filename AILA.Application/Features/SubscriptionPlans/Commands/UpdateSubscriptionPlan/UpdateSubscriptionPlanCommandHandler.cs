@@ -68,8 +68,6 @@ namespace AILA.Application.Features.SubscriptionPlans.Commands.UpdateSubscriptio
                 var activityLog = new Domain.Entities.AdminActivityLog(
                     adminId,
                     Domain.Enums.AdminAction.Update,
-                    nameof(Domain.Entities.SubscriptionPlan),
-                    plan.Id,
                     $"Admin đã cập nhật cấu hình gói cước dịch vụ '{plan.Name}'.");
                 await uow.AdminActivityLogs.AddAsync(activityLog);
             }

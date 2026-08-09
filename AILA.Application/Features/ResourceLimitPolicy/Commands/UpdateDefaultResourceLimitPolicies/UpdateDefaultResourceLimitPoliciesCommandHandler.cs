@@ -82,8 +82,6 @@ namespace AILA.Application.Features.ResourceLimitPolicy.Commands.UpdateDefaultRe
                 var activityLog = new AdminActivityLog(
                     request.AdminId,
                     AdminAction.Update,
-                    nameof(ResourceLimitPolicy),
-                    null,
                     "Cập nhật chính sách giới hạn tài nguyên mặc định.");
 
 

@@ -52,8 +52,6 @@ public sealed class LockCourseFromReportCommandHandler
             var activityLog = new Domain.Entities.AdminActivityLog(
                 adminId,
                 AdminAction.Lock,
-                nameof(Domain.Entities.Course),
-                course.Id,
                 $"Admin đã khóa khóa học '{course.Name}' từ báo cáo {report.Id}.");
             await _uow.AdminActivityLogs.AddAsync(activityLog);
         }

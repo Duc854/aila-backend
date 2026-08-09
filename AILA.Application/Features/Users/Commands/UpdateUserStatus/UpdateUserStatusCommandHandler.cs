@@ -67,8 +67,6 @@ namespace AILA.Application.Features.Users.Commands.UpdateUserStatus
                 var activityLog = new Domain.Entities.AdminActivityLog(
                     adminId,
                     action,
-                    nameof(Domain.Entities.User),
-                    user.Id,
                     $"Admin đã {(request.IsActive ? "kích hoạt mở khóa" : "vô hiệu hóa/khóa")} tài khoản '{user.Email}'.");
                 await _unitOfWork.AdminActivityLogs.AddAsync(activityLog);
             }

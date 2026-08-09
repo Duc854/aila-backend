@@ -57,8 +57,6 @@ namespace AILA.Application.Features.Reports.Commands.ResolveReport
                 var activityLog = new Domain.Entities.AdminActivityLog(
                     adminId,
                     AdminAction.Approve,
-                    nameof(Domain.Entities.ContentReport),
-                    report.Id,
                     $"Admin đã đánh dấu giải quyết báo cáo nội dung {report.Id}.");
                 await _unitOfWork.AdminActivityLogs.AddAsync(activityLog);
             }

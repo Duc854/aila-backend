@@ -91,8 +91,6 @@ namespace AILA.Application.Features.SubscriptionPlans.Commands.CreateSubscriptio
                 var activityLog = new AdminActivityLog(
                     adminId,
                     Domain.Enums.AdminAction.Create,
-                    nameof(SubscriptionPlan),
-                    plan.Id,
                     $"Admin đã tạo gói cước dịch vụ mới '{plan.Name}'.");
                 await uow.AdminActivityLogs.AddAsync(activityLog);
             }

@@ -94,8 +94,6 @@ namespace AILA.Application.Features.Users.Commands.CreateExpertAccount
                     var activityLog = new AdminActivityLog(
                         adminId,
                         AdminAction.Create,
-                        nameof(User),
-                        user.Id,
                         $"Admin đã khởi tạo tài khoản Chuyên gia (Expert) mới cho '{user.Email}'.");
                     await _unitOfWork.AdminActivityLogs.AddAsync(activityLog);
                     await _unitOfWork.SaveChangesAsync(cancellationToken);

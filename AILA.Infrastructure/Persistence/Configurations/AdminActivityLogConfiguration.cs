@@ -24,18 +24,8 @@ namespace AILA.Infrastructure.Persistence.Configurations
                 .IsRequired();
 
 
-            builder.Property(x => x.EntityType)
-                .HasMaxLength(100)
-                .IsRequired();
-
-
             builder.Property(x => x.Description)
                 .HasMaxLength(2000);
-
-
-            builder.Property(x => x.IpAddress)
-                .HasMaxLength(45);
-
 
             builder.HasOne(x => x.Admin)
                 .WithMany()

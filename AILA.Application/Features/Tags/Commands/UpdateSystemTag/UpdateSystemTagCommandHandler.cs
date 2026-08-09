@@ -62,8 +62,6 @@ namespace AILA.Application.Features.Tags.Commands.UpdateSystemTag
                 var activityLog = new Domain.Entities.AdminActivityLog(
                     adminId,
                     Domain.Enums.AdminAction.Update,
-                    nameof(Domain.Entities.Tag),
-                    tag.Id,
                     $"Admin đã cập nhật thẻ tag hệ thống '{tag.Name}'.");
                 await uow.AdminActivityLogs.AddAsync(activityLog);
             }

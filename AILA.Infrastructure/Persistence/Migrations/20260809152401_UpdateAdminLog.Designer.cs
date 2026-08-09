@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AILA.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260809094411_RefactorUserViolationRecordSchema")]
-    partial class RefactorUserViolationRecordSchema
+    [Migration("20260809152401_UpdateAdminLog")]
+    partial class UpdateAdminLog
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -166,14 +166,16 @@ namespace AILA.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("ModelId")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<int>("PromptTokens")
                         .HasColumnType("integer");
 
                     b.Property<string>("ServiceType")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<int>("TotalTokens")
                         .HasColumnType("integer");
@@ -182,6 +184,10 @@ namespace AILA.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("AttemptId");
 
                     b.ToTable("AITokenLogs");
                 });
@@ -276,18 +282,6 @@ namespace AILA.Infrastructure.Persistence.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
 
-                    b.Property<Guid?>("EntityId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("EntityType")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("IpAddress")
-                        .HasMaxLength(45)
-                        .HasColumnType("character varying(45)");
-
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -325,7 +319,8 @@ namespace AILA.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("QuestionId");
+                    b.HasIndex("QuestionId", "OrderIndex")
+                        .IsUnique();
 
                     b.ToTable("AnswerOptions");
                 });
@@ -573,12 +568,17 @@ namespace AILA.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("CourseId");
 
                     b.ToTable("CourseChatSessions");
                 });
@@ -686,7 +686,8 @@ namespace AILA.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CourseId");
 
-                    b.HasIndex("LearnerId");
+                    b.HasIndex("LearnerId", "CourseId")
+                        .IsUnique();
 
                     b.ToTable("Enrollments");
                 });
@@ -835,6 +836,8 @@ namespace AILA.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ExpertId");
+
+                    b.HasIndex("MaterialId");
 
                     b.ToTable("ExpertSimulationAttempts", (string)null);
                 });
@@ -1031,7 +1034,8 @@ namespace AILA.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ModuleId");
+                    b.HasIndex("ModuleId", "OrderIndex")
+                        .IsUnique();
 
                     b.ToTable("Materials");
                 });
@@ -1064,7 +1068,7 @@ namespace AILA.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CourseId");
+                    b.HasIndex("CourseId", "OrderIndex");
 
                     b.ToTable("Modules");
                 });
@@ -1238,6 +1242,12 @@ namespace AILA.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("EnrollmentId");
+
+                    b.HasIndex("MaterialId");
+
+                    b.HasIndex("EnrollmentId", "MaterialId");
+
                     b.ToTable("PracticeAttempts");
                 });
 
@@ -1399,9 +1409,9 @@ namespace AILA.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("EnrollmentId");
-
                     b.HasIndex("QuizMaterialId");
+
+                    b.HasIndex("EnrollmentId", "QuizMaterialId");
 
                     b.ToTable("QuizAttempts");
                 });
@@ -1842,6 +1852,8 @@ namespace AILA.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("UserId");
+
                     b.ToTable("UserViolationRecords");
                 });
 
@@ -1924,6 +1936,24 @@ namespace AILA.Infrastructure.Persistence.Migrations
                     b.Navigation("Material");
                 });
 
+            modelBuilder.Entity("AILA.Domain.Entities.AITokenLog", b =>
+                {
+                    b.HasOne("AILA.Domain.Entities.User", "Account")
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AILA.Domain.Entities.PracticeAttempt", "Attempt")
+                        .WithMany()
+                        .HasForeignKey("AttemptId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Account");
+
+                    b.Navigation("Attempt");
+                });
+
             modelBuilder.Entity("AILA.Domain.Entities.AccountResourceLimit", b =>
                 {
                     b.HasOne("AILA.Domain.Entities.User", "Account")
@@ -1973,7 +2003,7 @@ namespace AILA.Infrastructure.Persistence.Migrations
                     b.HasOne("AILA.Domain.Entities.Course", "Course")
                         .WithMany("ContentReports")
                         .HasForeignKey("CourseId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("AILA.Domain.Entities.Learner", "Learner")
@@ -2022,6 +2052,25 @@ namespace AILA.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Session");
+                });
+
+            modelBuilder.Entity("AILA.Domain.Entities.CourseChatSession", b =>
+                {
+                    b.HasOne("AILA.Domain.Entities.User", "Account")
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AILA.Domain.Entities.Course", "Course")
+                        .WithMany()
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+
+                    b.Navigation("Course");
                 });
 
             modelBuilder.Entity("AILA.Domain.Entities.CourseReviewRequest", b =>
@@ -2121,7 +2170,15 @@ namespace AILA.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("AILA.Domain.Entities.AIPracticeMaterial", "Material")
+                        .WithMany()
+                        .HasForeignKey("MaterialId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Expert");
+
+                    b.Navigation("Material");
                 });
 
             modelBuilder.Entity("AILA.Domain.Entities.KnowledgeChunk", b =>
@@ -2236,6 +2293,25 @@ namespace AILA.Infrastructure.Persistence.Migrations
                     b.Navigation("SubscriptionPlan");
                 });
 
+            modelBuilder.Entity("AILA.Domain.Entities.PracticeAttempt", b =>
+                {
+                    b.HasOne("AILA.Domain.Entities.Enrollment", "Enrollment")
+                        .WithMany()
+                        .HasForeignKey("EnrollmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AILA.Domain.Entities.AIPracticeMaterial", "Material")
+                        .WithMany()
+                        .HasForeignKey("MaterialId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Enrollment");
+
+                    b.Navigation("Material");
+                });
+
             modelBuilder.Entity("AILA.Domain.Entities.PromptSubmission", b =>
                 {
                     b.HasOne("AILA.Domain.Entities.ExpertSimulationAttempt", null)
@@ -2244,11 +2320,13 @@ namespace AILA.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("AILA.Domain.Entities.PracticeAttempt", null)
+                    b.HasOne("AILA.Domain.Entities.PracticeAttempt", "Attempt")
                         .WithMany("Submissions")
                         .HasForeignKey("AttemptId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Attempt");
                 });
 
             modelBuilder.Entity("AILA.Domain.Entities.PromptTemplate", b =>
@@ -2401,6 +2479,17 @@ namespace AILA.Infrastructure.Persistence.Migrations
                 {
                     b.HasOne("AILA.Domain.Entities.User", "User")
                         .WithMany("UserTokens")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("AILA.Domain.Entities.UserViolationRecord", b =>
+                {
+                    b.HasOne("AILA.Domain.Entities.User", "User")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

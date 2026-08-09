@@ -80,8 +80,6 @@ namespace AILA.Application.Features.Tags.Commands.CreateSystemTag
                 var activityLog = new AdminActivityLog(
                     adminId,
                     Domain.Enums.AdminAction.Create,
-                    nameof(Tag),
-                    tag.Id,
                     $"Admin đã tạo thẻ tag hệ thống mới '{tag.Name}'.");
                 await uow.AdminActivityLogs.AddAsync(activityLog);
             }
