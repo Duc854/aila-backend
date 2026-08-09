@@ -23,6 +23,12 @@ namespace AILA.Infrastructure.Persistence.Configurations
                 .HasConversion<string>()
                 .HasMaxLength(50);
 
+            builder.HasIndex(x => new
+            {
+                x.ModuleId,
+                x.OrderIndex
+            }).IsUnique();
+
             builder.HasOne(x => x.QuizDetails)
                 .WithOne(x => x.Material)
                 .HasForeignKey<QuizMaterial>(x => x.MaterialId)

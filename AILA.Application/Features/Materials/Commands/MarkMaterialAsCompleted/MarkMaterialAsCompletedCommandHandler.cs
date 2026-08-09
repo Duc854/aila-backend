@@ -1,5 +1,7 @@
 using AILA.Application.Common.Interfaces;
+using AILA.Domain.Constants;
 using AILA.Domain.Entities;
+using AILA.Domain.Enums;
 using MediatR;
 using Shared.Wrappers;
 using System;
@@ -13,16 +15,21 @@ namespace AILA.Application.Features.Materials.Commands.MarkMaterialAsCompleted
     public class MarkMaterialAsCompletedCommandHandler : IRequestHandler<MarkMaterialAsCompletedCommand, ResponseDto<bool>>
     {
         private readonly IUnitOfWork _uow;
+        private readonly ILearnerBehaviorService _learnerBehaviorService;
 
-        public MarkMaterialAsCompletedCommandHandler(IUnitOfWork uow)
+        public MarkMaterialAsCompletedCommandHandler(IUnitOfWork uow, ILearnerBehaviorService learnerBehaviorService)
         {
             _uow = uow;
+            _learnerBehaviorService = learnerBehaviorService;
         }
 
         public async Task<ResponseDto<bool>> Handle(MarkMaterialAsCompletedCommand request, CancellationToken cancellationToken)
         {
             // 1. Kiểm tra đăng ký học thông qua EnrollmentRepository chi tiết
-            var enrollment = await _uow.Enrollments.GetByCourseAndLearnerAsync(request.CourseId, request.LearnerId, cancellationToken);
+            var enrollment = await _uow.Enrollments.GetWithCourseTagsAsync(
+                request.LearnerId,
+                request.CourseId,
+                cancellationToken);
             if (enrollment == null)
             {
                 return ResponseDto<bool>.FailResult("ENROLLMENT_NOT_FOUND", "Bạn chưa đăng ký tham gia khóa học này.");
@@ -61,11 +68,29 @@ namespace AILA.Application.Features.Materials.Commands.MarkMaterialAsCompleted
                 progress.Complete();
 
                 // 5. Cập nhật tiến độ khóa học tổng quan qua hàm có sẵn của bạn trong Enrollment.cs
+                var wasCompleted = enrollment.Status == EnrollmentStatus.Completed;
                 enrollment.CompleteMaterial();
-                _uow.Enrollments.Update(enrollment);
+
+
+                if (!wasCompleted &&
+                    enrollment.Status == EnrollmentStatus.Completed)
+                {
+                    var behaviorTags = enrollment.Course.CourseTags
+                        .Where(t =>
+                            !ReservedTagCodes.LearnerTypeTags.Contains(t.Code)
+                            &&
+                            !ReservedTagCodes.LevelTags.Contains(t.Code))
+                        .ToList();
+
+
+                    await _learnerBehaviorService.IncreaseScoreAsync(
+                        request.LearnerId,
+                        behaviorTags,
+                        BehaviorScoreConstants.CompleteCourse,
+                        cancellationToken);
+                }
 
                 // 6. Lưu thay đổi và commit Transaction
-                await _uow.SaveChangesAsync(cancellationToken);
                 await _uow.CommitTransactionAsync(cancellationToken);
 
                 return ResponseDto<bool>.SuccessResult(true);

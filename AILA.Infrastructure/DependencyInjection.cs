@@ -37,6 +37,7 @@ namespace AILA.Infrastructure
             services.Configure<AdminAccountSettings>(configuration.GetSection("AdminAccount"));
             services.Configure<PasswordResetSettings>(configuration.GetSection("PasswordReset"));
             services.Configure<SmtpSettings>(configuration.GetSection("Smtp"));
+            services.Configure<ExpertEvaluationSettings>(configuration.GetSection("ExpertEvaluation"));
 
             // Redis 
             services.AddRedis(configuration);
@@ -54,6 +55,7 @@ namespace AILA.Infrastructure
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<AdminSeeder>();
             services.AddScoped<ResourceLimitPolicySeeder>();
+            services.AddScoped<SystemTagSeeder>();
 
             // Application services
             services.AddScoped<IQuestionExcelService, QuestionExcelService>();

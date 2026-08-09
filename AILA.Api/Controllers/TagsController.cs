@@ -2,6 +2,7 @@ using AILA.Api.Extensions;
 using AILA.Application.Common.Dtos;
 using AILA.Application.Features.Tags.Commands;
 using AILA.Application.Features.Tags.Queries;
+using AILA.Application.Features.Tags.Queries.GetLearnerInterestTags;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -184,6 +185,23 @@ namespace AILA.Api.Controllers
             {
                 return BadRequest(ResponseDto<object>.FailResult("DELETE_TAG_FAILED", ex.Message));
             }
+        }
+
+        /// <summary>
+        /// Lấy danh sách tag cho learner chọn làm sở thích học tập.
+        /// Không bao gồm learner type và knowledge level system tag.
+        /// </summary>
+        [HttpGet("learner-interest")]
+        [Authorize(Roles = "Learner")]
+        public async Task<IActionResult> GetLearnerInterestTags(
+            CancellationToken ct)
+        {
+            var result = await _sender.Send(
+                new GetLearnerInterestTagsQuery(),
+                ct);
+
+            return Ok(
+                ResponseDto<object>.SuccessResult(result));
         }
     }
 

@@ -1,5 +1,6 @@
 using AILA.Application.Common.Dtos;
 using AILA.Application.Common.Interfaces;
+using AILA.Domain.Constants;
 using AILA.Domain.Entities;
 using AILA.Domain.Enums;
 using MediatR;
@@ -44,11 +45,42 @@ namespace AILA.Application.Features.Courses.Commands
                 request.ThumbnailUrl);
 
             // 5. Gán Tags nếu có
+            var courseTags = new List<Tag>();
+
+
             if (request.TagIds.Any())
             {
-                var tags = await _uow.Tags.GetByIdsAsync(request.TagIds, cancellationToken);
-                course.AssignTags(tags);
+                var tags = await _uow.Tags
+                    .GetPublishedByIdsAsync(
+                        request.TagIds,
+                        cancellationToken);
+
+
+                if (tags.Count != request.TagIds.Count)
+                {
+                    throw new InvalidOperationException(
+                        "Một hoặc nhiều tag không tồn tại hoặc chưa được duyệt.");
+                }
+
+
+                courseTags.AddRange(tags);
             }
+
+
+            // System auto tag theo level
+            var levelTag = await GetLevelTagAsync(
+                level,
+                cancellationToken);
+
+
+            courseTags.Add(levelTag);
+
+
+
+            course.AssignTags(
+                courseTags
+                    .DistinctBy(x => x.Id)
+                    .ToList());
 
             await _uow.Courses.AddAsync(course);
             await _uow.SaveChangesAsync(cancellationToken);
@@ -67,6 +99,32 @@ namespace AILA.Application.Features.Courses.Commands
                 CreatedAt    = course.CreatedAt,
                 UpdatedAt    = course.UpdatedAt
             };
+        }
+
+        private async Task<Tag> GetLevelTagAsync(
+            KnowledgeLevel level,
+            CancellationToken cancellationToken)
+        {
+            var code = level switch
+            {
+                KnowledgeLevel.Beginner
+                    => ReservedTagCodes.Beginner,
+
+                KnowledgeLevel.Intermediate
+                    => ReservedTagCodes.Intermediate,
+
+                KnowledgeLevel.Advanced
+                    => ReservedTagCodes.Advanced,
+
+                _ => throw new ArgumentOutOfRangeException(nameof(level))
+            };
+
+
+            return await _uow.Tags.GetByCodeAsync(
+                code,
+                cancellationToken)
+                ?? throw new InvalidOperationException(
+                    $"Không tìm thấy system tag: {code}");
         }
     }
 }

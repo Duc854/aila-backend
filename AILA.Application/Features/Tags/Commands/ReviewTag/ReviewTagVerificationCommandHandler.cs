@@ -90,7 +90,7 @@ namespace AILA.Application.Features.Tags.Commands.ReviewTagVerifications
                     tag.PublishRequest.RequestedById,
                     title,
                     body,
-                    NotificationType.System,
+                    NotificationType.TagVerificationResult,
                     "/expert/tags");
 
                 await _unitOfWork.Repository<Notification>().AddAsync(notification);

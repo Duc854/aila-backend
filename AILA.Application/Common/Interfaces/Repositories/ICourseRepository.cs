@@ -1,3 +1,4 @@
+using AILA.Application.Common.Dtos.Recommendation;
 using AILA.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -49,5 +50,19 @@ namespace AILA.Application.Common.Interfaces.Repositories
         /// Lấy khóa học kèm Tags để phục vụ thao tác ghi (Edit/Publish/Unpublish).
         /// Dùng AsTracking để EF Core có thể lưu thay đổi.     
         Task<Course?> GetWithTagsForUpdateAsync(Guid courseId, CancellationToken ct = default);
+
+        /// <summary>
+        /// Lấy khóa học kèm tag để có thể phục vụ thu thập hành vi với truy vấn tối ưu nhất có thể khi dùng ORM
+        /// </summary>
+        /// <param name="courseId"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        Task<Course?> GetWithTagsAsync(
+            Guid courseId,
+            CancellationToken cancellationToken = default);
+
+        Task<List<CourseRecommendationCandidateDto>>
+            GetCoursesForRecommendationAsync(
+                CancellationToken cancellationToken = default);
     }
 }

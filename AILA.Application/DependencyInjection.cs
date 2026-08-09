@@ -1,4 +1,6 @@
 using AILA.Application.Common.Behaviours;
+using AILA.Application.Common.Interfaces;
+using AILA.Application.Common.InternalService;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,7 +27,9 @@ namespace AILA.Application
             services.AddTransient(typeof(IPipelineBehavior<,>),
                 typeof(ValidationBehavior<,>));
 
-
+            // Internal Service
+            services.AddScoped<IRecommendationService, RecommendationService>();
+            services.AddScoped<ILearnerBehaviorService, LearnerBehaviorService>();
             // Nếu bạn có các Service nghiệp vụ thông thường (không dùng MediatR), đăng ký ở đây:
             // services.AddScoped<IAuthService, AuthService>();
 

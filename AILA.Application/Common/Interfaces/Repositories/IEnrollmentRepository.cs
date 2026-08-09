@@ -34,5 +34,14 @@ namespace AILA.Application.Common.Interfaces.Repositories
             CancellationToken ct = default);
 
         void Update(Enrollment enrollment);
+
+        Task<Enrollment?> GetWithCourseTagsAsync(
+            Guid learnerId,
+            Guid courseId,
+            CancellationToken cancellationToken = default);
+
+        Task<Enrollment?> GetWithCourseTagsByIdAsync(
+            Guid enrollmentId,
+            CancellationToken cancellationToken = default);
     }
 }
