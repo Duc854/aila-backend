@@ -18,9 +18,5 @@ public class PromptSubmissionDto
 
     /// <summary>Chỉ xuất hiện trong JSON khi đã hoàn thành/chấm điểm bài tập</summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public List<CriteriaScoreDto>? CriteriaScores { get; set; }
-
-    /// <summary>Chỉ xuất hiện trong JSON khi đã hoàn thành/chấm điểm bài tập</summary>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public decimal? TotalScore { get; set; }
 }

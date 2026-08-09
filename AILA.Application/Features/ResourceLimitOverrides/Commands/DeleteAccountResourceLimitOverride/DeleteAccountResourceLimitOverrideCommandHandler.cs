@@ -74,8 +74,6 @@ namespace AILA.Application.Features.ResourceLimitOverrides.Commands.DeleteAccoun
                 var activityLog = new AdminActivityLog(
                     request.AdminId,
                     AdminAction.Delete,
-                    nameof(AccountResourceLimit),
-                    resourceLimit.Id,
                     $"Xóa cấu hình giới hạn tài nguyên riêng của tài khoản {request.AccountId}.");
 
 

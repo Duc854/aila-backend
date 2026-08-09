@@ -38,6 +38,17 @@ public sealed class UnlockCourseCommandHandler
         await _uow.Notifications.AddAsync(
             NotificationTemplates.CourseUnlocked(course.ExpertId, course.Id, course.Name));
 
+        // Ghi nhật ký AdminActivityLog
+        var adminId = (await _uow.Users.GetAdminUserIdsAsync(ct)).FirstOrDefault();
+        if (adminId != Guid.Empty)
+        {
+            var activityLog = new Domain.Entities.AdminActivityLog(
+                adminId,
+                Domain.Enums.AdminAction.Unlock,
+                $"Admin đã mở khóa phục hồi khóa học '{course.Name}'.");
+            await _uow.AdminActivityLogs.AddAsync(activityLog);
+        }
+
         await _uow.SaveChangesAsync(ct);
 
         return ResponseDto<CourseModerationResponseDto>.SuccessResult(

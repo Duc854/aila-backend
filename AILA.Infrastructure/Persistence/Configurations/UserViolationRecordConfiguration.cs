@@ -24,9 +24,13 @@ namespace AILA.Infrastructure.Persistence.Configurations
             builder.Property(x => x.Reason)
                    .HasMaxLength(1000);
 
-            builder.Property(x => x.Severity)
-                   .HasMaxLength(50)
-                   .HasDefaultValue("Medium");
+            builder.Property(x => x.ViolatingPrompt)
+                   .IsRequired();
+
+            builder.HasOne(x => x.User)
+                   .WithMany()
+                   .HasForeignKey(x => x.UserId)
+                   .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

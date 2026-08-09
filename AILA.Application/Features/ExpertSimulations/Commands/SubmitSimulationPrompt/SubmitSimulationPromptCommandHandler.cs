@@ -100,7 +100,7 @@ public class SubmitSimulationPromptCommandHandler : IRequestHandler<SubmitSimula
                 IsViolation = true,
                 ViolationMessage = validationReason,
                 WarningMessage = validationReason,
-                CreatedAt = rejectedSubmission.CreatedAt
+                CreatedAt = DateTime.UtcNow
             };
         }
 
@@ -130,9 +130,9 @@ public class SubmitSimulationPromptCommandHandler : IRequestHandler<SubmitSimula
                 AiResponse = string.Empty,
                 Status = "Violation",
                 IsViolation = true,
-                ViolationMessage = moderationReason,
-                WarningMessage = moderationReason,
-                CreatedAt = rejectedSubmission.CreatedAt
+                ViolationMessage = moderationReason ?? "Vi phạm quy chuẩn an toàn nội dung",
+                WarningMessage = moderationReason ?? "Vi phạm quy chuẩn an toàn nội dung",
+                CreatedAt = DateTime.UtcNow
             };
         }
 

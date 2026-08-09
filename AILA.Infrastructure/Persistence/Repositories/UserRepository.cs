@@ -339,6 +339,14 @@ namespace AILA.Infrastructure.Persistence.Repositories
 
             return (items, totalItems);
         }
+
+        public async Task<List<Guid>> GetAdminUserIdsAsync(CancellationToken cancellationToken = default)
+        {
+            return await _context.Users
+                .Where(u => u.Role == UserRole.Admin)
+                .Select(u => u.Id)
+                .ToListAsync(cancellationToken);
+        }
     }
 }
 

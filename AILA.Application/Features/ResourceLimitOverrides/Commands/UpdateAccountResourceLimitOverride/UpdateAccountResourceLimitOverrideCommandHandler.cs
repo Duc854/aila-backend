@@ -76,8 +76,6 @@ namespace AILA.Application.Features.ResourceLimitOverrides.Commands.UpdateAccoun
                 var activityLog = new AdminActivityLog(
                     request.AdminId,
                     AdminAction.Update,
-                    nameof(AccountResourceLimit),
-                    resourceLimit.Id,
                     $"Cập nhật giới hạn tài nguyên riêng cho tài khoản {request.AccountId}.");
 
 

@@ -1,6 +1,6 @@
 using AILA.Application.Common.Dtos.AI;
-using AILA.Application.Common.Exceptions;
-using AILA.Application.Common.Interfaces.Repositories;
+using AILA.Application.Common.Interfaces;
+using AILA.Domain.Entities;
 using MediatR;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,29 +11,34 @@ namespace AILA.Application.Features.PracticeAttempts.Queries.GetViolations;
 
 public class GetViolationsQueryHandler : IRequestHandler<GetViolationsQuery, List<PromptViolationLogDto>>
 {
-    private readonly IPracticeAttemptRepository _attemptRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public GetViolationsQueryHandler(IPracticeAttemptRepository attemptRepository)
+    public GetViolationsQueryHandler(IUnitOfWork unitOfWork)
     {
-        _attemptRepository = attemptRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<List<PromptViolationLogDto>> Handle(GetViolationsQuery request, CancellationToken cancellationToken)
     {
-        var attempt = await _attemptRepository.GetByIdAsync(request.AttemptId, cancellationToken);
-
+        var attempt = await _unitOfWork.Repository<PracticeAttempt>().GetByIdAsync(request.AttemptId);
         if (attempt == null) return new List<PromptViolationLogDto>();
 
-        return attempt.Submissions
-            .Where(s => s.IsRejected)
-            .Select(s => new PromptViolationLogDto
+        var enrollment = await _unitOfWork.Enrollments.GetByIdAsync(attempt.EnrollmentId);
+        if (enrollment == null) return new List<PromptViolationLogDto>();
+
+        var violations = await _unitOfWork.Repository<UserViolationRecord>()
+            .FindAsync(v => v.UserId == enrollment.LearnerId);
+
+        return violations
+            .Select(v => new PromptViolationLogDto
             {
-                Id = s.Id,
-                SubmissionId = s.Id,
-                ViolationReason = s.RejectionReason ?? "Vi phạm chính sách",
-                PolicyName = s.PolicyName ?? "SafetyPolicy",
-                CreatedAt = s.CreatedAt,
-                UpdatedAt = s.UpdatedAt
+                Id = v.Id,
+                SubmissionId = v.Id,
+                ViolationReason = v.Reason,
+                PolicyName = v.PolicyName,
+                ViolatingPrompt = v.ViolatingPrompt,
+                CreatedAt = v.CreatedAt,
+                UpdatedAt = v.UpdatedAt
             })
             .ToList();
     }

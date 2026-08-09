@@ -18,6 +18,9 @@ public class PracticeAttempt : BaseEntity
     public string OverallSuggestion { get; private set; } = string.Empty;
 
     // Navigation properties
+    public virtual Enrollment Enrollment { get; private set; } = null!;
+    public virtual AIPracticeMaterial Material { get; private set; } = null!;
+
     [ForeignKey("AttemptId")]
     public List<PromptSubmission> Submissions { get; private set; } = new();
 
@@ -34,21 +37,12 @@ public class PracticeAttempt : BaseEntity
 
     /// <summary>Kiểm tra có thể submit thêm không (dựa trên MaxPromptAttempts từ Material)</summary>
     public bool CanSubmitMore(int maxAttempts) =>
-        Status == PracticeAttemptStatus.InProgress && Submissions.Count(s => !s.IsRejected) < maxAttempts;
+        Status == PracticeAttemptStatus.InProgress && Submissions.Count < maxAttempts;
 
     /// <summary>Thêm một lượt submit prompt thành công (DDD Aggregate Method)</summary>
     public PromptSubmission AddSubmission(string userPrompt, string aiResponse)
     {
         var submission = new PromptSubmission(Id, userPrompt, aiResponse);
-        Submissions.Add(submission);
-        return submission;
-    }
-
-    /// <summary>Thêm một lượt submit prompt vi phạm/bị từ chối (DDD Aggregate Method)</summary>
-    public PromptSubmission AddRejectedSubmission(string userPrompt, string reason, string policyName)
-    {
-        var submission = new PromptSubmission(Id, userPrompt, string.Empty);
-        submission.Reject(reason, policyName);
         Submissions.Add(submission);
         return submission;
     }

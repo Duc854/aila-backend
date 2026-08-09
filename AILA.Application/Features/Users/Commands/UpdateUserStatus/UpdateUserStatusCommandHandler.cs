@@ -59,6 +59,18 @@ namespace AILA.Application.Features.Users.Commands.UpdateUserStatus
             }
 
 
+            // Ghi nhật ký AdminActivityLog
+            var adminId = (await _unitOfWork.Users.GetAdminUserIdsAsync(cancellationToken)).FirstOrDefault();
+            if (adminId != Guid.Empty)
+            {
+                var action = request.IsActive ? AdminAction.Unlock : AdminAction.Lock;
+                var activityLog = new Domain.Entities.AdminActivityLog(
+                    adminId,
+                    action,
+                    $"Admin đã {(request.IsActive ? "kích hoạt mở khóa" : "vô hiệu hóa/khóa")} tài khoản '{user.Email}'.");
+                await _unitOfWork.AdminActivityLogs.AddAsync(activityLog);
+            }
+
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             var result = new UserDetailDto

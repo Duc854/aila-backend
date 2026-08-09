@@ -85,8 +85,6 @@ namespace AILA.Application.Features.ResourceLimitOverrides.Commands.CreateAccoun
                 var activityLog = new AdminActivityLog(
                     request.AdminId,
                     AdminAction.Create,
-                    nameof(AccountResourceLimit),
-                    resourceLimit.Id,
                     $"Tạo cấu hình giới hạn tài nguyên riêng cho tài khoản {request.AccountId}.");
 
 

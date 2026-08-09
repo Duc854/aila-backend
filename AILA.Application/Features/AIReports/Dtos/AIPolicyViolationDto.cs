@@ -7,11 +7,10 @@ public class AIPolicyViolationDto
 {
     public Guid Id { get; set; }
     public Guid UserId { get; set; }
-    public Guid? AttemptId { get; set; }
     public string ViolationType { get; set; } = string.Empty;
     public string PolicyName { get; set; } = string.Empty;
     public string Reason { get; set; } = string.Empty;
-    public string Severity { get; set; } = string.Empty;
+    public string ViolatingPrompt { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
 }
 

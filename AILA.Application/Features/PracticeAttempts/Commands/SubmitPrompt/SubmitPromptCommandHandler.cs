@@ -53,7 +53,7 @@ public class SubmitPromptCommandHandler : IRequestHandler<SubmitPromptCommand, P
             ?? throw new NotFoundException(nameof(AIPracticeMaterial), attempt.MaterialId);
 
         // 2. Guard: Max prompt attempts (chỉ tính số lượt submit THÀNH CÔNG có AI Response)
-        int validCount = attempt.Submissions.Count(s => !s.IsRejected);
+        int validCount = attempt.Submissions.Count;
         if (!attempt.CanSubmitMore(material.MaxPromptAttempts))
         {
             throw new BusinessRuleException(
@@ -86,12 +86,7 @@ public class SubmitPromptCommandHandler : IRequestHandler<SubmitPromptCommand, P
                 };
             }
 
-            // Vi phạm chính sách/bảo mật (PII, Rate limit, Duplicate spam) -> Violation (lưu trực tiếp PolicyName vào Submission)
-            var rejectedSubmission = attempt.AddRejectedSubmission(
-                sanitizedPrompt, 
-                validationReason ?? "Prompt vi phạm quy định", 
-                policyName ?? "PromptValidation");
-
+            // Vi phạm chính sách/bảo mật (PII, Rate limit, Duplicate spam) -> Violation (lưu trực tiếp vào UserViolationRecord)
             Guid accountIdForViolation = (await _unitOfWork.Enrollments.GetByIdAsync(attempt.EnrollmentId))?.LearnerId ?? Guid.Empty;
 
             if (accountIdForViolation != Guid.Empty)
@@ -101,23 +96,20 @@ public class SubmitPromptCommandHandler : IRequestHandler<SubmitPromptCommand, P
                     "PromptValidationViolation",
                     policyName ?? "PromptValidation",
                     validationReason ?? "Prompt vi phạm quy định",
-                    attemptId: attempt.Id,
-                    severity: "Medium");
+                    sanitizedPrompt);
                 await _unitOfWork.Repository<UserViolationRecord>().AddAsync(violationRecord);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
             }
-
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return new PromptSubmissionDto
             {
-                Id = rejectedSubmission.Id,
+                Id = Guid.NewGuid(),
                 UserPrompt = sanitizedPrompt,
                 AiResponse = string.Empty,
                 Status = "Violation",
                 IsViolation = true,
                 ViolationMessage = validationReason,
-                WarningMessage = validationReason,
-                CreatedAt = rejectedSubmission.CreatedAt
+                CreatedAt = DateTime.UtcNow
             };
         }
 
@@ -125,11 +117,6 @@ public class SubmitPromptCommandHandler : IRequestHandler<SubmitPromptCommand, P
         var (isSafe, moderationReason) = await _moderationService.CheckContentSafetyAsync(sanitizedPrompt, cancellationToken);
         if (!isSafe)
         {
-            var rejectedSubmission = attempt.AddRejectedSubmission(
-                sanitizedPrompt, 
-                moderationReason ?? "Vi phạm quy chuẩn an toàn nội dung", 
-                "ContentModeration");
-
             Guid accountIdForViolation = (await _unitOfWork.Enrollments.GetByIdAsync(attempt.EnrollmentId))?.LearnerId ?? Guid.Empty;
 
             if (accountIdForViolation != Guid.Empty)
@@ -139,23 +126,21 @@ public class SubmitPromptCommandHandler : IRequestHandler<SubmitPromptCommand, P
                     "ContentModerationViolation",
                     "ContentModeration",
                     moderationReason ?? "Vi phạm quy chuẩn an toàn nội dung",
-                    attemptId: attempt.Id,
-                    severity: "High");
+                    sanitizedPrompt);
                 await _unitOfWork.Repository<UserViolationRecord>().AddAsync(violationRecord);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
             }
-
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return new PromptSubmissionDto
             {
-                Id = rejectedSubmission.Id,
+                Id = Guid.NewGuid(),
                 UserPrompt = sanitizedPrompt,
                 AiResponse = string.Empty,
                 Status = "Violation",
                 IsViolation = true,
                 ViolationMessage = moderationReason,
                 WarningMessage = moderationReason,
-                CreatedAt = rejectedSubmission.CreatedAt
+                CreatedAt = DateTime.UtcNow
             };
         }
 
@@ -183,7 +168,6 @@ public class SubmitPromptCommandHandler : IRequestHandler<SubmitPromptCommand, P
         // (tránh intermediate SaveChangesAsync từ QuotaService/ChatService flush submission chưa hoàn chỉnh)
         var systemPrompt = material.AITask;
         var history = attempt.Submissions
-            .Where(s => !s.IsRejected)
             .OrderBy(s => s.CreatedAt)
             .SelectMany(s => new[] {
                 new ChatMessage("user", s.UserPrompt),
@@ -207,7 +191,7 @@ public class SubmitPromptCommandHandler : IRequestHandler<SubmitPromptCommand, P
         var submission = attempt.AddSubmission(sanitizedPrompt, sanitizedAiResponse);
 
         // 9. Check MaxPromptAttempts -> Auto-Complete if reaching max valid attempts
-        var validSubmissionsCount = attempt.Submissions.Count(s => !s.IsRejected);
+        var validSubmissionsCount = attempt.Submissions.Count;
         if (validSubmissionsCount >= material.MaxPromptAttempts && attempt.Status == PracticeAttemptStatus.InProgress)
         {
             await ScoreAndCompleteAttemptAsync(attempt, material, accountId, cancellationToken);
@@ -236,7 +220,6 @@ public class SubmitPromptCommandHandler : IRequestHandler<SubmitPromptCommand, P
         CancellationToken cancellationToken)
     {
         var validSubmissions = attempt.Submissions
-            .Where(s => !s.IsRejected)
             .OrderBy(s => s.CreatedAt)
             .ToList();
 

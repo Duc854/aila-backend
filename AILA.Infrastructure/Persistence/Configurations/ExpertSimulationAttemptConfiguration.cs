@@ -33,5 +33,10 @@ public class ExpertSimulationAttemptConfiguration : IEntityTypeConfiguration<Exp
             .WithMany()
             .HasForeignKey(x => x.ExpertId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(x => x.Material)
+            .WithMany()
+            .HasForeignKey(x => x.MaterialId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
