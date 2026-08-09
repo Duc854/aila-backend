@@ -61,6 +61,19 @@ namespace AILA.Application.Features.SubscriptionPlans.Commands.UpdateSubscriptio
 
             uow.SubscriptionPlans.Update(plan);
 
+            // Ghi nhật ký AdminActivityLog
+            var adminId = (await uow.Users.GetAdminUserIdsAsync(ct)).FirstOrDefault();
+            if (adminId != Guid.Empty)
+            {
+                var activityLog = new Domain.Entities.AdminActivityLog(
+                    adminId,
+                    Domain.Enums.AdminAction.Update,
+                    nameof(Domain.Entities.SubscriptionPlan),
+                    plan.Id,
+                    $"Admin đã cập nhật cấu hình gói cước dịch vụ '{plan.Name}'.");
+                await uow.AdminActivityLogs.AddAsync(activityLog);
+            }
+
             await uow.SaveChangesAsync(ct);
 
             return ResponseDto<AdminSubscriptionPlanDto>.SuccessResult(plan.ToAdminDto());

@@ -40,11 +40,10 @@ public class AdminAIReportsController : ControllerBase
     [HttpGet("policy-violations")]
     public async Task<ActionResult<PaginatedViolationListDto>> GetPolicyViolations(
         [FromQuery] string? violationType,
-        [FromQuery] string? severity,
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 20)
     {
-        var query = new GetAIPolicyViolationsQuery(violationType, severity, pageNumber, pageSize);
+        var query = new GetAIPolicyViolationsQuery(violationType, pageNumber, pageSize);
         var result = await _mediator.Send(query);
         return Ok(result);
     }

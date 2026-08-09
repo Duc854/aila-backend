@@ -175,16 +175,9 @@ QUY TẮC BẮT BUỘC:
             int turn = 1;
             foreach (var sub in submissions.OrderBy(s => s.CreatedAt))
             {
-                if (sub.IsRejected)
-                {
-                    conversationBuilder.AppendLine($"Lượt {turn} (VI PHẠM): Học viên gửi: \"{sub.UserPrompt}\" -> Hệ thống chặn: {sub.RejectionReason}");
-                }
-                else
-                {
-                    conversationBuilder.AppendLine($"Lượt {turn}:");
-                    conversationBuilder.AppendLine($"  - Học viên (User): \"{sub.UserPrompt}\"");
-                    conversationBuilder.AppendLine($"  - Đối phương (AI): \"{sub.AiResponse}\"");
-                }
+                conversationBuilder.AppendLine($"Lượt {turn}:");
+                conversationBuilder.AppendLine($"  - Học viên (User): \"{sub.UserPrompt}\"");
+                conversationBuilder.AppendLine($"  - Đối phương (AI): \"{sub.AiResponse}\"");
                 turn++;
             }
 
@@ -287,8 +280,8 @@ QUY TẮC CHẤM ĐIỂM:
                 result.Metadata = new MetadataDto
                 {
                     ConversationAnalyzed = submissions.Count,
-                    ValidPrompts = submissions.Count(s => !s.IsRejected),
-                    InvalidPrompts = submissions.Count(s => s.IsRejected),
+                    ValidPrompts = submissions.Count,
+                    InvalidPrompts = 0,
                     ScenarioUsed = !string.IsNullOrEmpty(scenario),
                     UserTaskCompleted = true
                 };

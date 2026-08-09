@@ -137,5 +137,9 @@ namespace AILA.Application.Common.Interfaces.Repositories
         PageRequest pageRequest,
         CancellationToken cancellationToken = default);
 
+        /// <summary>
+        /// Lấy danh sách ID của tất cả tài khoản Admin trong hệ thống
+        /// </summary>
+        Task<List<Guid>> GetAdminUserIdsAsync(CancellationToken cancellationToken = default);
     }
 }

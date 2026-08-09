@@ -14,6 +14,10 @@ public class AITokenLog : BaseEntity
     public int CompletionTokens { get; private set; }
     public int TotalTokens { get; private set; }
 
+    // Navigation properties
+    public virtual User Account { get; private set; } = null!;
+    public virtual PracticeAttempt? Attempt { get; private set; }
+
     private AITokenLog() { }
 
     public AITokenLog(

@@ -34,6 +34,19 @@ public sealed class UnlockCourseCommandHandler
         // 3. Domain action
         course.RestorePublication();
 
+        // Ghi nhật ký AdminActivityLog
+        var adminId = (await _uow.Users.GetAdminUserIdsAsync(ct)).FirstOrDefault();
+        if (adminId != Guid.Empty)
+        {
+            var activityLog = new Domain.Entities.AdminActivityLog(
+                adminId,
+                Domain.Enums.AdminAction.Unlock,
+                nameof(Domain.Entities.Course),
+                course.Id,
+                $"Admin đã mở khóa phục hồi khóa học '{course.Name}'.");
+            await _uow.AdminActivityLogs.AddAsync(activityLog);
+        }
+
         await _uow.SaveChangesAsync(ct);
 
         return ResponseDto<CourseModerationResponseDto>.SuccessResult(

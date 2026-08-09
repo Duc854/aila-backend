@@ -62,7 +62,6 @@ public class GetAttemptDetailQueryHandler : IRequestHandler<GetAttemptDetailQuer
             if (detailedScoring == null)
             {
                 var validSubmissions = attempt.Submissions
-                    .Where(s => !s.IsRejected)
                     .OrderBy(s => s.CreatedAt)
                     .ToList();
 
@@ -94,9 +93,9 @@ public class GetAttemptDetailQueryHandler : IRequestHandler<GetAttemptDetailQuer
                 Id = s.Id,
                 UserPrompt = s.UserPrompt,
                 AiResponse = s.AiResponse,
-                Status = s.IsRejected ? "Violation" : "Success",
-                IsViolation = s.IsRejected,
-                ViolationMessage = s.RejectionReason,
+                Status = "Success",
+                IsViolation = false,
+                ViolationMessage = null,
                 CreatedAt = s.CreatedAt
             }).ToList()
         };

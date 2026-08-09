@@ -24,7 +24,6 @@ public class PracticeAttemptRepository : IPracticeAttemptRepository
     {
         return await _context.PracticeAttempts
             .Include(x => x.Submissions)
-                .ThenInclude(s => s.CriteriaScores)
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
@@ -32,7 +31,6 @@ public class PracticeAttemptRepository : IPracticeAttemptRepository
     {
         return await _context.PracticeAttempts
             .Include(a => a.Submissions)
-                .ThenInclude(s => s.CriteriaScores)
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
@@ -40,7 +38,6 @@ public class PracticeAttemptRepository : IPracticeAttemptRepository
     {
         return await _context.PracticeAttempts
             .Include(a => a.Submissions)
-                .ThenInclude(s => s.CriteriaScores)
             .Where(x => x.EnrollmentId == enrollmentId)
             .OrderByDescending(x => x.CreatedAt)
             .ToListAsync(cancellationToken);
