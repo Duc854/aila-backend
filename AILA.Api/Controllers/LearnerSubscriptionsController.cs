@@ -1,5 +1,6 @@
 using AILA.Api.Extensions;
 using AILA.Application.Features.Subscriptions.Dtos;
+using AILA.Application.Features.Subscriptions.Queries.GetCurrentSubscription;
 using AILA.Application.Features.Subscriptions.Queries.GetSubscriptionResourceUsage;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -12,8 +13,8 @@ using System.Threading.Tasks;
 namespace AILA.Api.Controllers
 {
     /// <summary>
+    /// UC-18: Review Current Subscription.
     /// UC-21: Review Subscription Resource Usage.
-    /// Cho phép Learner xem mức độ sử dụng tài nguyên của gói đăng ký hiện tại.
     /// </summary>
     [ApiController]
     [Route("api/learner/subscriptions")]
@@ -25,6 +26,26 @@ namespace AILA.Api.Controllers
         public LearnerSubscriptionsController(ISender sender)
         {
             _sender = sender;
+        }
+
+        /// <summary>
+        /// UC-18 — Xem thông tin gói đăng ký hiện tại: tên gói, trạng thái, ngày kích hoạt,
+        /// ngày hết hạn, số ngày còn lại (BR-01, BR-02).
+        /// AF-01: Không có gói Active → trả HasActiveSubscription = false.
+        /// </summary>
+        [HttpGet("current")]
+        [ProducesResponseType(typeof(ResponseDto<CurrentSubscriptionDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ResponseDto<object>), StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> GetCurrentSubscription(CancellationToken ct)
+        {
+            var identity = HttpContext.GetUserIdentity();
+            if (identity == null)
+                return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực thất bại."));
+
+            var result = await _sender.Send(
+                new GetCurrentSubscriptionQuery(identity.UserId), ct);
+
+            return Ok(result);
         }
 
         /// <summary>
@@ -40,8 +61,8 @@ namespace AILA.Api.Controllers
             if (identity == null)
                 return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực thất bại."));
 
-            var query = new GetSubscriptionResourceUsageQuery(identity.UserId);
-            var result = await _sender.Send(query, ct);
+            var result = await _sender.Send(
+                new GetSubscriptionResourceUsageQuery(identity.UserId), ct);
 
             return Ok(result);
         }

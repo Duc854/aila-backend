@@ -50,6 +50,7 @@ namespace AILA.Infrastructure.Persistence
         public IAccountResourceUsageRepository AccountResourceUsages { get; private set; }
         public IPracticeAttemptRepository PracticeAttempts { get; private set; }
         public IExpertEvaluationRequestRepository ExpertEvaluationRequests { get; private set; }
+        public IPaymentRepository Payments { get; private set; }
 
         public UnitOfWork(ApplicationDbContext context)
         {
@@ -82,6 +83,7 @@ namespace AILA.Infrastructure.Persistence
             AccountResourceUsages = new AccountResourceUsageRepository(_context);
             PracticeAttempts = new PracticeAttemptRepository(_context);
             ExpertEvaluationRequests = new ExpertEvaluationRequestRepository(_context);
+            Payments = new PaymentRepository(_context);
         }
         public IGenericRepository<T> Repository<T>() where T : class
         {
