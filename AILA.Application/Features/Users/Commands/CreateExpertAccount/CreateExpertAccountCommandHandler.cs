@@ -47,11 +47,11 @@ namespace AILA.Application.Features.Users.Commands.CreateExpertAccount
             }
 
             // Validate Password (BR-01)
-            if (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < 6)
+            if (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < 8)
             {
                 return ResponseDto<UserDetailDto>.FailResult(
                     "INVALID_PASSWORD",
-                    "Mật khẩu phải có ít nhất 6 ký tự.");
+                    "Mật khẩu phải có ít nhất 8 ký tự.");
             }
 
             try
