@@ -42,7 +42,7 @@ namespace AILA.Application.Tests
             _output.WriteLine($"Total submissions in DB: {submissions.Count}");
             foreach (var s in submissions)
             {
-                _output.WriteLine($"Submission ID: {s.Id}, AttemptId: {s.AttemptId}, UserPrompt: '{s.UserPrompt}', IsRejected: {s.IsRejected}");
+                _output.WriteLine($"Submission ID: {s.Id}, AttemptId: {s.AttemptId}, UserPrompt: '{s.UserPrompt}'");
             }
         }
     }

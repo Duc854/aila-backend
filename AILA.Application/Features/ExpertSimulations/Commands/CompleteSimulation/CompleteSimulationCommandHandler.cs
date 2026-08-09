@@ -48,7 +48,6 @@ public class CompleteSimulationCommandHandler : IRequestHandler<CompleteSimulati
             .FindAsync(s => s.AttemptId == simulation.Id);
 
         var validSubmissions = submissions
-            .Where(s => !s.IsRejected)
             .OrderBy(s => s.CreatedAt)
             .ToList();
 

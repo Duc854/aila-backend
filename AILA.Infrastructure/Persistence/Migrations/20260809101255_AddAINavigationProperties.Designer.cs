@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using AILA.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AILA.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260809101255_AddAINavigationProperties")]
+    partial class AddAINavigationProperties
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -576,17 +579,12 @@ namespace AILA.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AccountId");
-
-                    b.HasIndex("CourseId");
 
                     b.ToTable("CourseChatSessions");
                 });
@@ -2058,25 +2056,6 @@ namespace AILA.Infrastructure.Persistence.Migrations
                     b.Navigation("Session");
                 });
 
-            modelBuilder.Entity("AILA.Domain.Entities.CourseChatSession", b =>
-                {
-                    b.HasOne("AILA.Domain.Entities.User", "Account")
-                        .WithMany()
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("AILA.Domain.Entities.Course", "Course")
-                        .WithMany()
-                        .HasForeignKey("CourseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Account");
-
-                    b.Navigation("Course");
-                });
-
             modelBuilder.Entity("AILA.Domain.Entities.CourseReviewRequest", b =>
                 {
                     b.HasOne("AILA.Domain.Entities.Course", "Course")
@@ -2324,13 +2303,11 @@ namespace AILA.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("AILA.Domain.Entities.PracticeAttempt", "Attempt")
+                    b.HasOne("AILA.Domain.Entities.PracticeAttempt", null)
                         .WithMany("Submissions")
                         .HasForeignKey("AttemptId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Attempt");
                 });
 
             modelBuilder.Entity("AILA.Domain.Entities.PromptTemplate", b =>

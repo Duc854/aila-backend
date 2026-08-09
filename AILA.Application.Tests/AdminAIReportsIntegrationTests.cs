@@ -86,14 +86,13 @@ namespace AILA.Application.Tests
                 "PromptValidationViolation",
                 "PIIProtection",
                 "Phát hiện email cá nhân trong prompt",
-                attemptId: sampleAttemptId,
-                severity: "High");
+                "user@example.com prompt content");
 
             await unitOfWork.Repository<UserViolationRecord>().AddAsync(sampleViolation);
             await unitOfWork.SaveChangesAsync();
 
             // 2. Admin gọi Query lấy danh sách vi phạm
-            var query = new GetAIPolicyViolationsQuery(ViolationType: "PromptValidationViolation", Severity: "High", PageNumber: 1, PageSize: 10);
+            var query = new GetAIPolicyViolationsQuery(ViolationType: "PromptValidationViolation", PageNumber: 1, PageSize: 10);
             var result = await mediator.Send(query);
 
             _output.WriteLine($"[Violations Result]: TotalCount={result.TotalCount}, ItemsInPage={result.Items.Count}");

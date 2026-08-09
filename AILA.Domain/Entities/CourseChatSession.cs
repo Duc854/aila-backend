@@ -10,6 +10,10 @@ public class CourseChatSession : BaseEntity
     public Guid CourseId { get; private set; }
     public string Title { get; private set; } = string.Empty;
 
+    // Navigation properties
+    public virtual User Account { get; private set; } = null!;
+    public virtual Course Course { get; private set; } = null!;
+
     private readonly List<CourseChatMessage> _messages = new();
     public virtual IReadOnlyCollection<CourseChatMessage> Messages => _messages.AsReadOnly();
 

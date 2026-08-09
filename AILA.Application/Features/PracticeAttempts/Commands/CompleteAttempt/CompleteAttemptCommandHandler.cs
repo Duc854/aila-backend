@@ -42,7 +42,6 @@ public class CompleteAttemptCommandHandler : IRequestHandler<CompleteAttemptComm
         var criteria = material?.ScoringCriterias.ToList() ?? new List<ScoringCriteria>();
 
         var validSubmissions = attempt.Submissions
-            .Where(s => !s.IsRejected)
             .OrderBy(s => s.CreatedAt)
             .ToList();
 
