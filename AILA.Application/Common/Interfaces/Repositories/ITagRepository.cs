@@ -58,5 +58,7 @@ namespace AILA.Application.Common.Interfaces.Repositories
 
         Task<List<Tag>> GetLearnerInterestTagsAsync(
             CancellationToken cancellationToken = default);
+
+        Task<Tag?> GetTagLevelAsync(string code, CancellationToken ct = default);
     }
 }
