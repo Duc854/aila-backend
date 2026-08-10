@@ -1,14 +1,12 @@
 using Microsoft.SemanticKernel;
 using AILA.Application.Common.Interfaces;
 using AILA.Application.Common.Interfaces.AI;
-using AILA.Application.Common.Interfaces.Repositories;
-using AILA.Infrastructure.Persistence;
+using AILA.Application.Common.Interfaces.Repositories;using AILA.Infrastructure.Persistence;
 using AILA.Infrastructure.Persistence.Repositories;
 using AILA.Infrastructure.Persistence.Seed;
 using AILA.Infrastructure.Security;
 using AILA.Infrastructure.Services;
-using AILA.Infrastructure.Services.AI;
-using AILA.Infrastructure.Services.Email;
+using AILA.Infrastructure.Services.AI;using AILA.Infrastructure.Services.Email;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -59,6 +57,7 @@ namespace AILA.Infrastructure
 
             // Application services
             services.AddScoped<IQuestionExcelService, QuestionExcelService>();
+            services.AddScoped<ISePayService, SePayService>();
             services.AddScoped<IAccountResourceRepository, AccountResourceRepository>();
             services.AddScoped<IKnowledgeChunkRepository, KnowledgeChunkRepository>();
             services.AddScoped<IPracticeAttemptRepository, PracticeAttemptRepository>();

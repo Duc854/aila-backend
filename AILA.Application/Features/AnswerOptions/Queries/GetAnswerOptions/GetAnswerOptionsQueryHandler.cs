@@ -37,8 +37,8 @@ public sealed class GetAnswerOptionsQueryHandler
                     "Không tìm thấy câu hỏi.");
         }
 
-        // Kiểm tra quyền Expert
-        if (question.QuizMaterial.Material.Module.Course.ExpertId != request.ExpertId)
+        // Kiểm tra quyền Expert (bỏ qua khi admin xem preview)
+        if (!request.IsAdminOverride && question.QuizMaterial.Material.Module.Course.ExpertId != request.ExpertId)
         {
             return ResponseDto<List<AnswerOptionDto>>
                 .FailResult(

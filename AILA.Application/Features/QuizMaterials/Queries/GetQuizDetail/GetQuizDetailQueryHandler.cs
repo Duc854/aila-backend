@@ -32,7 +32,7 @@ public sealed class GetQuizDetailQueryHandler
 
         if (quiz != null)
         {
-            if (quiz.Material.Module.Course.ExpertId != request.ExpertId)
+            if (!request.IsAdminOverride && quiz.Material.Module.Course.ExpertId != request.ExpertId)
             {
                 return ResponseDto<QuizMaterialDto>
                     .FailResult(
@@ -59,7 +59,7 @@ public sealed class GetQuizDetailQueryHandler
                     "Không tìm thấy học liệu.");
         }
 
-        if (material.Module.Course.ExpertId != request.ExpertId)
+        if (!request.IsAdminOverride && material.Module.Course.ExpertId != request.ExpertId)
         {
             return ResponseDto<QuizMaterialDto>
                 .FailResult(

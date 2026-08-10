@@ -38,6 +38,7 @@ namespace AILA.Application.Common.Interfaces
         IAccountResourceUsageRepository AccountResourceUsages { get; }
         IPracticeAttemptRepository PracticeAttempts { get; }
         IExpertEvaluationRequestRepository ExpertEvaluationRequests { get; }
+        IPaymentRepository Payments { get; }
 
         IGenericRepository<T> Repository<T>() where T : class;
 

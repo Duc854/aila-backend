@@ -91,6 +91,15 @@ app.UseExceptionMiddleware();
 app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors("AllowAll");
+
+// Cho phép đọc lại request body tại webhook endpoint (cần để verify HMAC signature)
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/api/webhooks"))
+        context.Request.EnableBuffering();
+    await next();
+});
+
 app.UseAuthentication();
 app.UseAuthorization();
 

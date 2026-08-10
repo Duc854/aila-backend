@@ -1,6 +1,7 @@
 using AILA.Domain.Enums;
 using MediatR;
 using AILA.Application.Common.Interfaces;
+using AILA.Application.Common.Notifications;
 using AILA.Domain.Entities;
 using Shared.Wrappers;
 
@@ -55,11 +56,13 @@ namespace AILA.Application.Features.Tags.Commands.ReviewTagVerifications
             }
 
             // Process based on status
+            bool isApproved;
             switch (request.Status)
             {
                 case TagPublishRequestStatus.Approved:
                     tag.PublishRequest.Approve();
                     tag.Publish();
+                    isApproved = true;
                     break;
 
                 case TagPublishRequestStatus.Rejected:
@@ -70,6 +73,7 @@ namespace AILA.Application.Features.Tags.Commands.ReviewTagVerifications
                             "Lý do từ chối là bắt buộc.");
                     }
                     tag.PublishRequest.Reject(request.Note!);
+                    isApproved = false;
                     break;
 
                 default:
@@ -78,34 +82,16 @@ namespace AILA.Application.Features.Tags.Commands.ReviewTagVerifications
                         $"Trạng thái không hợp lệ: {request.Status}");
             }
 
-            // Gửi thông báo kết quả cho Expert
-            if (tag.PublishRequest.RequestedById != Guid.Empty)
+            // Gửi thông báo kết quả duyệt cho expert đã tạo tag (nếu không phải system tag)
+            if (tag.CreatedById.HasValue)
             {
-                string title = "Kết quả xác minh thẻ tag";
-                string body = request.Status == TagPublishRequestStatus.Approved
-                    ? $"Yêu cầu xác minh thẻ '{tag.Name}' của bạn đã được chấp nhận."
-                    : $"Yêu cầu xác minh thẻ '{tag.Name}' của bạn đã bị từ chối. Lý do: {request.Note}";
-
-                var notification = new Notification(
-                    tag.PublishRequest.RequestedById,
-                    title,
-                    body,
-                    NotificationType.TagVerificationResult,
-                    "/expert/tags");
-
-                await _unitOfWork.Repository<Notification>().AddAsync(notification);
-            }
-
-            // Ghi nhật ký AdminActivityLog
-            var adminId = (await _unitOfWork.Users.GetAdminUserIdsAsync(cancellationToken)).FirstOrDefault();
-            if (adminId != Guid.Empty)
-            {
-                var action = request.Status == TagPublishRequestStatus.Approved ? AdminAction.Approve : AdminAction.Reject;
-                var activityLog = new AdminActivityLog(
-                    adminId,
-                    action,
-                    $"Admin đã {(request.Status == TagPublishRequestStatus.Approved ? "phê duyệt" : "từ chối")} yêu cầu xác minh thẻ tag '{tag.Name}'.");
-                await _unitOfWork.AdminActivityLogs.AddAsync(activityLog);
+                await _unitOfWork.Notifications.AddAsync(
+                    NotificationTemplates.TagVerificationReviewed(
+                        tag.CreatedById.Value,
+                        tag.Id,
+                        tag.Name,
+                        isApproved,
+                        isApproved ? null : request.Note));
             }
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);

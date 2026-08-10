@@ -6,5 +6,6 @@ namespace AILA.Application.Features.QuizMaterials.Queries.GetQuizDetail;
 
 public sealed record GetQuizDetailQuery(
     Guid MaterialId,
-    Guid ExpertId)
+    Guid ExpertId,
+    bool IsAdminOverride = false)
     : IRequest<ResponseDto<QuizMaterialDto>>;

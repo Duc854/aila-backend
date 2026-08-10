@@ -1,4 +1,5 @@
 using AILA.Application.Common.Interfaces;
+using AILA.Application.Common.Notifications;
 using AILA.Application.Features.Reports.Dtos;
 using MediatR;
 using Shared.Wrappers;
@@ -33,6 +34,9 @@ public sealed class UnlockCourseCommandHandler
 
         // 3. Domain action
         course.RestorePublication();
+
+        await _uow.Notifications.AddAsync(
+            NotificationTemplates.CourseUnlocked(course.ExpertId, course.Id, course.Name));
 
         // Ghi nhật ký AdminActivityLog
         var adminId = (await _uow.Users.GetAdminUserIdsAsync(ct)).FirstOrDefault();

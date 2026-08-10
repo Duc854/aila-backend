@@ -1,4 +1,5 @@
 using AILA.Application.Common.Interfaces;
+using AILA.Application.Common.Notifications;
 using AILA.Application.Features.CourseReviewRequests.Dtos;
 using MediatR;
 using Shared.Wrappers;
@@ -45,10 +46,17 @@ public sealed class ApproveCourseReReviewCommandHandler
             return ResponseDto<CourseReviewRequestAdminDto>.FailResult("RESTORE_FAILED", ex.Message);
         }
 
-        await _uow.SaveChangesAsync(ct);
-
         var course  = reviewRequest.Course;
         var expert  = course.Expert;
+
+        await _uow.Notifications.AddAsync(
+            NotificationTemplates.CourseReReviewApproved(
+                expert?.UserId ?? Guid.Empty,
+                course.Id,
+                course.Name,
+                request.ReviewComment));
+
+        await _uow.SaveChangesAsync(ct);
 
         return ResponseDto<CourseReviewRequestAdminDto>.SuccessResult(new CourseReviewRequestAdminDto
         {
