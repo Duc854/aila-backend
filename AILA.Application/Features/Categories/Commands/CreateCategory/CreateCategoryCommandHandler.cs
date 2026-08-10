@@ -33,14 +33,6 @@ namespace AILA.Application.Features.Categories.Commands.CreateCategory
                     "Tên danh mục phải từ 2 đến 100 ký tự.");
             }
 
-            // BR-03
-            if (request.OrderIndex < 0)
-            {
-                return ResponseDto<CategoryDto>.FailResult(
-                    "INVALID_ORDER_INDEX",
-                    "Thứ tự hiển thị không hợp lệ.");
-            }
-
             // BR-01
             if (await uow.Categories.ExistsByNameAsync(name, ct))
             {
@@ -49,11 +41,19 @@ namespace AILA.Application.Features.Categories.Commands.CreateCategory
                     "Tên danh mục đã tồn tại.");
             }
 
+            // BR-03: Tự động gán vị trí tiếp theo nếu chưa cung cấp hoặc <= 0
+            var orderIndex = request.OrderIndex;
+            if (orderIndex <= 0)
+            {
+                var existing = (await uow.Categories.GetAllOrderedAsync(ct)).ToList();
+                orderIndex = existing.Any() ? existing.Max(c => c.OrderIndex) + 1 : 1;
+            }
+
             // BR-04
             var category = new Category(
                 name,
                 request.Description,
-                request.OrderIndex);
+                orderIndex);
 
             await uow.Categories.AddAsync(category);
 
