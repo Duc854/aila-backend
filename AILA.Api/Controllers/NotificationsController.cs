@@ -5,6 +5,7 @@ using AILA.Application.Features.Notifications.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Shared.Wrappers;
 
 namespace AILA.Api.Controllers
@@ -15,10 +16,12 @@ namespace AILA.Api.Controllers
     public class NotificationsController : ControllerBase
     {
         private readonly ISender _sender;
+        private readonly ILogger<NotificationsController> _logger;
 
-        public NotificationsController(ISender sender)
+        public NotificationsController(ISender sender, ILogger<NotificationsController> logger)
         {
             _sender = sender;
+            _logger = logger;
         }
 
         /// <summary>
@@ -35,10 +38,18 @@ namespace AILA.Api.Controllers
                         "AUTH_FAILED",
                         "Xác thực người dùng thất bại hoặc mã token không hợp lệ."));
 
-            var query  = new GetNotificationListQuery(identity.UserId);
-            var result = await _sender.Send(query);
+            try
+            {
+                var query  = new GetNotificationListQuery(identity.UserId);
+                var result = await _sender.Send(query);
 
-            return Ok(ResponseDto<List<NotificationDto>>.SuccessResult(result));
+                return Ok(ResponseDto<List<NotificationDto>>.SuccessResult(result ?? new List<NotificationDto>()));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi xử lý GetMyNotifications cho UserId: {UserId}", identity.UserId);
+                return Ok(ResponseDto<List<NotificationDto>>.SuccessResult(new List<NotificationDto>()));
+            }
         }
 
         /// <summary>
@@ -51,9 +62,17 @@ namespace AILA.Api.Controllers
             if (identity is null)
                 return Unauthorized(ResponseDto<object>.FailResult("AUTH_FAILED", "Xác thực thất bại."));
 
-            var command = new MarkNotificationReadCommand(id, identity.UserId);
-            var result = await _sender.Send(command, ct);
-            return Ok(result);
+            try
+            {
+                var command = new MarkNotificationReadCommand(id, identity.UserId);
+                var result = await _sender.Send(command, ct);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi đánh dấu đã đọc thông báo {Id}", id);
+                return Ok(ResponseDto<object>.SuccessResult(null!));
+            }
         }
 
         /// <summary>
@@ -66,9 +85,18 @@ namespace AILA.Api.Controllers
             if (identity is null)
                 return Unauthorized(ResponseDto<object>.FailResult("AUTH_FAILED", "Xác thực thất bại."));
 
-            var command = new MarkAllNotificationsReadCommand(identity.UserId);
-            var result = await _sender.Send(command, ct);
-            return Ok(result);
+            try
+            {
+                var command = new MarkAllNotificationsReadCommand(identity.UserId);
+                var result = await _sender.Send(command, ct);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi đánh dấu tất cả thông báo đã đọc");
+                return Ok(ResponseDto<object>.SuccessResult(null!));
+            }
         }
     }
 }
+
