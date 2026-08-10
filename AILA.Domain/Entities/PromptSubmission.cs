@@ -9,9 +9,6 @@ public class PromptSubmission : BaseEntity
     public string UserPrompt { get; private set; } = string.Empty;
     public string AiResponse { get; private set; } = string.Empty;
 
-    // Navigation property
-    public virtual PracticeAttempt Attempt { get; private set; } = null!;
-
     private PromptSubmission() { }
 
     public PromptSubmission(Guid attemptId, string userPrompt, string aiResponse)

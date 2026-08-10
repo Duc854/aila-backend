@@ -25,10 +25,7 @@ namespace AILA.Infrastructure.Persistence.Configurations
                    .HasForeignKey(x => x.AccountId)
                    .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasOne(x => x.Attempt)
-                   .WithMany()
-                   .HasForeignKey(x => x.AttemptId)
-                   .OnDelete(DeleteBehavior.SetNull);
+            builder.HasIndex(x => x.AttemptId);
         }
     }
 }

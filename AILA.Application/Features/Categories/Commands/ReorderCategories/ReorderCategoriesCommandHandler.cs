@@ -36,14 +36,15 @@ namespace AILA.Application.Features.Categories.Commands.ReorderCategories
                     "Danh sách sắp xếp không hợp lệ.");
             }
 
-            // Lấy toàn bộ category hiện có
-            var allCategories = (await uow.Categories
-                .GetAllOrderedAsync(ct))
-                .ToList();
+            // Lấy toàn bộ category theo ID (tracked by EF Core)
+            var allCategories = await uow.Categories
+                .GetByIdsAsync(request.CategoryIds, ct);
+
+            var totalCount = (await uow.Categories.GetAllOrderedAsync(ct)).Count();
 
             // BR-03:
             // Danh sách submit phải chứa tất cả category đúng một lần
-            if (allCategories.Count != request.CategoryIds.Count)
+            if (allCategories.Count != totalCount || allCategories.Count != request.CategoryIds.Count)
             {
                 return ResponseDto<object>.FailResult(
                     "INVALID_ORDER",
@@ -64,13 +65,14 @@ namespace AILA.Application.Features.Categories.Commands.ReorderCategories
                     "Danh sách sắp xếp không hợp lệ.");
             }
 
-            // BR-02
+            // BR-02: Cập nhật thứ tự hiển thị (1-based: 1, 2, 3...)
             for (int i = 0; i < request.CategoryIds.Count; i++)
             {
                 var category = allCategories
                     .First(c => c.Id == request.CategoryIds[i]);
 
-                category.ChangeOrder(i);
+                category.ChangeOrder(i + 1);
+                uow.Categories.Update(category);
             }
 
             await uow.SaveChangesAsync(ct);

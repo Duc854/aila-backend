@@ -47,7 +47,7 @@ public class CompleteAttemptCommandHandler : IRequestHandler<CompleteAttemptComm
                 attempt.EnrollmentId);
         var accountId = enrollment.LearnerId;
 
-        var material = await _materialRepo.GetByIdAsync(attempt.MaterialId);
+        var material = await _materialRepo.GetByIdWithDetailsAsync(attempt.MaterialId, cancellationToken);
         var criteria = material?.ScoringCriterias.ToList() ?? new List<ScoringCriteria>();
 
         var validSubmissions = attempt.Submissions

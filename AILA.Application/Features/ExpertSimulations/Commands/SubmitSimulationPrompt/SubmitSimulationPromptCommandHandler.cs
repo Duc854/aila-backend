@@ -184,6 +184,7 @@ public class SubmitSimulationPromptCommandHandler : IRequestHandler<SubmitSimula
         // 8. Mask AI response và lưu submission
         var sanitizedAiResponse = _privacyService.MaskSensitiveData(aiResponse);
         var submission = attempt.AddSubmission(sanitizedPrompt, sanitizedAiResponse);
+        await _unitOfWork.Repository<PromptSubmission>().AddAsync(submission);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 

@@ -16,7 +16,6 @@ public class AITokenLog : BaseEntity
 
     // Navigation properties
     public virtual User Account { get; private set; } = null!;
-    public virtual PracticeAttempt? Attempt { get; private set; }
 
     private AITokenLog() { }
 
