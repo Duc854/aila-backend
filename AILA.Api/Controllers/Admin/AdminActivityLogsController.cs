@@ -1,4 +1,4 @@
-﻿using AILA.Application.Features.AdminActivityLog.Queries.ReviewAdminActivityLogs;
+﻿using AILA.Application.Features.AdminActivityLogs.Queries.ReviewAdminActivityLogs;
 using AILA.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;

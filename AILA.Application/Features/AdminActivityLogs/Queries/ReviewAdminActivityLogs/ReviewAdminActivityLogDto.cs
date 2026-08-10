@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AILA.Application.Features.AdminActivityLog.Queries.ReviewAdminActivityLogs
+namespace AILA.Application.Features.AdminActivityLogs.Queries.ReviewAdminActivityLogs
 {
     public class ReviewAdminActivityLogDto
     {
