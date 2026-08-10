@@ -19,10 +19,7 @@ namespace AILA.Infrastructure.Persistence.Configurations
             builder.Property(x => x.UserPrompt)
                    .IsRequired();
 
-            builder.HasOne(x => x.Attempt)
-                   .WithMany(a => a.Submissions)
-                   .HasForeignKey(x => x.AttemptId)
-                   .OnDelete(DeleteBehavior.Cascade);
+            builder.HasIndex(x => x.AttemptId);
         }
     }
 }

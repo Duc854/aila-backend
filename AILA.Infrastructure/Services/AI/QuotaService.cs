@@ -171,8 +171,19 @@ public class QuotaService : IQuotaService
     {
         if (accountId == Guid.Empty) return;
 
+        // Chỉ gán AttemptId nếu thực sự tồn tại trong bảng PracticeAttempts (tránh lỗi FK khi gọi từ Simulation/Chat)
+        Guid? validAttemptId = null;
+        if (attemptId.HasValue && attemptId.Value != Guid.Empty)
+        {
+            var practiceAttempt = await _unitOfWork.PracticeAttempts.GetByIdAsync(attemptId.Value, cancellationToken);
+            if (practiceAttempt != null)
+            {
+                validAttemptId = attemptId.Value;
+            }
+        }
+
         // 1. Log chi tiết vào AITokenLog
-        var tokenLog = new AITokenLog(accountId, attemptId, serviceType, modelId, promptTokens, completionTokens);
+        var tokenLog = new AITokenLog(accountId, validAttemptId, serviceType, modelId, promptTokens, completionTokens);
         await _repository.AddTokenLogAsync(tokenLog, cancellationToken);
 
         // 2. Case 10: Người dùng sử dụng tài nguyên -> Cập nhật counter AiTokenUsed trong AccountResourceUsage
