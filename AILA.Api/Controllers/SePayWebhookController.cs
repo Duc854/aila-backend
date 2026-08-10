@@ -40,10 +40,10 @@ namespace AILA.Api.Controllers
         [ProducesResponseType(typeof(ResponseDto<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> HandleWebhook(CancellationToken ct)
         {
-            // 1. Đọc raw body để xác thực chữ ký (phải đọc trước khi bind model)
-            Request.EnableBuffering();
-            using var reader  = new System.IO.StreamReader(Request.Body, leaveOpen: true);
-            var rawBody       = await reader.ReadToEndAsync(ct);
+            // 1. Đọc raw body để xác thực chữ ký HMAC-SHA256
+            // EnableBuffering đã được gọi ở middleware pipeline (Program.cs)
+            using var reader = new System.IO.StreamReader(Request.Body, leaveOpen: true);
+            var rawBody      = await reader.ReadToEndAsync(ct);
             Request.Body.Position = 0;
 
             var signature = Request.Headers["X-Signature"].FirstOrDefault() ?? string.Empty;
@@ -74,8 +74,8 @@ namespace AILA.Api.Controllers
             if (!result.Success)
             {
                 _logger.LogWarning(
-                    "SePay webhook xử lý thất bại. OrderCode={OrderCode}, Error={Error}",
-                    payload.OrderCode, result.ErrorCode);
+                    "SePay webhook xử lý thất bại. Content={Content}, SePay_Id={Id}, Error={Error}",
+                    payload.Content, payload.Id, result.ErrorCode);
 
                 return result.ErrorCode == PaymentErrors.InvalidSignature
                     ? Unauthorized(result)

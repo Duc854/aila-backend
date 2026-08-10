@@ -77,27 +77,29 @@ namespace AILA.Application.Features.Payments.Commands.CreatePayment
                 plan.ExpertEvaluationLimit);
 
             // 5. Tạo orderCode và nội dung chuyển khoản
-            var orderCode    = GenerateOrderCode();
-            var description  = $"AILA {plan.Name}";
-            var expiredAt    = DateTime.UtcNow.AddMinutes(PaymentExpiryMinutes);
+            var orderCode = GenerateOrderCode();
+            var expiredAt = DateTime.UtcNow.AddMinutes(PaymentExpiryMinutes);
 
             var payment = new Payment(
                 learnerId: request.LearnerId,
                 subscriptionPlanId: request.SubscriptionPlanId,
                 amount: plan.Price,
                 orderCode: orderCode,
-                paymentContent: $"AILA {orderCode}",
+                // PaymentContent = orderCode — người dùng nhập vào ngân hàng,
+                // QR cũng nhúng orderCode vào &des= để app ngân hàng tự điền khi quét
+                paymentContent: orderCode,
                 expiredAt: expiredAt,
                 planSnapshot: snapshot);
 
             await uow.Payments.AddAsync(payment);
             await uow.SaveChangesAsync(cancellationToken);
 
-            // 6. Lấy thông tin SePay QR (không ném exception ra ngoài transaction)
+            // 6. Lấy thông tin SePay QR
+            // description = orderCode → app ngân hàng tự điền đúng nội dung khi quét
             var sePayInfo = sePayService.CreatePaymentInfo(
                 orderCode,
                 plan.Price,
-                description);
+                description: orderCode);
 
             var result = new CreatePaymentResultDto(
                 PaymentId: payment.Id,
@@ -114,15 +116,19 @@ namespace AILA.Application.Features.Payments.Commands.CreatePayment
         }
 
         /// <summary>
-        /// Tạo mã đơn hàng nội bộ ngắn gọn, duy nhất, dễ đọc trên QR.
-        /// Format: AILA + Timestamp(ms) → đảm bảo đủ ngắn để nằm trong nội dung CK.
+        /// Tạo mã đơn hàng khớp với cấu hình SePay: tiền tố "AILA" + 3–10 chữ số.
+        ///
+        /// Dùng Unix timestamp giây (10 chữ số) — nằm gọn trong giới hạn SePay,
+        /// đảm bảo duy nhất vì mỗi learner chỉ có 1 payment Pending tại một thời điểm
+        /// (payment cũ bị huỷ trước khi tạo mới ở bước 3).
+        ///
+        /// Ví dụ kết quả: AILA1723280400 (14 ký tự tổng)
         /// </summary>
         private static string GenerateOrderCode()
         {
-            // Dùng ticks để đảm bảo tính duy nhất trong môi trường single-instance.
-            // Trong môi trường multi-instance, nên dùng distributed ID (Snowflake, ULID).
-            var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            return $"AILA{timestamp}";
+            // Unix timestamp seconds = 10 chữ số (khớp với giới hạn hậu tố tối đa 10 của SePay)
+            var timestampSeconds = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            return $"AILA{timestampSeconds}";
         }
     }
 }

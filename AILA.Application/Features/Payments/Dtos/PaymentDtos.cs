@@ -61,11 +61,26 @@ namespace AILA.Application.Features.Payments.Dtos
 
     /// <summary>
     /// UC-19 Webhook payload từ SePay.
+    /// Theo tài liệu SePay: https://my.sepay.vn/userapi
+    /// Field names dùng camelCase để khớp với JsonSerializer khi PropertyNameCaseInsensitive = true.
     /// </summary>
     public record SePayWebhookDto(
-        string OrderCode,
-        string TransactionCode,
-        decimal Amount,
+        /// <summary>ID giao dịch nội bộ của SePay</summary>
+        int Id,
+        /// <summary>Ngân hàng nhận tiền (ví dụ: MBBank, Vietcombank)</summary>
+        string Gateway,
+        /// <summary>Thời điểm giao dịch diễn ra (yyyy-MM-dd HH:mm:ss)</summary>
+        string TransactionDate,
+        /// <summary>Số tài khoản nhận tiền</summary>
+        string AccountNumber,
+        /// <summary>Nội dung chuyển khoản — chứa OrderCode của hệ thống</summary>
         string Content,
-        string Status);
+        /// <summary>Số tiền chuyển (VND)</summary>
+        decimal TransferAmount,
+        /// <summary>Loại giao dịch: "in" = tiền vào, "out" = tiền ra</summary>
+        string TransferType,
+        /// <summary>Mã tham chiếu giao dịch từ ngân hàng (transaction code)</summary>
+        string? ReferenceCode,
+        /// <summary>Code — thường trùng với Content, dùng để tra cứu nội dung đã cài</summary>
+        string? Code);
 }

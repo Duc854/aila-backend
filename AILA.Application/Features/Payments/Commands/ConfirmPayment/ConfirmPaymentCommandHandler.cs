@@ -28,9 +28,15 @@ namespace AILA.Application.Features.Payments.Commands.ConfirmPayment
 
             var payload = request.Payload;
 
-            // 2. Tìm payment theo orderCode
-            var payment = await uow.Payments.GetByOrderCodeAsync(
-                payload.OrderCode, cancellationToken);
+            // Chỉ xử lý giao dịch tiền vào (transferType = "in")
+            if (!string.Equals(payload.TransferType, "in", StringComparison.OrdinalIgnoreCase))
+                return ResponseDto<object>.SuccessResult(new { Message = "Bỏ qua — không phải giao dịch tiền vào." });
+
+            // 2. Tìm payment theo OrderCode (khớp với Content của giao dịch)
+            // SePay gửi nội dung chuyển khoản trong field Content — chứa OrderCode hệ thống
+            var orderCode = ExtractOrderCode(payload.Content ?? payload.Code ?? string.Empty);
+
+            var payment = await uow.Payments.GetByOrderCodeAsync(orderCode, cancellationToken);
 
             if (payment is null)
                 return ResponseDto<object>.FailResult(
@@ -54,7 +60,8 @@ namespace AILA.Application.Features.Payments.Commands.ConfirmPayment
             }
 
             // 4. Kiểm tra số tiền khớp (chống manipulation)
-            if (payload.Amount != payment.Amount)
+            // SePay gửi transferAmount — so sánh với amount đã lưu (cho phép sai lệch nhỏ do làm tròn)
+            if (Math.Abs(payload.TransferAmount - payment.Amount) > 0.01m)
                 return ResponseDto<object>.FailResult(
                     PaymentErrors.AmountMismatch,
                     "Số tiền thanh toán không khớp.");
@@ -65,7 +72,10 @@ namespace AILA.Application.Features.Payments.Commands.ConfirmPayment
             try
             {
                 // 5.1 Đánh dấu payment thành công
-                payment.MarkAsSuccess(payload.TransactionCode);
+                // SePay dùng referenceCode là mã giao dịch ngân hàng
+                var transactionCode = payload.ReferenceCode
+                    ?? payload.Id.ToString();
+                payment.MarkAsSuccess(transactionCode);
                 uow.Payments.Update(payment);
 
                 // 5.2 Lấy subscription Active hiện tại của learner (BR-03, BR-04)
@@ -114,6 +124,25 @@ namespace AILA.Application.Features.Payments.Commands.ConfirmPayment
             return ResponseDto<object>.SuccessResult(new { Message = "Thanh toán xác nhận thành công." });
         }
 
+        /// <summary>
+        /// Trích xuất OrderCode từ nội dung chuyển khoản.
+        /// Nội dung CK có thể là "AILA1705300600000" hoặc có text thừa như "Chuyen tien AILA1705300600000"
+        /// → tìm pattern "AILA" + digits.
+        /// </summary>
+        private static string ExtractOrderCode(string content)
+        {
+            if (string.IsNullOrWhiteSpace(content))
+                return string.Empty;
+
+            // Khớp pattern SePay: tiền tố "AILA" + 3–10 chữ số (theo cấu hình cấu trúc mã)
+            // Ví dụ: "AILA1723280400" hoặc "Chuyen tien AILA1723280400"
+            var match = System.Text.RegularExpressions.Regex.Match(
+                content,
+                @"AILA\d{3,10}",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+            return match.Success ? match.Value.ToUpperInvariant() : content.Trim();
+        }
         /// <summary>
         /// Cập nhật AccountResourceLimit nếu learner có override cá nhân và plan mới
         /// cấp quota lớn hơn. Nếu không có override, quota được đọc từ PlanSnapshot
