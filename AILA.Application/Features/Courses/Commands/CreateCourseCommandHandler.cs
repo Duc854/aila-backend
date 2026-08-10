@@ -120,11 +120,11 @@ namespace AILA.Application.Features.Courses.Commands
             };
 
 
-            return await _uow.Tags.GetByCodeAsync(
+            return await _uow.Tags.GetTagLevelAsync(
                 code,
                 cancellationToken)
                 ?? throw new InvalidOperationException(
-                    $"Không tìm thấy system tag: {code}");
+                    $"Không tìm thấy level tag: {code}");
         }
     }
 }

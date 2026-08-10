@@ -151,6 +151,10 @@ namespace AILA.Infrastructure.Persistence.Repositories
                 .OrderBy(t => t.Name)
                 .ToListAsync(cancellationToken);
         }
+
+        public async Task<Tag?> GetTagLevelAsync(string code, CancellationToken ct = default)
+            => await _context.Tags
+        .FirstOrDefaultAsync(t => t.Code == code.ToLower().Trim(), ct);
     }
 }
 
