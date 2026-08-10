@@ -1,4 +1,5 @@
 using AILA.Application.Common.Interfaces.Repositories;
+using AILA.Domain.Constants;
 using AILA.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -100,6 +101,55 @@ namespace AILA.Infrastructure.Persistence.Repositories
         {
             return await _context.Courses
                 .CountAsync(c => c.CourseTags.Any(t => t.Id == tagId), ct);
+        }
+
+        public async Task<List<Tag>> GetPublishedByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken)
+        {
+            return await _context.Tags
+                .Where(x => ids.Contains(x.Id)
+                         && x.IsPublished)
+                .ToListAsync(cancellationToken);
+        }
+
+        public async Task<List<Tag>> GetByCodesAsync(
+    List<string> codes,
+    CancellationToken cancellationToken = default)
+        {
+            return await _context.Tags
+                .Where(x => codes.Contains(x.Code))
+                .ToListAsync(cancellationToken);
+        }
+
+        public async Task<List<Tag>> GetPublishedSelectableTagsAsync(
+            CancellationToken cancellationToken = default)
+        {
+            var levelCodes = ReservedTagCodes.LevelTags.ToList();
+
+            return await _context.Tags
+                .AsNoTracking()
+                .Where(t =>
+                    t.IsPublished
+                    && !levelCodes.Contains(t.Code))
+                .OrderBy(t => t.Name)
+                .ToListAsync(cancellationToken);
+        }
+
+        public async Task<List<Tag>> GetLearnerInterestTagsAsync(
+            CancellationToken cancellationToken = default)
+        {
+            var learnerTypeCodes = ReservedTagCodes.LearnerTypeTags.ToList();
+            var levelCodes = ReservedTagCodes.LevelTags.ToList();
+
+            return await _context.Tags
+                .AsNoTracking()
+                .Where(t =>
+                    t.IsPublished
+                    &&
+                    !learnerTypeCodes.Contains(t.Code)
+                    &&
+                    !levelCodes.Contains(t.Code))
+                .OrderBy(t => t.Name)
+                .ToListAsync(cancellationToken);
         }
     }
 }

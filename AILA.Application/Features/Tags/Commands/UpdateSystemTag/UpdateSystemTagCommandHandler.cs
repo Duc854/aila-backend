@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -54,6 +54,18 @@ namespace AILA.Application.Features.Tags.Commands.UpdateSystemTag
             }
 
             tag.UpdateSystemTag(normalizedName, code);
+
+            // Ghi nhật ký AdminActivityLog
+            var adminId = (await uow.Users.GetAdminUserIdsAsync(ct)).FirstOrDefault();
+            if (adminId != Guid.Empty)
+            {
+                var activityLog = new Domain.Entities.AdminActivityLog(
+                    adminId,
+                    Domain.Enums.AdminAction.Update,
+                    $"Admin đã cập nhật thẻ tag hệ thống '{tag.Name}'.");
+                await uow.AdminActivityLogs.AddAsync(activityLog);
+            }
+
             await uow.SaveChangesAsync(ct);
 
             return ResponseDto<TagDto>.SuccessResult(new TagDto

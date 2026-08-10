@@ -1,4 +1,4 @@
-﻿using AILA.Application.Common.Interfaces;
+using AILA.Application.Common.Interfaces;
 using AILA.Application.Features.Categories.Dtos;
 using MediatR;
 using Shared.Wrappers;
@@ -58,6 +58,17 @@ namespace AILA.Application.Features.Categories.Commands.UpdateCategory
                 request.Description);
 
             uow.Categories.Update(category);
+
+            // Ghi nhật ký AdminActivityLog
+            var adminId = (await uow.Users.GetAdminUserIdsAsync(ct)).FirstOrDefault();
+            if (adminId != Guid.Empty)
+            {
+                var activityLog = new Domain.Entities.AdminActivityLog(
+                    adminId,
+                    Domain.Enums.AdminAction.Update,
+                    $"Admin đã cập nhật thông tin danh mục khóa học '{category.Name}'.");
+                await uow.AdminActivityLogs.AddAsync(activityLog);
+            }
 
             await uow.SaveChangesAsync(ct);
 

@@ -1,5 +1,7 @@
+using AILA.Application.Common.Dtos;
 using AILA.Domain.Entities;
 using AILA.Domain.Enums;
+using Shared.Wrappers;
 
 namespace AILA.Application.Common.Interfaces.Repositories
 {
@@ -129,5 +131,15 @@ namespace AILA.Application.Common.Interfaces.Repositories
             CancellationToken cancellationToken = default);
 
         #endregion
+
+        Task<(List<AccountOverrideAccountDto> Items, int TotalItems)>GetOverrideEligibleAccountsAsync(
+        string? keyword,
+        PageRequest pageRequest,
+        CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Lấy danh sách ID của tất cả tài khoản Admin trong hệ thống
+        /// </summary>
+        Task<List<Guid>> GetAdminUserIdsAsync(CancellationToken cancellationToken = default);
     }
 }

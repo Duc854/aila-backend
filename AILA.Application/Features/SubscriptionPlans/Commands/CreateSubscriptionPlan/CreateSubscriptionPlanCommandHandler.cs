@@ -84,6 +84,17 @@ namespace AILA.Application.Features.SubscriptionPlans.Commands.CreateSubscriptio
 
             await uow.SubscriptionPlans.AddAsync(plan);
 
+            // Ghi nhật ký AdminActivityLog
+            var adminId = (await uow.Users.GetAdminUserIdsAsync(ct)).FirstOrDefault();
+            if (adminId != Guid.Empty)
+            {
+                var activityLog = new AdminActivityLog(
+                    adminId,
+                    Domain.Enums.AdminAction.Create,
+                    $"Admin đã tạo gói cước dịch vụ mới '{plan.Name}'.");
+                await uow.AdminActivityLogs.AddAsync(activityLog);
+            }
+
             try
             {
                 await uow.SaveChangesAsync(ct);

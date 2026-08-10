@@ -1,4 +1,4 @@
-﻿using AILA.Domain.Enums;
+using AILA.Domain.Enums;
 using FluentValidation;
 
 namespace AILA.Application.Features.QuizMaterials.Commands.BulkCreateQuiz;

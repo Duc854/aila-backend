@@ -1,4 +1,5 @@
 using AILA.Application.Common.Interfaces;
+using AILA.Application.Common.Notifications;
 using AILA.Application.Features.Reports.Dtos;
 using AILA.Domain.Enums;
 using MediatR;
@@ -44,6 +45,20 @@ public sealed class LockCourseFromReportCommandHandler
         // 4. Domain actions
         course.LockVisibility();
         report.Resolve();
+
+        await _uow.Notifications.AddAsync(
+            NotificationTemplates.CourseLocked(course.ExpertId, course.Id, course.Name));
+
+        // Ghi nhật ký AdminActivityLog
+        var adminId = (await _uow.Users.GetAdminUserIdsAsync(ct)).FirstOrDefault();
+        if (adminId != Guid.Empty)
+        {
+            var activityLog = new Domain.Entities.AdminActivityLog(
+                adminId,
+                AdminAction.Lock,
+                $"Admin đã khóa khóa học '{course.Name}' từ báo cáo {report.Id}.");
+            await _uow.AdminActivityLogs.AddAsync(activityLog);
+        }
 
         await _uow.SaveChangesAsync(ct);
 

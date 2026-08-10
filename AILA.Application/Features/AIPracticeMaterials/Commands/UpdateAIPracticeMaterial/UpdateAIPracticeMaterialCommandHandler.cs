@@ -1,4 +1,4 @@
-﻿using AILA.Application.Common.Interfaces;
+using AILA.Application.Common.Interfaces;
 using AILA.Application.Features.AIPracticeMaterials.Commands.CreateAIPracticeMaterial;
 using AILA.Application.Features.AIPracticeMaterials.Queries.GetAIPracticeMaterialDetail;
 using AILA.Domain.Entities;

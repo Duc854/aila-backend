@@ -1,4 +1,4 @@
-﻿using AILA.Application.Common.Interfaces;
+using AILA.Application.Common.Interfaces;
 using AILA.Application.Features.AnswerOptions.Dtos;
 using AILA.Application.Features.AnswerOptions.Mapping;
 using MediatR;

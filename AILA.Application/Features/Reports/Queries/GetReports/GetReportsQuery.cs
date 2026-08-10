@@ -1,4 +1,4 @@
-﻿using AILA.Domain.Enums;
+using AILA.Domain.Enums;
 using MediatR;
 using Shared.Wrappers;
 using System.Collections.Generic;

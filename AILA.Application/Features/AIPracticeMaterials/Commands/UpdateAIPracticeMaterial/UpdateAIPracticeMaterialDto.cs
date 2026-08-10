@@ -1,4 +1,4 @@
-﻿using AILA.Application.Features.AIPracticeMaterials.Commands.CreateAIPracticeMaterial;
+using AILA.Application.Features.AIPracticeMaterials.Commands.CreateAIPracticeMaterial;
 using System;
 using System.Collections.Generic;
 using System.Linq;

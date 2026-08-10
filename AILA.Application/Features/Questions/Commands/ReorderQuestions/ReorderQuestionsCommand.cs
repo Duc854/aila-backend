@@ -1,4 +1,4 @@
-﻿using AILA.Application.Features.Questions.Dtos;
+using AILA.Application.Features.Questions.Dtos;
 using MediatR;
 using Shared.Wrappers;
 

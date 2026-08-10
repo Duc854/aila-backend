@@ -1,9 +1,12 @@
+using Microsoft.SemanticKernel;
 using AILA.Application.Common.Interfaces;
-using AILA.Infrastructure.Persistence;
+using AILA.Application.Common.Interfaces.AI;
+using AILA.Application.Common.Interfaces.Repositories;using AILA.Infrastructure.Persistence;
+using AILA.Infrastructure.Persistence.Repositories;
 using AILA.Infrastructure.Persistence.Seed;
 using AILA.Infrastructure.Security;
 using AILA.Infrastructure.Services;
-using AILA.Infrastructure.Services.Email;
+using AILA.Infrastructure.Services.AI;using AILA.Infrastructure.Services.Email;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,6 +35,7 @@ namespace AILA.Infrastructure
             services.Configure<AdminAccountSettings>(configuration.GetSection("AdminAccount"));
             services.Configure<PasswordResetSettings>(configuration.GetSection("PasswordReset"));
             services.Configure<SmtpSettings>(configuration.GetSection("Smtp"));
+            services.Configure<ExpertEvaluationSettings>(configuration.GetSection("ExpertEvaluation"));
 
             // Redis 
             services.AddRedis(configuration);
@@ -48,9 +52,50 @@ namespace AILA.Infrastructure
             // Core
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<AdminSeeder>();
+            services.AddScoped<ResourceLimitPolicySeeder>();
+            services.AddScoped<SystemTagSeeder>();
 
             // Application services
             services.AddScoped<IQuestionExcelService, QuestionExcelService>();
+            services.AddScoped<ISePayService, SePayService>();
+            services.AddScoped<IAccountResourceRepository, AccountResourceRepository>();
+            services.AddScoped<IKnowledgeChunkRepository, KnowledgeChunkRepository>();
+            services.AddScoped<IPracticeAttemptRepository, PracticeAttemptRepository>();
+            services.AddScoped<IAIPracticeMaterialRepository, AIPracticeMaterialRepository>();
+            
+            services.AddScoped<IKnowledgeBaseService, KnowledgeBaseService>();
+            services.AddScoped<IModerationService, ModerationService>();
+            services.AddScoped<IPracticeChatService, PracticeChatService>();
+            services.AddScoped<IPrivacyService, PrivacyService>();
+            services.AddScoped<IPromptValidationService, PromptValidationService>();
+            services.AddScoped<IQuotaService, QuotaService>();
+            services.AddScoped<IRagChatService, RagChatService>();
+            services.AddScoped<IRoleParserService, RoleParserService>();
+            services.AddScoped<IScoringService, ScoringService>();
+
+            // 7. Cấu hình Semantic Kernel Chat Completion
+            services.AddSingleton<Microsoft.SemanticKernel.ChatCompletion.IChatCompletionService>(sp =>
+            {
+                var config = sp.GetRequiredService<IConfiguration>();
+                var apiKey = config["OpenAI:ApiKey"] ?? "dummy-key-for-build";
+                var modelId = config["OpenAI:ModelId"] ?? "gpt-4o";
+                var baseUrl = config["OpenAI:BaseUrl"];
+
+                var builder = Microsoft.SemanticKernel.Kernel.CreateBuilder();
+
+                if (!string.IsNullOrEmpty(baseUrl))
+                {
+                    var httpClient = new HttpClient(new CustomOpenAIHandler(baseUrl));
+                    builder.AddOpenAIChatCompletion(modelId, apiKey, httpClient: httpClient);
+                }
+                else
+                {
+                    builder.AddOpenAIChatCompletion(modelId, apiKey);
+                }
+
+                var kernel = builder.Build();
+                return kernel.GetRequiredService<Microsoft.SemanticKernel.ChatCompletion.IChatCompletionService>();
+            });
 
             // Password Reset
             services.AddPasswordReset();
@@ -117,6 +162,31 @@ namespace AILA.Infrastructure
             services.AddHostedService<EmailBackgroundService>();
 
             return services;
+        }
+    }
+
+    internal class CustomOpenAIHandler : DelegatingHandler
+    {
+        private readonly string _baseUrl;
+
+        public CustomOpenAIHandler(string baseUrl)
+            : base(new HttpClientHandler())
+        {
+            _baseUrl = baseUrl.TrimEnd('/');
+        }
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            if (request.RequestUri != null)
+            {
+                var targetUriStr = request.RequestUri.ToString();
+                if (targetUriStr.StartsWith("https://api.openai.com/v1", StringComparison.OrdinalIgnoreCase))
+                {
+                    var newUriStr = targetUriStr.Replace("https://api.openai.com/v1", _baseUrl);
+                    request.RequestUri = new Uri(newUriStr);
+                }
+            }
+            return base.SendAsync(request, cancellationToken);
         }
     }
 }

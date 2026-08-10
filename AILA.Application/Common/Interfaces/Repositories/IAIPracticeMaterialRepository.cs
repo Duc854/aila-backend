@@ -1,4 +1,4 @@
-﻿using AILA.Domain.Entities;
+using AILA.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +11,10 @@ namespace AILA.Application.Common.Interfaces.Repositories
         : IGenericRepository<AIPracticeMaterial>
     {
         Task<AIPracticeMaterial?> GetDetailForExpertAsync(
+            Guid materialId,
+            CancellationToken cancellationToken = default);
+
+        Task<AIPracticeMaterial?> GetByIdWithDetailsAsync(
             Guid materialId,
             CancellationToken cancellationToken = default);
 

@@ -36,6 +36,9 @@ namespace AILA.Infrastructure.Persistence.Configurations
                    .WithOne(x => x.Tag)
                    .HasForeignKey<TagPublishRequest>(x => x.TagId)
                    .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Navigation(x => x.LearnerScores)
+                    .UsePropertyAccessMode(PropertyAccessMode.Field);
         }
     }
 }

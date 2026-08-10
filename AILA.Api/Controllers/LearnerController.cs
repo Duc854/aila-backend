@@ -8,6 +8,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Wrappers;
+using System;
 
 namespace AILA.Api.Controllers
 {
@@ -23,20 +24,18 @@ namespace AILA.Api.Controllers
             if (identity == null)
                 return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực thất bại."));
 
-            LearnerType? learnerType = null;
-            if (!string.IsNullOrWhiteSpace(request.LearnerType))
+            if (!Enum.TryParse<LearnerType>(request.LearnerType, true, out var learnerType))
             {
-                if (!Enum.TryParse(request.LearnerType, true, out LearnerType parsedLearnerType))
-                    return BadRequest(ResponseDto<object>.FailResult("INVALID_LEARNER_TYPE", "Loại học viên không hợp lệ."));
-                learnerType = parsedLearnerType;
+                return BadRequest(ResponseDto<object>.FailResult(
+                    "INVALID_LEARNER_TYPE",
+                    "Loại học viên không hợp lệ."));
             }
 
-            KnowledgeLevel? knowledgeLevel = null;
-            if (!string.IsNullOrWhiteSpace(request.KnowledgeLevel))
+            if (!Enum.TryParse<KnowledgeLevel>(request.KnowledgeLevel, true, out var knowledgeLevel))
             {
-                if (!Enum.TryParse(request.KnowledgeLevel, true, out KnowledgeLevel parsedKnowledgeLevel))
-                    return BadRequest(ResponseDto<object>.FailResult("INVALID_KNOWLEDGE_LEVEL", "Trình độ không hợp lệ."));
-                knowledgeLevel = parsedKnowledgeLevel;
+                return BadRequest(ResponseDto<object>.FailResult(
+                    "INVALID_KNOWLEDGE_LEVEL",
+                    "Trình độ không hợp lệ."));
             }
 
             var command = new UpdateLearnerProfileCommand(

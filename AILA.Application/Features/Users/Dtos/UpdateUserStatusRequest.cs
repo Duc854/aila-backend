@@ -1,4 +1,4 @@
-﻿namespace AILA.Application.Features.Users.Dtos
+namespace AILA.Application.Features.Users.Dtos
 {
     public class UpdateUserStatusRequest
     {

@@ -1,4 +1,4 @@
-﻿using AILA.Application.Common.Dtos;
+using AILA.Application.Common.Dtos;
 using AILA.Application.Common.Interfaces;
 using AILA.Application.Common.Interfaces.Repositories;
 using AILA.Domain.Entities;
@@ -60,11 +60,14 @@ namespace AILA.Application.Features.Courses.Queries.GetCourseLearningView
                         }).ToList()
                 }).ToList();
 
+            var enrollment = await _uow.Enrollments.GetByCourseAndLearnerAsync(request.CourseId, request.LearnerId, cancellationToken);
+
             var totalMaterials = modules.Sum(x => x.Materials.Count);
             var learningViewDto = new CourseLearningViewDto
             {
                 Progress = new CourseProgressDto
                 {
+                    EnrollmentId = enrollment?.Id,
                     CompletedMaterials = completedIds.Count,
                     TotalMaterials = totalMaterials,
                     Percent = totalMaterials == 0

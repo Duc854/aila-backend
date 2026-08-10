@@ -12,8 +12,10 @@ namespace AILA.Domain.Entities
     {
         public Guid LearnerId { get; private set; }
 
-        public Guid? CourseId { get; private set; }
+        // Every report belongs to a course
+        public Guid CourseId { get; private set; }
 
+        // Optional: report a specific learning material
         public Guid? MaterialId { get; private set; }
 
         public ReportType ReportType { get; private set; }
@@ -24,58 +26,66 @@ namespace AILA.Domain.Entities
 
         public DateTime? ResolvedAt { get; private set; }
 
+
         // Navigation
         public virtual Learner Learner { get; private set; } = null!;
 
-        public virtual Course? Course { get; private set; }
+        public virtual Course Course { get; private set; } = null!;
 
         public virtual Material? Material { get; private set; }
 
+
         private ContentReport() { }
+
 
         public ContentReport(
             Guid learnerId,
-            Guid? courseId,
+            Guid courseId,
             Guid? materialId,
             ReportType reportType,
             string? description)
         {
             if (learnerId == Guid.Empty)
-                throw new ArgumentException("Người báo cáo không hợp lệ.");
+                throw new ArgumentException(
+                    "Người báo cáo không hợp lệ.");
 
-            if (courseId == null && materialId == null)
-                throw new ArgumentException("Báo cáo phải thuộc một khóa học hoặc một học liệu.");
-
-            if (courseId != null && materialId != null)
-                throw new ArgumentException("Chỉ được báo cáo một đối tượng mỗi lần.");
+            if (courseId == Guid.Empty)
+                throw new ArgumentException(
+                    "Khóa học không hợp lệ.");
 
             Id = Guid.NewGuid();
 
             LearnerId = learnerId;
             CourseId = courseId;
             MaterialId = materialId;
+
             ReportType = reportType;
             Description = description?.Trim();
 
             Status = ReportStatus.Pending;
         }
 
+
         public void UpdateDescription(string? description)
         {
-            if (Status == ReportStatus.Resolved)
-                throw new InvalidOperationException("Không thể chỉnh sửa báo cáo đã được xử lý.");
+            if (Status != ReportStatus.Pending)
+                throw new InvalidOperationException(
+                    "Chỉ có thể chỉnh sửa báo cáo đang chờ xử lý.");
 
             Description = description?.Trim();
+
             UpdateTimestamp();
         }
 
+
         /// <summary>
-        /// Admin đánh dấu báo cáo đã xử lý.
+        /// Admin xử lý báo cáo.
         /// </summary>
         public void Resolve()
         {
             if (Status == ReportStatus.Resolved)
-                throw new InvalidOperationException("Báo cáo đã được xử lý.");
+                throw new InvalidOperationException(
+                    "Báo cáo đã được xử lý.");
 
             Status = ReportStatus.Resolved;
             ResolvedAt = DateTime.UtcNow;
@@ -85,15 +95,16 @@ namespace AILA.Domain.Entities
 
 
         /// <summary>
-        /// Admin mở lại báo cáo đã xử lý trong trường hợp ấn nhầm.
+        /// Mở lại báo cáo đã xử lý.
         /// </summary>
         public void Reopen()
         {
-            if (Status == ReportStatus.Pending)
-                throw new InvalidOperationException("Báo cáo chưa được xử lý, không thể mở lại.");
+            if (Status != ReportStatus.Resolved)
+                throw new InvalidOperationException(
+                    "Chỉ có thể mở lại báo cáo đã xử lý.");
 
             Status = ReportStatus.Pending;
-            ResolvedAt = DateTime.UtcNow;
+            ResolvedAt = null;
 
             UpdateTimestamp();
         }

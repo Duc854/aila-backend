@@ -1,4 +1,4 @@
-﻿using AILA.Application.Features.QuizMaterials.Dtos.BulkCreateQuiz;
+using AILA.Application.Features.QuizMaterials.Dtos.BulkCreateQuiz;
 using MediatR;
 using Shared.Wrappers;
 

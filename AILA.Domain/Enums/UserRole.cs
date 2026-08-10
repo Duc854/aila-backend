@@ -10,6 +10,6 @@ namespace AILA.Domain.Enums
     {
         Learner,
         Expert,
-        Admin   // Tài khoản quản trị hệ thống (không lưu trong DB, dùng appsettings)
+        Admin   // Tài khoản quản trị hệ thống (lưu duy nhât 1 cái trong DB, lấy từ appsettings)
     }
 }

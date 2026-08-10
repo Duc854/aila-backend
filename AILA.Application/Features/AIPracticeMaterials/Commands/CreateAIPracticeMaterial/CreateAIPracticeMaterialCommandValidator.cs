@@ -1,4 +1,4 @@
-﻿using AILA.Application.Features.AIPracticeMaterials.Validators;
+using AILA.Application.Features.AIPracticeMaterials.Validators;
 using FluentValidation;
 
 namespace AILA.Application.Features.AIPracticeMaterials.Commands.CreateAIPracticeMaterial

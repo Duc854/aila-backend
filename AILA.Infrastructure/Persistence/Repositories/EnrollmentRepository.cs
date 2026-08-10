@@ -60,5 +60,48 @@ namespace AILA.Infrastructure.Persistence.Repositories
         {
             _context.Enrollments.Update(enrollment);
         }
+
+        public async Task<List<Enrollment>> GetEnrollmentsInScopeAsync(
+            List<Guid> courseIds, 
+            DateTime fromDate, 
+            DateTime toDate, 
+            CancellationToken ct = default)
+        {
+            if (courseIds == null || courseIds.Count == 0)
+                return new List<Enrollment>();
+
+            return await _context.Enrollments
+                .AsNoTracking()
+                .Where(e => courseIds.Contains(e.CourseId) 
+                         && e.EnrolledAt >= fromDate 
+                         && e.EnrolledAt <= toDate)
+                .ToListAsync(ct);
+        }
+
+        public async Task<Enrollment?> GetWithCourseTagsAsync(
+            Guid learnerId,
+            Guid courseId,
+            CancellationToken cancellationToken = default)
+        {
+            return await _context.Enrollments
+                .Include(x => x.Course)
+                    .ThenInclude(x => x.CourseTags)
+                .FirstOrDefaultAsync(
+                    x => x.LearnerId == learnerId
+                      && x.CourseId == courseId,
+                    cancellationToken);
+        }
+
+        public async Task<Enrollment?> GetWithCourseTagsByIdAsync(
+            Guid enrollmentId,
+            CancellationToken cancellationToken = default)
+        {
+            return await _context.Enrollments
+                .Include(e => e.Course)
+                    .ThenInclude(c => c.CourseTags)
+                .FirstOrDefaultAsync(
+                    e => e.Id == enrollmentId,
+                    cancellationToken);
+        }
     }
 }

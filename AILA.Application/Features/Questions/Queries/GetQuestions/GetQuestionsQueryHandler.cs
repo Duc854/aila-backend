@@ -1,4 +1,4 @@
-﻿using AILA.Application.Common.Interfaces;
+using AILA.Application.Common.Interfaces;
 using AILA.Application.Features.Questions.Dtos;
 using AILA.Application.Features.Questions.Mapping;
 using MediatR;
@@ -37,7 +37,7 @@ public sealed class GetQuestionsQueryHandler
                     "Không tìm thấy Quiz.");
         }
 
-        if (quiz.Material.Module.Course.ExpertId != request.ExpertId)
+        if (!request.IsAdminOverride && quiz.Material.Module.Course.ExpertId != request.ExpertId)
         {
             return ResponseDto<List<QuestionDto>>
                 .FailResult(

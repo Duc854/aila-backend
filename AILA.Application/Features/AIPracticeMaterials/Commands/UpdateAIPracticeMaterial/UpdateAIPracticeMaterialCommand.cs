@@ -1,4 +1,4 @@
-﻿using AILA.Application.Features.AIPracticeMaterials.Commands.CreateAIPracticeMaterial;
+using AILA.Application.Features.AIPracticeMaterials.Commands.CreateAIPracticeMaterial;
 using MediatR;
 using Shared.Wrappers;
 using System;

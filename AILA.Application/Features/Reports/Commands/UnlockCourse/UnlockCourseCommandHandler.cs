@@ -1,4 +1,5 @@
 using AILA.Application.Common.Interfaces;
+using AILA.Application.Common.Notifications;
 using AILA.Application.Features.Reports.Dtos;
 using MediatR;
 using Shared.Wrappers;
@@ -33,6 +34,20 @@ public sealed class UnlockCourseCommandHandler
 
         // 3. Domain action
         course.RestorePublication();
+
+        await _uow.Notifications.AddAsync(
+            NotificationTemplates.CourseUnlocked(course.ExpertId, course.Id, course.Name));
+
+        // Ghi nhật ký AdminActivityLog
+        var adminId = (await _uow.Users.GetAdminUserIdsAsync(ct)).FirstOrDefault();
+        if (adminId != Guid.Empty)
+        {
+            var activityLog = new Domain.Entities.AdminActivityLog(
+                adminId,
+                Domain.Enums.AdminAction.Unlock,
+                $"Admin đã mở khóa phục hồi khóa học '{course.Name}'.");
+            await _uow.AdminActivityLogs.AddAsync(activityLog);
+        }
 
         await _uow.SaveChangesAsync(ct);
 

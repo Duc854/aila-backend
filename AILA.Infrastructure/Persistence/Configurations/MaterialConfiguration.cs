@@ -23,6 +23,12 @@ namespace AILA.Infrastructure.Persistence.Configurations
                 .HasConversion<string>()
                 .HasMaxLength(50);
 
+            builder.HasIndex(x => new
+            {
+                x.ModuleId,
+                x.OrderIndex
+            }).IsUnique();
+
             builder.HasOne(x => x.QuizDetails)
                 .WithOne(x => x.Material)
                 .HasForeignKey<QuizMaterial>(x => x.MaterialId)
@@ -42,6 +48,14 @@ namespace AILA.Infrastructure.Persistence.Configurations
               .WithOne(a => a.Material)
               .HasForeignKey<AIPracticeMaterial>(a => a.MaterialId)
               .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(x => x.ContentReports)
+                .WithOne(x => x.Material)
+                .HasForeignKey(x => x.MaterialId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Navigation(x => x.ContentReports)
+                .UsePropertyAccessMode(PropertyAccessMode.Field);
         }
     }
 }

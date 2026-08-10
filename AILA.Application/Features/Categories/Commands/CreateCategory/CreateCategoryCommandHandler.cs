@@ -1,4 +1,4 @@
-﻿using AILA.Application.Common.Interfaces;
+using AILA.Application.Common.Interfaces;
 using AILA.Application.Features.Categories.Dtos;
 using AILA.Domain.Entities;
 using MediatR;
@@ -56,6 +56,17 @@ namespace AILA.Application.Features.Categories.Commands.CreateCategory
                 request.OrderIndex);
 
             await uow.Categories.AddAsync(category);
+
+            // Ghi nhật ký AdminActivityLog
+            var adminId = (await uow.Users.GetAdminUserIdsAsync(ct)).FirstOrDefault();
+            if (adminId != Guid.Empty)
+            {
+                var activityLog = new AdminActivityLog(
+                    adminId,
+                    Domain.Enums.AdminAction.Create,
+                    $"Admin đã tạo danh mục khóa học mới '{category.Name}'.");
+                await uow.AdminActivityLogs.AddAsync(activityLog);
+            }
 
             await uow.SaveChangesAsync(ct);
 

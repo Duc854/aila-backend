@@ -1,4 +1,4 @@
-﻿using AILA.Application.Features.QuizMaterials.Dtos;
+using AILA.Application.Features.QuizMaterials.Dtos;
 using AILA.Domain.Entities;
 
 namespace AILA.Application.Features.QuizMaterials.Mapping;

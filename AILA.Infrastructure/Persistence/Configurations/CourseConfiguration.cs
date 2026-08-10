@@ -68,6 +68,17 @@ namespace AILA.Infrastructure.Persistence.Configurations
 
             builder.Navigation(x => x.ReviewRequests)
                 .UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            // 1-N Course -> ContentReport
+            builder.HasMany(x => x.ContentReports)
+                .WithOne(x => x.Course)
+                .HasForeignKey(x => x.CourseId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Navigation(x => x.ContentReports)
+                .UsePropertyAccessMode(PropertyAccessMode.Field);
+
+
         }
     }
 }

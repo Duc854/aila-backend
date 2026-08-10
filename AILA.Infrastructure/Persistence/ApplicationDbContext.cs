@@ -1,4 +1,4 @@
-﻿using AILA.Domain.Entities;
+using AILA.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -37,6 +37,25 @@ namespace AILA.Infrastructure.Persistence
         public DbSet<Subscription> Subscriptions => Set<Subscription>();
         public DbSet<Payment> Payments => Set<Payment>();
         public DbSet<CourseReviewRequest> CourseReviewRequests => Set<CourseReviewRequest>();
+        public DbSet<PracticeAttempt> PracticeAttempts => Set<PracticeAttempt>();
+        public DbSet<ExpertSimulationAttempt> ExpertSimulationAttempts => Set<ExpertSimulationAttempt>();
+        public DbSet<PromptSubmission> PromptSubmissions => Set<PromptSubmission>();
+        public DbSet<AITokenLog> AITokenLogs => Set<AITokenLog>();
+        public DbSet<UserViolationRecord> UserViolationRecords => Set<UserViolationRecord>();
+        public DbSet<AIApiCostSetting> AIApiCostSettings => Set<AIApiCostSetting>();
+        public DbSet<AIFeedback> AIFeedbacks => Set<AIFeedback>();
+        public DbSet<KnowledgeChunk> KnowledgeChunks => Set<KnowledgeChunk>();
+        public DbSet<KnowledgeDocument> KnowledgeDocuments => Set<KnowledgeDocument>();
+        public DbSet<CourseChatSession> CourseChatSessions => Set<CourseChatSession>();
+        public DbSet<CourseChatMessage> CourseChatMessages => Set<CourseChatMessage>();
+        public DbSet<ResourceLimitPolicy> ResourceLimitPolicies => Set<ResourceLimitPolicy>();
+        public DbSet<AccountResourceLimit> AccountResourceLimits => Set<AccountResourceLimit>();
+        public DbSet<AccountResourceUsage> AccountResourceUsages => Set<AccountResourceUsage>();
+        public DbSet<AdminActivityLog> AdminActivityLogs => Set<AdminActivityLog>();
+        public DbSet<ExpertEvaluationRequest> ExpertEvaluationRequests => Set<ExpertEvaluationRequest>();
+        public DbSet<ExpertEvaluation> ExpertEvaluations => Set<ExpertEvaluation>();
+        public DbSet<LearnerTagScore> LearnerTagScores => Set<LearnerTagScore>();
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

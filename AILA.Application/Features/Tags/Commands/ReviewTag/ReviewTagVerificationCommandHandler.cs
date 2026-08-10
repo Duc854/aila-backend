@@ -1,6 +1,7 @@
-﻿using AILA.Domain.Enums;
+using AILA.Domain.Enums;
 using MediatR;
 using AILA.Application.Common.Interfaces;
+using AILA.Application.Common.Notifications;
 using AILA.Domain.Entities;
 using Shared.Wrappers;
 
@@ -55,11 +56,13 @@ namespace AILA.Application.Features.Tags.Commands.ReviewTagVerifications
             }
 
             // Process based on status
+            bool isApproved;
             switch (request.Status)
             {
                 case TagPublishRequestStatus.Approved:
                     tag.PublishRequest.Approve();
                     tag.Publish();
+                    isApproved = true;
                     break;
 
                 case TagPublishRequestStatus.Rejected:
@@ -70,12 +73,25 @@ namespace AILA.Application.Features.Tags.Commands.ReviewTagVerifications
                             "Lý do từ chối là bắt buộc.");
                     }
                     tag.PublishRequest.Reject(request.Note!);
+                    isApproved = false;
                     break;
 
                 default:
                     return ResponseDto<bool>.FailResult(
                         "INVALID_STATUS",
                         $"Trạng thái không hợp lệ: {request.Status}");
+            }
+
+            // Gửi thông báo kết quả duyệt cho expert đã tạo tag (nếu không phải system tag)
+            if (tag.CreatedById.HasValue)
+            {
+                await _unitOfWork.Notifications.AddAsync(
+                    NotificationTemplates.TagVerificationReviewed(
+                        tag.CreatedById.Value,
+                        tag.Id,
+                        tag.Name,
+                        isApproved,
+                        isApproved ? null : request.Note));
             }
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);

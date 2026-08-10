@@ -1,4 +1,4 @@
-﻿using AILA.Infrastructure.Persistence;
+using AILA.Infrastructure.Persistence;
 using AILA.Infrastructure.Persistence.Seed;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,6 +26,11 @@ namespace AILA.Infrastructure
 
                 var adminSeeder = provider.GetRequiredService<AdminSeeder>();
                 await adminSeeder.SeedAsync();
+                var resourceLimitPolicySeeder = provider.GetRequiredService<ResourceLimitPolicySeeder>();
+                await resourceLimitPolicySeeder.SeedAsync();
+                var systemTagSeeder = provider.GetRequiredService<SystemTagSeeder>();
+                await systemTagSeeder.SeedAsync();
+
             }
             catch (Exception ex)
             {

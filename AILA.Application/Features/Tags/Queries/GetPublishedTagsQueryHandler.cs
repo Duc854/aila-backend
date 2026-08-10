@@ -18,7 +18,9 @@ namespace AILA.Application.Features.Tags.Queries
             GetPublishedTagsQuery request,
             CancellationToken cancellationToken)
         {
-            var tags = await _uow.Tags.GetPublishedTagsAsync();
+            var tags = await _uow.Tags
+                .GetPublishedSelectableTagsAsync(
+                    cancellationToken);
 
             return tags.Select(t => new TagDto
             {

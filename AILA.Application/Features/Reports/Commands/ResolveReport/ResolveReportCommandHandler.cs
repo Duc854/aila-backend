@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using AILA.Application.Common.Interfaces;
@@ -49,6 +49,17 @@ namespace AILA.Application.Features.Reports.Commands.ResolveReport
 
             // ✅ Mark as Resolved (Domain method)
             report.Resolve();
+
+            // Ghi nhật ký AdminActivityLog
+            var adminId = (await _unitOfWork.Users.GetAdminUserIdsAsync(cancellationToken)).FirstOrDefault();
+            if (adminId != Guid.Empty)
+            {
+                var activityLog = new Domain.Entities.AdminActivityLog(
+                    adminId,
+                    AdminAction.Approve,
+                    $"Admin đã đánh dấu giải quyết báo cáo nội dung {report.Id}.");
+                await _unitOfWork.AdminActivityLogs.AddAsync(activityLog);
+            }
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

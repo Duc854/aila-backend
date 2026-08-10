@@ -4,7 +4,6 @@ using AILA.Application.Features.Authentication.Commands.AdminLogin;
 using AILA.Application.Features.Authentication.Commands.ConfirmPasswordReset;
 using AILA.Application.Features.Authentication.Commands.ExpertLogin;
 using AILA.Application.Features.Authentication.Commands.GoogleCallback;
-using AILA.Application.Features.Authentication.Commands.Logout.AILA.Application.Features.Authentication.Commands.Logout;
 using AILA.Application.Features.Authentication.Commands.RefreshToken;
 using AILA.Application.Features.Authentication.Commands.Register;
 using AILA.Application.Features.Authentication.Commands.RequestPasswordReset;
@@ -19,6 +18,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shared.Models;
 using Shared.Wrappers;
+using AILA.Api.Extensions;
+using AILA.Application.Features.Authentication.Commands.Logout;
 
 namespace AILA.Api.Controllers
 {

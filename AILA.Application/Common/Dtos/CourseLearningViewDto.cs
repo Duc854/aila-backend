@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,6 +17,8 @@ namespace AILA.Application.Common.Dtos
 
     public class CourseProgressDto
     {
+        public Guid? EnrollmentId { get; set; }
+
         public int CompletedMaterials { get; set; }
 
         public int TotalMaterials { get; set; }

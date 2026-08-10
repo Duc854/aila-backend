@@ -1,4 +1,4 @@
-﻿using AILA.Application.Common.Interfaces;
+using AILA.Application.Common.Interfaces;
 using AILA.Application.Features.LearningMaterials.Dtos;
 using AILA.Application.Features.LearningMaterials.Mapping;
 using MediatR;

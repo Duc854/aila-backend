@@ -36,6 +36,9 @@ namespace AILA.Infrastructure.Persistence.Configurations
 
             builder.Navigation(x => x.LearningGoals)
                 .UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            builder.Navigation(x => x.TagScores)
+                .UsePropertyAccessMode(PropertyAccessMode.Field);
         }
     }
 }

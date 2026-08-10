@@ -86,5 +86,23 @@ namespace AILA.Infrastructure.Persistence.Repositories
                         .ThenInclude(mod => mod.Course)
                 .FirstOrDefaultAsync(r => r.Id == reportId, cancellationToken);
         }
+
+        public async Task<IEnumerable<ContentReport>> GetReportsByCourseAsync(
+            Guid courseId,
+            CancellationToken cancellationToken = default)
+        {
+            return await _context.Set<ContentReport>()
+                .AsNoTracking()
+                .Include(r => r.Course)
+                .Include(r => r.Material)
+                    .ThenInclude(m => m.Module)
+                        .ThenInclude(mod => mod.Course)
+                .Include(r => r.Learner)
+                    .ThenInclude(l => l.User)
+                .Where(r => r.CourseId == courseId
+                         || (r.Material != null && r.Material.Module != null && r.Material.Module.CourseId == courseId))
+                .OrderByDescending(r => r.CreatedAt)
+                .ToListAsync(cancellationToken);
+        }
     }
 }

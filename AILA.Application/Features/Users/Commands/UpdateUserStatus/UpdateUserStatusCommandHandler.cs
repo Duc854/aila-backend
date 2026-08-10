@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using AILA.Application.Common.Interfaces;
@@ -31,9 +31,7 @@ namespace AILA.Application.Features.Users.Commands.UpdateUserStatus
                     "User ID không hợp lệ.");
             }
 
-            var user = await _unitOfWork.Users.GetUserByIdAsync(
-                request.UserId,
-                cancellationToken);
+            var user = await _unitOfWork.Users.GetByIdAsync(request.UserId);
 
             if (user == null)
             {
@@ -58,6 +56,19 @@ namespace AILA.Application.Features.Users.Commands.UpdateUserStatus
             else
             {
                 user.Deactivate();
+            }
+
+
+            // Ghi nhật ký AdminActivityLog
+            var adminId = (await _unitOfWork.Users.GetAdminUserIdsAsync(cancellationToken)).FirstOrDefault();
+            if (adminId != Guid.Empty)
+            {
+                var action = request.IsActive ? AdminAction.Unlock : AdminAction.Lock;
+                var activityLog = new Domain.Entities.AdminActivityLog(
+                    adminId,
+                    action,
+                    $"Admin đã {(request.IsActive ? "kích hoạt mở khóa" : "vô hiệu hóa/khóa")} tài khoản '{user.Email}'.");
+                await _unitOfWork.AdminActivityLogs.AddAsync(activityLog);
             }
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);

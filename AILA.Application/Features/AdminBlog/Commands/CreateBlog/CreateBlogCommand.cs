@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Shared.Wrappers;
 using AILA.Application.Features.AdminBlog.DTOs;
 

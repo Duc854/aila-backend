@@ -26,6 +26,11 @@ namespace AILA.Domain.Entities
 
         public virtual TagPublishRequest? PublishRequest { get; private set; }
 
+        private readonly List<LearnerTagScore> _learnerScores = new();
+
+        public IReadOnlyCollection<LearnerTagScore> LearnerScores
+            => _learnerScores.AsReadOnly();
+
         // Constructor phục vụ EF Core
         private Tag() { }
 

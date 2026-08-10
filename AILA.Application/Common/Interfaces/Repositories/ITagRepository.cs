@@ -44,5 +44,19 @@ namespace AILA.Application.Common.Interfaces.Repositories
         Task<int> GetUsageCountAsync(
     Guid tagId,
     CancellationToken ct = default);
+
+        Task<List<Tag>> GetPublishedByIdsAsync(
+        IEnumerable<Guid> ids,
+        CancellationToken cancellationToken);
+
+        Task<List<Tag>> GetByCodesAsync(
+    List<string> codes,
+    CancellationToken cancellationToken = default);
+
+        Task<List<Tag>> GetPublishedSelectableTagsAsync(
+            CancellationToken cancellationToken = default);
+
+        Task<List<Tag>> GetLearnerInterestTagsAsync(
+            CancellationToken cancellationToken = default);
     }
 }

@@ -103,5 +103,25 @@ namespace AILA.Infrastructure.Persistence.Repositories
         {
             await _context.QuizAnswers.AddAsync(answer, cancellationToken);
         }
+
+        public async Task<int> GetQuizAttemptsCountInScopeAsync(
+            List<Guid> courseIds, 
+            DateTime fromDate, 
+            DateTime toDate, 
+            CancellationToken cancellationToken = default)
+        {
+            if (courseIds == null || courseIds.Count == 0)
+                return 0;
+
+            return await _context.QuizAttempts
+                .AsNoTracking()
+                .Where(qa => _context.Enrollments
+                                .Where(e => courseIds.Contains(e.CourseId))
+                                .Select(e => e.Id)
+                                .Contains(qa.EnrollmentId)
+                          && qa.StartedAt >= fromDate
+                          && qa.StartedAt <= toDate)
+                .CountAsync(cancellationToken);
+        }
     }
 }

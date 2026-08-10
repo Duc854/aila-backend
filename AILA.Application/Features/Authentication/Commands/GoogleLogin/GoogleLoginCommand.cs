@@ -47,6 +47,11 @@ namespace AILA.Application.Features.Authentication.Commands.GoogleLogin
                 return ResponseDto<LoginResponseDto>.FailResult("INVALID_ROLE", "Tài khoản không phải là Learner.");
             }
 
+            if (user != null && !user.IsActive)
+            {
+                return ResponseDto<LoginResponseDto>.FailResult("ACCOUNT_BANNED", "Tài khoản của bạn đã bị khóa.");
+            }
+
             var accessToken = _tokenProvider.GenerateAccessToken(user);
             var refreshToken = _tokenProvider.GenerateRefreshToken();
 

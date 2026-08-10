@@ -1,4 +1,4 @@
-﻿using AILA.Application.Common.Interfaces.Repositories;
+using AILA.Application.Common.Interfaces.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -25,6 +25,11 @@ namespace AILA.Infrastructure.Persistence.Repositories
         public async Task<IReadOnlyList<T>> GetAllAsync()
         {
             return await _context.Set<T>().AsNoTracking().ToListAsync();
+        }
+
+        public async Task<IReadOnlyList<T>> FindAsync(System.Linq.Expressions.Expression<Func<T, bool>> predicate)
+        {
+            return await _context.Set<T>().Where(predicate).ToListAsync();
         }
 
         public async Task AddAsync(T entity)
