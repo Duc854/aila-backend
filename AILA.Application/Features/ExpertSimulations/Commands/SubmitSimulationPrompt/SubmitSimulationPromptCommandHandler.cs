@@ -45,7 +45,7 @@ public class SubmitSimulationPromptCommandHandler : IRequestHandler<SubmitSimula
             ?? throw new NotFoundException(nameof(ExpertSimulationAttempt), request.SimulationAttemptId);
 
         var material = await _materialRepo.GetByIdAsync(attempt.MaterialId)
-            ?? throw new NotFoundException("AIPracticeMaterial", attempt.MaterialId);
+            ?? throw new NotFoundException("Học liệu thực hành AI", attempt.MaterialId);
 
         // 2. Check maximum prompt attempts — AF-07 (BR-04)
         if (!attempt.CanSubmitMore(material.MaxPromptAttempts))
@@ -74,7 +74,7 @@ public class SubmitSimulationPromptCommandHandler : IRequestHandler<SubmitSimula
         if (_privacyService.HasSensitiveData(request.UserPrompt))
         {
             var piiTypes = _privacyService.GetSensitiveDataTypes(request.UserPrompt);
-            var validationReason = $"Phát hiện thông tin cá nhân: {string.Join(", ", piiTypes)}.";
+            var validationReason = $"Phát hiện thông tin cá nhân ({string.Join(", ", piiTypes)}). Vui lòng nhập theo hướng: \"{sanitizedPrompt}\"";
 
             await _unitOfWork.Repository<UserViolationRecord>().AddAsync(new UserViolationRecord(
                 attempt.ExpertId,

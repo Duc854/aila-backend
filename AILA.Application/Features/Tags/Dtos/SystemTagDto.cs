@@ -16,5 +16,10 @@ public class SystemTagDto
 
     public int UsageCount { get; init; }
 
+    /// <summary>
+    /// true nếu là Tag cố định trong Constants hệ thống (không được sửa/xóa trên UI)
+    /// </summary>
+    public bool IsReserved { get; init; }
+
     public DateTime CreatedAt { get; init; }
 }

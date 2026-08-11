@@ -66,7 +66,8 @@ public class PromptValidationService : IPromptValidationService
         if (_privacyService.HasSensitiveData(prompt))
         {
             var piiTypes = _privacyService.GetSensitiveDataTypes(prompt);
-            return (false, $"Phát hiện thông tin cá nhân: {string.Join(", ", piiTypes)}.", "PIIViolation");
+            var maskedPrompt = _privacyService.MaskSensitiveData(prompt);
+            return (false, $"Phát hiện thông tin cá nhân ({string.Join(", ", piiTypes)}). Vui lòng nhập theo hướng: \"{maskedPrompt}\"", "PIIViolation");
         }
 
         // ============================================================

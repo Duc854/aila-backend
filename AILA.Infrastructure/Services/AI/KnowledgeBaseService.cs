@@ -112,6 +112,80 @@ public class KnowledgeBaseService : IKnowledgeBaseService
         }
     }
 
+    public async Task<SyncCourseRagResponseDto> SyncAllCourseMaterialsAsync(
+        Guid courseId,
+        CancellationToken cancellationToken = default)
+    {
+        var course = await _unitOfWork.Courses.GetCourseWithFullContentAsync(courseId);
+        if (course == null)
+        {
+            throw new ArgumentException($"Không tìm thấy khóa học với ID: {courseId}", nameof(courseId));
+        }
+
+        var allMaterials = course.Modules
+            .SelectMany(m => m.Materials)
+            .OrderBy(m => m.OrderIndex)
+            .ToList();
+
+        var indexedSummaries = new List<IndexedMaterialSummaryDto>();
+        int totalIndexed = 0;
+        int totalChunks = 0;
+
+        foreach (var mat in allMaterials)
+        {
+            string contentText = string.Empty;
+
+            if (mat.MaterialType == MaterialType.Document && mat.DocumentDetails != null)
+            {
+                contentText = mat.DocumentDetails.Content;
+            }
+            else if (mat.MaterialType == MaterialType.Video && mat.VideoDetails != null && !string.IsNullOrWhiteSpace(mat.VideoDetails.Content))
+            {
+                contentText = mat.VideoDetails.Content;
+            }
+            else if (mat.MaterialType == MaterialType.AiPractice && mat.AIPracticeDetails != null)
+            {
+                contentText = $"[Tình huống thực hành]: {mat.AIPracticeDetails.Scenario}\n[Nhiệm vụ AI]: {mat.AIPracticeDetails.AITask}\n[Nhiệm vụ Học viên]: {mat.AIPracticeDetails.LearnerTask}";
+            }
+
+            if (!string.IsNullOrWhiteSpace(contentText))
+            {
+                var result = await IndexDocumentMaterialAsync(
+                    mat.Id,
+                    courseId,
+                    mat.Title,
+                    contentText,
+                    cancellationToken);
+
+                if (result.Status == IndexingStatus.Completed.ToString() || result.TotalChunks > 0)
+                {
+                    totalIndexed++;
+                    totalChunks += result.TotalChunks;
+                    indexedSummaries.Add(new IndexedMaterialSummaryDto
+                    {
+                        MaterialId = mat.Id,
+                        Title = mat.Title,
+                        MaterialType = mat.MaterialType.ToString(),
+                        ChunksCount = result.TotalChunks,
+                        Status = "Completed"
+                    });
+                }
+            }
+        }
+
+        return new SyncCourseRagResponseDto
+        {
+            CourseId = course.Id,
+            CourseName = course.Name,
+            TotalMaterialsFound = allMaterials.Count,
+            TotalMaterialsIndexed = totalIndexed,
+            TotalChunksGenerated = totalChunks,
+            Status = "Success",
+            Message = $"Đã đồng bộ thành công {totalIndexed}/{allMaterials.Count} học liệu vào Trợ lý AI RAG (tạo {totalChunks} đoạn vector tri thức).",
+            IndexedMaterials = indexedSummaries
+        };
+    }
+
     public Task<float[]> GenerateEmbeddingAsync(string text, CancellationToken cancellationToken = default)
     {
         // Generates a 384-dimensional normalized feature vector based on SHA256 character n-gram hashing

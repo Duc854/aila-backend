@@ -1,6 +1,8 @@
 using AILA.Domain.Enums;
+using System;
 
 namespace AILA.Application.Features.Tags.Dtos;
+
 public class TagDto
 {
     public Guid Id { get; init; }
@@ -24,4 +26,9 @@ public class TagDto
     public string Source { get; init; } = string.Empty;
 
     public int UsageCount { get; init; }
+
+    /// <summary>
+    /// true nếu là Tag cố định trong Constants hệ thống (không được sửa/xóa trên UI)
+    /// </summary>
+    public bool IsReserved { get; init; }
 }

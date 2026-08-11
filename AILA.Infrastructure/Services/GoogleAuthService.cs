@@ -78,7 +78,7 @@ namespace AILA.Infrastructure.Services
             _logger.LogInformation("Google token endpoint response status={StatusCode}, content={Content}", response.StatusCode, content);
 
             if (!response.IsSuccessStatusCode)
-                throw new InvalidOperationException($"Google token endpoint failed: {(int)response.StatusCode} {response.StatusCode}. Response: {content}");
+                throw new InvalidOperationException($"Yêu cầu xác thực với Google thất bại: {(int)response.StatusCode} {response.StatusCode}. Phản hồi: {content}");
             var tokenResponse = JsonSerializer.Deserialize<GoogleTokenExchangeResponse>(content, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true

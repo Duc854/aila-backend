@@ -18,8 +18,8 @@ namespace AILA.Application.Features.Users.Queries.GetRoles
         {
             var roles = new List<RoleDto>
             {
-                new() { Value = UserRole.Expert, Name = "Expert" },
-                new() { Value = UserRole.Learner, Name = "Learner" }
+                new() { Value = UserRole.Expert, Name = "Chuyên gia" },
+                new() { Value = UserRole.Learner, Name = "Học viên" }
                 // Không bao gồm Admin vì BR-04
             };
 

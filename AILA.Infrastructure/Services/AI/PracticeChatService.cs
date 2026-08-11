@@ -45,7 +45,7 @@ public class PracticeChatService : IPracticeChatService
         var roleResult = await _roleParser.ParseRolesAsync(systemPrompt, cancellationToken);
         var roleBoundary = roleResult.IsSuccess
             ? $"\n\n==================================================\n" +
-              $"[RẤT QUAN TRỌNG - CHÍNH SÁCH BẢO VỆ XƯNG HỒ & VAI DIỄN]:\n" +
+              $"[RẤT QUAN TRỌNG - CHÍNH SÁCH BẢO VỆ XƯNG HÔ & VAI DIỄN]:\n" +
               $"1. VAI TRÒ BẮT BUỘC CỦA BẠN (AI): '{roleResult.AIRole}'.\n" +
               $"2. VAI TRÒ CỦA NGUỜI CHAT (HỌC VIÊN): '{roleResult.UserRole}'.\n" +
               $"3. NẾU AI LÀ MENTOR/CHUYÊN GIA/BA/SENIOR CODER: AI BẮT BUỘC xưng 'Anh' (hoặc 'Chị'/'Mentor') và gọi Học viên là 'em'. TUYỆT ĐỐI KHÔNG xưng 'em' hay chào 'Em chào anh'!\n" +
@@ -133,25 +133,8 @@ public class PracticeChatService : IPracticeChatService
                 $"AI service không phản hồi sau {maxRetries} lần thử. Lỗi cuối: {lastException?.Message}");
         }
 
-        int promptTokens = 0;
-        int completionTokens = 0;
-
-        if (response.Metadata != null && response.Metadata.TryGetValue("Usage", out var usageObj))
-        {
-            try
-            {
-                var usageJson = JsonSerializer.Serialize(usageObj);
-                using var usageDoc = JsonDocument.Parse(usageJson);
-                if (usageDoc.RootElement.TryGetProperty("InputTokens", out var pElem)) promptTokens = pElem.GetInt32();
-                else if (usageDoc.RootElement.TryGetProperty("PromptTokens", out pElem)) promptTokens = pElem.GetInt32();
-                else if (usageDoc.RootElement.TryGetProperty("prompt_tokens", out pElem)) promptTokens = pElem.GetInt32();
-
-                if (usageDoc.RootElement.TryGetProperty("OutputTokens", out var cElem)) completionTokens = cElem.GetInt32();
-                else if (usageDoc.RootElement.TryGetProperty("CompletionTokens", out cElem)) completionTokens = cElem.GetInt32();
-                else if (usageDoc.RootElement.TryGetProperty("completion_tokens", out cElem)) completionTokens = cElem.GetInt32();
-            }
-            catch { }
-        }
+        string promptText = string.Join("\n", chatHistory.Select(m => m.Content));
+        var (promptTokens, completionTokens) = TokenUsageExtractor.Extract(response, promptText, response?.Content);
 
         Console.WriteLine($"🔥 [TOKEN USED - SEMANTIC KERNEL CHAT ROLEPLAY]: PromptTokens={promptTokens}, CompletionTokens={completionTokens}, TotalTokens={promptTokens + completionTokens}");
 

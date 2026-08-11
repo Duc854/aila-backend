@@ -208,7 +208,7 @@ QUY TẮC CHẤM ĐIỂM:
 1. Đánh giá tính hiệu quả của các câu prompt do Học viên đặt dựa trên Kịch bản (Scenario) và Nhiệm vụ (LearnerTask).
 2. BẮT BUỘC chấm điểm ĐỦ TẤT CẢ các tiêu chí có trong danh sách criteria (không được bỏ sót tiêu chí nào). Chấm điểm từng tiêu chí theo MaxScore tương ứng.
 3. Tổng điểm (totalScore) = Tổng điểm các tiêu chí. Percentage = (totalScore / maxScore) * 100.
-4. Grade: 'Excellent' (>=85), 'Pass' (>=60), 'NeedsImprovement' (<60).
+4. Grade: 'Xuất sắc' (>=85), 'Đạt' (>=60), 'Cần cải thiện' (<60).
 5. Trả về DUY NHẤT một chuỗi JSON hợp lệ theo đúng schema. TUYỆT ĐỐI KHÔNG thêm lời mở đầu hay kết luận ngoài JSON.";
 
             var userMessage = $@"--- BỐI CẢNH BÀI TẬP ---
@@ -226,7 +226,7 @@ QUY TẮC CHẤM ĐIỂM:
   ""totalScore"": 85,
   ""maxScore"": {totalMaxScore},
   ""percentage"": 85,
-  ""grade"": ""Excellent"",
+  ""grade"": ""Xuất sắc"",
   ""summary"": ""Tổng kết chi tiết về kỹ năng đặt prompt của học viên..."",
   ""criteria"": [
 {criteriaSchemaItems}
@@ -325,7 +325,7 @@ QUY TẮC CHẤM ĐIỂM:
         return new OverallScoringResult
         {
             Summary = "Hệ thống AI chấm điểm tạm thời gián đoạn (Rate Limit hoặc kết nối API bận). Vui lòng thử lại sau vài giây.",
-            Grade = "SystemBusy",
+            Grade = "Hệ thống bận",
             Percentage = 0,
             TotalScore = 0,
             MaxScore = 100,
@@ -373,7 +373,7 @@ QUY TẮC CHẤM ĐIỂM:
 
     private async Task<string> CallChatApiAsync(string userMessage, float temperature, CancellationToken cancellationToken)
     {
-        return await CallChatApiWithSystemAsync("You are a helpful assistant.", userMessage, temperature, attemptId: null, accountId: null, cancellationToken: cancellationToken);
+        return await CallChatApiWithSystemAsync("Bạn là một trợ lý AI hữu ích.", userMessage, temperature, attemptId: null, accountId: null, cancellationToken: cancellationToken);
     }
 
     private async Task<string> CallChatApiWithSystemAsync(
@@ -403,25 +403,8 @@ QUY TẮC CHẤM ĐIỂM:
                     executionSettings,
                     cancellationToken: cancellationToken);
 
-                int promptTokens = 0;
-                int completionTokens = 0;
-
-                if (response.Metadata != null && response.Metadata.TryGetValue("Usage", out var usageObj))
-                {
-                    try
-                    {
-                        var usageJson = JsonSerializer.Serialize(usageObj);
-                        using var usageDoc = JsonDocument.Parse(usageJson);
-                        if (usageDoc.RootElement.TryGetProperty("InputTokens", out var pElem)) promptTokens = pElem.GetInt32();
-                        else if (usageDoc.RootElement.TryGetProperty("PromptTokens", out pElem)) promptTokens = pElem.GetInt32();
-                        else if (usageDoc.RootElement.TryGetProperty("prompt_tokens", out pElem)) promptTokens = pElem.GetInt32();
-
-                        if (usageDoc.RootElement.TryGetProperty("OutputTokens", out var cElem)) completionTokens = cElem.GetInt32();
-                        else if (usageDoc.RootElement.TryGetProperty("CompletionTokens", out cElem)) completionTokens = cElem.GetInt32();
-                        else if (usageDoc.RootElement.TryGetProperty("completion_tokens", out cElem)) completionTokens = cElem.GetInt32();
-                    }
-                    catch { }
-                }
+                string promptText = string.Join("\n", chatHistory.Select(m => m.Content));
+                var (promptTokens, completionTokens) = TokenUsageExtractor.Extract(response, promptText, response?.Content);
 
                 Console.WriteLine($"🔥 [TOKEN USED - SCORING VIA SEMANTIC KERNEL]: PromptTokens={promptTokens}, CompletionTokens={completionTokens}, TotalTokens={promptTokens + completionTokens}");
 
