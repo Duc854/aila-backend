@@ -188,15 +188,28 @@ QUY TẮC BẮT BUỘC:
                 MaxScore = (int)c.Weight
             }));
 
+            var criteriaSchemaItems = string.Join(",\n", criteria.Select(c => $@"    {{
+      ""criteriaId"": ""{c.Id}"",
+      ""criteriaName"": ""{c.Title.Replace("\"", "\\\"")}"",
+      ""score"": 0,
+      ""maxScore"": {(int)c.Weight},
+      ""status"": ""Đạt/Chưa đạt"",
+      ""evaluation"": ""Nhận xét chi tiết cho tiêu chí '{c.Title.Replace("\"", "\\\"")}'..."",
+      ""suggestion"": ""Gợi ý cụ thể để cải thiện tiêu chí này...""
+    }}"));
+
+            var totalMaxScore = (int)criteria.Sum(c => c.Weight);
+            if (totalMaxScore <= 0) totalMaxScore = 100;
+
             var systemInstruction = @"Bạn là Chuyên gia Đánh giá Năng lực Prompt Engineering hàng đầu.
 Nhiệm vụ của bạn là phân tích TOÀN BỘ CUỘC HỘI THOẠI giữa Học viên và AI giả lập, từ đó chấm điểm tổng hợp, nhận xét chi tiết từng tiêu chí và đưa ra lời khuyên cải thiện.
 
 QUY TẮC CHẤM ĐIỂM:
 1. Đánh giá tính hiệu quả của các câu prompt do Học viên đặt dựa trên Kịch bản (Scenario) và Nhiệm vụ (LearnerTask).
-2. Chấm điểm từng tiêu chí theo MaxScore tương ứng.
-3. Tổng điểm (totalScore) = Tổng điểm các tiêu chí (tối đa 100).
+2. BẮT BUỘC chấm điểm ĐỦ TẤT CẢ các tiêu chí có trong danh sách criteria (không được bỏ sót tiêu chí nào). Chấm điểm từng tiêu chí theo MaxScore tương ứng.
+3. Tổng điểm (totalScore) = Tổng điểm các tiêu chí. Percentage = (totalScore / maxScore) * 100.
 4. Grade: 'Excellent' (>=85), 'Pass' (>=60), 'NeedsImprovement' (<60).
-5. Trả về DUY NHẤT một chuỗi JSON hợp lệ. TUYỆT ĐỐI KHÔNG thêm lời mở đầu hay kết luận ngoài JSON.";
+5. Trả về DUY NHẤT một chuỗi JSON hợp lệ theo đúng schema. TUYỆT ĐỐI KHÔNG thêm lời mở đầu hay kết luận ngoài JSON.";
 
             var userMessage = $@"--- BỐI CẢNH BÀI TẬP ---
 - Kịch bản: {scenario}
@@ -211,28 +224,22 @@ QUY TẮC CHẤM ĐIỂM:
 --- YÊU CẦU ĐẦU RA (ĐÚNG ĐỊNH DẠNG JSON SCHEMA NÀY) ---
 {{
   ""totalScore"": 85,
-  ""maxScore"": 100,
+  ""maxScore"": {totalMaxScore},
   ""percentage"": 85,
   ""grade"": ""Excellent"",
-  ""summary"": ""Học viên đã thể hiện tốt kỹ năng đặt prompt rõ ràng..."",
+  ""summary"": ""Tổng kết chi tiết về kỹ năng đặt prompt của học viên..."",
   ""criteria"": [
-    {{
-      ""criteriaId"": ""{criteria.FirstOrDefault()?.Id}"",
-      ""criteriaName"": ""{criteria.FirstOrDefault()?.Title}"",
-      ""score"": 25,
-      ""maxScore"": 30,
-      ""status"": ""Đạt"",
-      ""evaluation"": ""Học viên đã mô tả rõ vai trò..."",
-      ""suggestion"": ""Cần thêm chi tiết về định dạng đầu ra.""
-    }}
+{criteriaSchemaItems}
   ],
   ""detectedIssues"": [
-    ""Chưa chỉ định rõ tone giọng mong muốn ở lượt prompt 1.""
+    ""Vấn đề cần khắc phục 1..."",
+    ""Vấn đề cần khắc phục 2...""
   ],
   ""learningSuggestions"": [
-    ""Nên áp dụng kỹ thuật Few-Shot Prompting để kết quả AI trả về chính xác hơn.""
+    ""Gợi ý học tập 1..."",
+    ""Gợi ý học tập 2...""
   ],
-  ""nextPromptExample"": ""Ví dụ câu thoại mẫu: 'Hãy đóng vai Mentor tư vấn 5 ý tưởng đồ án...""
+  ""nextPromptExample"": ""Ví dụ câu thoại mẫu hoàn chỉnh đạt điểm tối đa...""
 }}";
 
             var rawResponse = await CallChatApiWithSystemAsync(systemInstruction, userMessage, 0.3f, attemptId, accountId, cancellationToken);

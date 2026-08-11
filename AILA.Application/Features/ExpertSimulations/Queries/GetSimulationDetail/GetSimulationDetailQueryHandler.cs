@@ -34,7 +34,7 @@ public sealed class GetSimulationDetailQueryHandler
             .GetByIdAsync(request.SimulationId)
             ?? throw new NotFoundException(nameof(ExpertSimulationAttempt), request.SimulationId);
 
-        var material   = await _materialRepo.GetByIdAsync(simulation.MaterialId);
+        var material   = await _materialRepo.GetByIdWithDetailsAsync(simulation.MaterialId, cancellationToken);
         var criteria   = material?.ScoringCriterias.ToList() ?? new List<ScoringCriteria>();
 
         // Load submissions cho simulation

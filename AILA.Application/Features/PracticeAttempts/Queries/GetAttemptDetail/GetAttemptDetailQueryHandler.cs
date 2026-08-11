@@ -37,7 +37,7 @@ public class GetAttemptDetailQueryHandler : IRequestHandler<GetAttemptDetailQuer
         var enrollment = await _unitOfWork.Enrollments.GetByIdAsync(attempt.EnrollmentId)
             ?? throw new NotFoundException(nameof(Enrollment), attempt.EnrollmentId);
 
-        var material = await _materialRepo.GetByIdAsync(attempt.MaterialId);
+        var material = await _materialRepo.GetByIdWithDetailsAsync(attempt.MaterialId, cancellationToken);
         var criteriaList = material?.ScoringCriterias.ToList() ?? new List<ScoringCriteria>();
 
         OverallScoringResult? detailedScoring = null;

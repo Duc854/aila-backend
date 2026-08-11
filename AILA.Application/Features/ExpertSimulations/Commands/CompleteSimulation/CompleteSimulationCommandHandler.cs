@@ -40,7 +40,7 @@ public class CompleteSimulationCommandHandler : IRequestHandler<CompleteSimulati
         }
 
         // 2. Load Material & Scoring Criteria
-        var material = await _materialRepo.GetByIdAsync(simulation.MaterialId);
+        var material = await _materialRepo.GetByIdWithDetailsAsync(simulation.MaterialId, cancellationToken);
         var criteria = material?.ScoringCriterias.ToList() ?? new List<ScoringCriteria>();
 
         // 3. Load Submissions for this simulation session

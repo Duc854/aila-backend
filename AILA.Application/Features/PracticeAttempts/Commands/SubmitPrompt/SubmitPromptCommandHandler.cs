@@ -49,7 +49,7 @@ public class SubmitPromptCommandHandler : IRequestHandler<SubmitPromptCommand, P
         var attempt = await _attemptRepo.GetByIdAsync(request.AttemptId, cancellationToken)
             ?? throw new NotFoundException(nameof(PracticeAttempt), request.AttemptId);
 
-        var material = await _materialRepo.GetByIdAsync(attempt.MaterialId)
+        var material = await _materialRepo.GetByIdWithDetailsAsync(attempt.MaterialId, cancellationToken)
             ?? throw new NotFoundException(nameof(AIPracticeMaterial), attempt.MaterialId);
 
         // 2. Guard: Max prompt attempts (chỉ tính số lượt submit THÀNH CÔNG có AI Response)
@@ -189,6 +189,7 @@ public class SubmitPromptCommandHandler : IRequestHandler<SubmitPromptCommand, P
 
         // 8. Khởi tạo submission thông qua DDD Aggregate Root method (PracticeAttempt)
         var submission = attempt.AddSubmission(sanitizedPrompt, sanitizedAiResponse);
+        await _unitOfWork.Repository<PromptSubmission>().AddAsync(submission);
 
         // 9. Check MaxPromptAttempts -> Auto-Complete if reaching max valid attempts
         var validSubmissionsCount = attempt.Submissions.Count;
