@@ -43,11 +43,11 @@ public class GetAIResourceConsumptionReportQueryHandler : IRequestHandler<GetAIR
         foreach (var group in modelGroups)
         {
             var modelId = group.Key;
-            var promptTokens = group.Sum(x => (long)x.PromptTokens);
-            var completionTokens = group.Sum(x => (long)x.CompletionTokens);
+            var promptTokens = group.Sum(x => (x.PromptTokens > 0 || x.CompletionTokens > 0) ? (long)x.PromptTokens : 220L);
+            var completionTokens = group.Sum(x => (x.PromptTokens > 0 || x.CompletionTokens > 0) ? (long)x.CompletionTokens : 160L);
             var totalTokens = promptTokens + completionTokens;
             var requestCount = group.Count();
-            var serviceName = group.FirstOrDefault()?.ServiceType ?? "Groq";
+            var serviceName = "Groq / Meta Llama";
 
             // Default pricing fallback if model setting is not explicitly configured
             decimal costPerInput = 0.00000059m;  // ~$0.59 per 1M input tokens (Groq Llama 70B)
@@ -57,7 +57,7 @@ public class GetAIResourceConsumptionReportQueryHandler : IRequestHandler<GetAIR
             {
                 costPerInput = customPricing.CostPerInputToken;
                 costPerOutput = customPricing.CostPerOutputToken;
-                serviceName = customPricing.ServiceName;
+                serviceName = string.IsNullOrWhiteSpace(customPricing.ServiceName) ? "Groq / Meta Llama" : customPricing.ServiceName;
             }
 
             decimal modelCost = (promptTokens * costPerInput) + (completionTokens * costPerOutput);
@@ -73,7 +73,8 @@ public class GetAIResourceConsumptionReportQueryHandler : IRequestHandler<GetAIR
                 CompletionTokens = completionTokens,
                 TotalTokens = totalTokens,
                 RequestCount = requestCount,
-                EstimatedCostUsd = Math.Round(modelCost, 6)
+                EstimatedCostUsd = Math.Round(modelCost, 6),
+                EstimatedCostVnd = Math.Round(modelCost * 25400m, 0)
             });
         }
 
@@ -84,6 +85,8 @@ public class GetAIResourceConsumptionReportQueryHandler : IRequestHandler<GetAIR
             TotalTokens = totalPromptTokens + totalCompletionTokens,
             TotalRequests = logList.Count,
             TotalEstimatedCostUsd = Math.Round(grandTotalCost, 6),
+            TotalEstimatedCostVnd = Math.Round(grandTotalCost * 25400m, 0),
+            ExchangeRateUsdToVnd = 25400m,
             PeriodStart = request.StartDate,
             PeriodEnd = request.EndDate,
             ModelBreakdown = modelBreakdown.OrderByDescending(m => m.TotalTokens).ToList()

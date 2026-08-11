@@ -8,5 +8,6 @@ namespace AILA.Application.Common.Interfaces.AI;
 public interface IKnowledgeBaseService
 {
     Task<IndexDocumentResponseDto> IndexDocumentMaterialAsync(Guid materialId, Guid courseId, string materialTitle, string contentText, CancellationToken cancellationToken = default);
+    Task<SyncCourseRagResponseDto> SyncAllCourseMaterialsAsync(Guid courseId, CancellationToken cancellationToken = default);
     Task<float[]> GenerateEmbeddingAsync(string text, CancellationToken cancellationToken = default);
 }

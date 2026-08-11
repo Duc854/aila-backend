@@ -1,4 +1,4 @@
-﻿using AILA.Application.Common.Dtos.Recommendation;
+using AILA.Application.Common.Dtos.Recommendation;
 using AILA.Application.Common.Interfaces.Repositories;
 using AILA.Domain.Entities;
 using AILA.Domain.Enums;
@@ -36,6 +36,9 @@ namespace AILA.Infrastructure.Persistence.Repositories
                 .Include(c => c.Modules)
                     .ThenInclude(m => m.Materials)
                         .ThenInclude(mat => mat.DocumentDetails)
+                .Include(c => c.Modules)
+                    .ThenInclude(m => m.Materials)
+                        .ThenInclude(mat => mat.AIPracticeDetails)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(c => c.Id == courseId);
         }

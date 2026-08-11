@@ -31,18 +31,28 @@ public class GetAIPolicyViolationsQueryHandler : IRequestHandler<GetAIPolicyViol
         var pageSize = Math.Clamp(request.PageSize, 1, 100);
         var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
+        var userIds = recordList.Select(v => v.UserId).Distinct().ToList();
+        var users = (await _unitOfWork.Repository<User>().FindAsync(u => userIds.Contains(u.Id)))
+            .ToDictionary(u => u.Id);
+
         var pagedItems = recordList
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-            .Select(v => new AIPolicyViolationDto
+            .Select(v =>
             {
-                Id = v.Id,
-                UserId = v.UserId,
-                ViolationType = v.ViolationType,
-                PolicyName = v.PolicyName,
-                Reason = v.Reason,
-                ViolatingPrompt = v.ViolatingPrompt,
-                CreatedAt = v.CreatedAt
+                users.TryGetValue(v.UserId, out var user);
+                return new AIPolicyViolationDto
+                {
+                    Id = v.Id,
+                    UserId = v.UserId,
+                    FullName = user?.FullName ?? "Người dùng",
+                    Email = user?.Email ?? "N/A",
+                    ViolationType = v.ViolationType,
+                    PolicyName = v.PolicyName,
+                    Reason = v.Reason,
+                    ViolatingPrompt = v.ViolatingPrompt,
+                    CreatedAt = v.CreatedAt
+                };
             })
             .ToList();
 

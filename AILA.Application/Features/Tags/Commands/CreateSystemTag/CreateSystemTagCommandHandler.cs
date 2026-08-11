@@ -33,6 +33,14 @@ namespace AILA.Application.Features.Tags.Commands.CreateSystemTag
                 .ToLower()
                 .Replace(" ", "-");
 
+            // Không cho phép tạo trùng tag đã được bảo lưu trong Constants hệ thống
+            if (AILA.Domain.Constants.ReservedTagCodes.All.Contains(code))
+            {
+                return ResponseDto<SystemTagDto>.FailResult(
+                    "RESERVED_TAG",
+                    $"Thẻ tag '{normalizedName}' là tag cố định của hệ thống và đã tồn tại. Không được phép tạo mới.");
+            }
+
             // BR-01:
             // Nếu custom tag cùng code tồn tại thì reuse và convert thành system tag
             var existingTag = await uow.Tags.GetByCodeAsync(code, ct);

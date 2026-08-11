@@ -7,6 +7,8 @@ public class AIPolicyViolationDto
 {
     public Guid Id { get; set; }
     public Guid UserId { get; set; }
+    public string FullName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
     public string ViolationType { get; set; } = string.Empty;
     public string PolicyName { get; set; } = string.Empty;
     public string Reason { get; set; } = string.Empty;

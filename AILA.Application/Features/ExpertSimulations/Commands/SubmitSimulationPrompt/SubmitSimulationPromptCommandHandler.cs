@@ -74,7 +74,7 @@ public class SubmitSimulationPromptCommandHandler : IRequestHandler<SubmitSimula
         if (_privacyService.HasSensitiveData(request.UserPrompt))
         {
             var piiTypes = _privacyService.GetSensitiveDataTypes(request.UserPrompt);
-            var validationReason = $"Phát hiện thông tin cá nhân: {string.Join(", ", piiTypes)}.";
+            var validationReason = $"Phát hiện thông tin cá nhân ({string.Join(", ", piiTypes)}). Vui lòng nhập theo hướng: \"{sanitizedPrompt}\"";
 
             await _unitOfWork.Repository<UserViolationRecord>().AddAsync(new UserViolationRecord(
                 attempt.ExpertId,

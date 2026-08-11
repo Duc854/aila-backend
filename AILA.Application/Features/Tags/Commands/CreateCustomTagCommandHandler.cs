@@ -26,6 +26,10 @@ namespace AILA.Application.Features.Tags.Commands
 
             // 2. Chuẩn hóa code và kiểm tra trùng
             var normalizedCode = request.Code.ToLower().Trim().Replace(" ", "-");
+
+            if (AILA.Domain.Constants.ReservedTagCodes.All.Contains(normalizedCode))
+                throw new InvalidOperationException($"Mã tag '{normalizedCode}' là mã thẻ cố định của hệ thống. Vui lòng chọn tên/mã khác.");
+
             var codeExists = await _uow.Tags.CodeExistsAsync(normalizedCode, cancellationToken);
             if (codeExists)
                 throw new InvalidOperationException($"Code tag '{normalizedCode}' đã tồn tại trong hệ thống.");

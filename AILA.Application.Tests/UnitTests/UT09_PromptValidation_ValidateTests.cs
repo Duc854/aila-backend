@@ -1,4 +1,4 @@
-﻿using AILA.Application.Common.Interfaces.AI;
+using AILA.Application.Common.Interfaces.AI;
 using AILA.Domain.Entities;
 using AILA.Infrastructure.Services.AI;
 using Moq;
@@ -116,11 +116,13 @@ public class UT09_PromptValidation_ValidateTests
         const string prompt = "Email cua toi la abc@gmail.com";
         _privacy.Setup(x => x.HasSensitiveData(prompt)).Returns(true);
         _privacy.Setup(x => x.GetSensitiveDataTypes(prompt)).Returns(new List<string> { "Email" });
+        _privacy.Setup(x => x.MaskSensitiveData(prompt)).Returns("Email cua toi la [Email]");
 
         var (isValid, reason, policy) = await Act(prompt);
 
         Assert.False(isValid);
-        Assert.Equal("Phát hiện thông tin cá nhân: Email.", reason);
+        Assert.Contains("Phát hiện thông tin cá nhân", reason);
+        Assert.Contains("[Email]", reason);
         Assert.Equal("PIIViolation", policy);
     }
 
