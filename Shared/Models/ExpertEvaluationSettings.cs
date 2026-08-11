@@ -10,8 +10,11 @@ namespace Shared.Models
         /// <summary>Điểm tổng tối thiểu chuyên gia được phép chấm.</summary>
         public decimal MinScore { get; set; } = 0m;
 
-        /// <summary>Điểm tổng tối đa chuyên gia được phép chấm.</summary>
-        public decimal MaxScore { get; set; } = 10m;
+        /// <summary>
+        /// Điểm tổng tối đa chuyên gia được phép chấm. Cùng thang với điểm AI
+        /// (PracticeAttempt.FinalScore, 0–100) để hai kết quả so sánh được trực tiếp.
+        /// </summary>
+        public decimal MaxScore { get; set; } = 100m;
 
         /// <summary>Số chữ số thập phân tối đa của điểm tổng (cột DB có precision 5,2).</summary>
         public int ScoreDecimals { get; set; } = 2;

@@ -1,4 +1,4 @@
-using AILA.Application.Common.Models;
+using Shared.Models;
 
 namespace AILA.Application.Common.Interfaces
 {
