@@ -1,5 +1,5 @@
 using AILA.Application.Common.Interfaces;
-using AILA.Application.Common.Notifications;
+using AILA.Domain.Constants;
 using AILA.Application.Features.CourseReviewRequests.Dtos;
 using MediatR;
 using Shared.Wrappers;

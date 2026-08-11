@@ -2,9 +2,8 @@ using System.Security.Cryptography;
 using System.Text;
 using AILA.Application.Common.Exceptions;
 using AILA.Application.Common.Interfaces;
-using AILA.Application.Common.Models;
-using Microsoft.Extensions.Options;
 using Shared.Models;
+using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 
 namespace AILA.Infrastructure.Services
