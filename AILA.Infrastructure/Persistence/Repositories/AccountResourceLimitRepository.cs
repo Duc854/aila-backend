@@ -34,5 +34,15 @@ namespace AILA.Infrastructure.Persistence.Repositories
                     x => x.AccountId == accountId,
                     cancellationToken);
         }
+
+        public async Task<AccountResourceLimit?> GetByAccountIdToUpdateAsync(
+            Guid accountId,
+            CancellationToken cancellationToken = default)
+        {
+            return await _context.AccountResourceLimits
+                .FirstOrDefaultAsync(
+                    x => x.AccountId == accountId,
+                    cancellationToken);
+        }
     }
 }

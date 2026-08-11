@@ -48,7 +48,7 @@ namespace AILA.Application.Features.ResourceLimitOverrides.Commands.UpdateAccoun
 
             var resourceLimit = await _unitOfWork
                 .AccountResourceLimits
-                .GetByAccountIdAsync(
+                .GetByAccountIdToUpdateAsync(
                     request.AccountId,
                     cancellationToken);
 
