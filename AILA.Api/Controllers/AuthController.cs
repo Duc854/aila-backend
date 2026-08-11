@@ -197,7 +197,7 @@ namespace AILA.Api.Controllers
         public async Task<IActionResult> GoogleCallback([FromQuery] string code, [FromQuery] string? state)
         {
             if (string.IsNullOrWhiteSpace(code))
-                return BadRequest(ResponseDto<object>.FailResult("INVALID_REQUEST", "Authorization code is missing."));
+                return BadRequest(ResponseDto<object>.FailResult("INVALID_REQUEST", "Thiếu mã xác thực (Authorization code)."));
 
             _logger.LogInformation("Google callback received. codeLength={CodeLength}, statePresent={StatePresent}", code.Length, !string.IsNullOrWhiteSpace(state));
 

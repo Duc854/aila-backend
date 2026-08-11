@@ -43,7 +43,7 @@ namespace AILA.Application.Features.Reports.Queries.GetReports
                 MaterialId  = r.MaterialId,
                 CourseName  = r.Course?.Name ?? r.Material?.Module?.Course?.Name,
                 MaterialName = r.Material?.Title,
-                ContentType  = r.MaterialId.HasValue ? "Learning Material" : "Course",
+                ContentType  = r.MaterialId.HasValue ? "Học liệu" : "Khóa học",
                 IsCourseLocked = r.Course?.IsPublicationLocked ?? r.Material?.Module?.Course?.IsPublicationLocked,
                 LearnerName  = r.Learner?.User?.FullName,
                 Reason       = r.ReportType.ToString(),

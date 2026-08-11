@@ -45,7 +45,7 @@ public class SubmitSimulationPromptCommandHandler : IRequestHandler<SubmitSimula
             ?? throw new NotFoundException(nameof(ExpertSimulationAttempt), request.SimulationAttemptId);
 
         var material = await _materialRepo.GetByIdAsync(attempt.MaterialId)
-            ?? throw new NotFoundException("AIPracticeMaterial", attempt.MaterialId);
+            ?? throw new NotFoundException("Học liệu thực hành AI", attempt.MaterialId);
 
         // 2. Check maximum prompt attempts — AF-07 (BR-04)
         if (!attempt.CanSubmitMore(material.MaxPromptAttempts))

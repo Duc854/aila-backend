@@ -8,12 +8,12 @@ public sealed class CreateBlogCommandValidator
     public CreateBlogCommandValidator()
     {
         RuleFor(x => x.Title)
-            .NotEmpty();
+            .NotEmpty().WithMessage("Tiêu đề bài viết không được để trống.");
 
         RuleFor(x => x.Slug)
-            .NotEmpty();
+            .NotEmpty().WithMessage("Slug bài viết không được để trống.");
 
         RuleFor(x => x.Content)
-            .NotEmpty();
+            .NotEmpty().WithMessage("Nội dung bài viết không được để trống.");
     }
 }

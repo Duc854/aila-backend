@@ -49,7 +49,7 @@ namespace AILA.Application.Features.Reports.Queries.GetReportById
                 MaterialId   = report.MaterialId,
                 CourseName   = report.Course?.Name ?? report.Material?.Module?.Course?.Name,
                 MaterialName = report.Material?.Title,
-                ContentType  = report.MaterialId.HasValue ? "Learning Material" : "Course",
+                ContentType  = report.MaterialId.HasValue ? "Học liệu" : "Khóa học",
                 IsCourseLocked = report.Course?.IsPublicationLocked ?? report.Material?.Module?.Course?.IsPublicationLocked,
                 LearnerName  = report.Learner?.User.FullName,
                 LearnerEmail = report.Learner?.User?.Email,

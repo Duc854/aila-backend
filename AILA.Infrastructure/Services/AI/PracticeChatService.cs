@@ -45,7 +45,7 @@ public class PracticeChatService : IPracticeChatService
         var roleResult = await _roleParser.ParseRolesAsync(systemPrompt, cancellationToken);
         var roleBoundary = roleResult.IsSuccess
             ? $"\n\n==================================================\n" +
-              $"[RẤT QUAN TRỌNG - CHÍNH SÁCH BẢO VỆ XƯNG HỒ & VAI DIỄN]:\n" +
+              $"[RẤT QUAN TRỌNG - CHÍNH SÁCH BẢO VỆ XƯNG HÔ & VAI DIỄN]:\n" +
               $"1. VAI TRÒ BẮT BUỘC CỦA BẠN (AI): '{roleResult.AIRole}'.\n" +
               $"2. VAI TRÒ CỦA NGUỜI CHAT (HỌC VIÊN): '{roleResult.UserRole}'.\n" +
               $"3. NẾU AI LÀ MENTOR/CHUYÊN GIA/BA/SENIOR CODER: AI BẮT BUỘC xưng 'Anh' (hoặc 'Chị'/'Mentor') và gọi Học viên là 'em'. TUYỆT ĐỐI KHÔNG xưng 'em' hay chào 'Em chào anh'!\n" +
