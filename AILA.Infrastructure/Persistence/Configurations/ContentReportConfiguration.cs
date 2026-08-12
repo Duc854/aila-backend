@@ -13,6 +13,16 @@ namespace AILA.Infrastructure.Persistence.Configurations
 
             builder.HasKey(x => x.Id);
 
+            // Course-level: MaterialId IS NULL
+            builder.HasIndex(x => new
+            {
+                x.LearnerId,
+                x.CourseId
+            })
+            .IsUnique()
+            .HasFilter("\"MaterialId\" IS NULL AND \"Status\" = 'Pending'");
+
+            // Material-level: MaterialId IS NOT NULL
             builder.HasIndex(x => new
             {
                 x.LearnerId,
@@ -20,7 +30,7 @@ namespace AILA.Infrastructure.Persistence.Configurations
                 x.MaterialId
             })
             .IsUnique()
-            .HasFilter("\"Status\" = 'Pending'");
+            .HasFilter("\"MaterialId\" IS NOT NULL AND \"Status\" = 'Pending'");
 
             builder.Property(x => x.CourseId)
                 .IsRequired();
