@@ -46,10 +46,11 @@ public class PracticeChatService : IPracticeChatService
         var roleBoundary = roleResult.IsSuccess
             ? $"\n\n==================================================\n" +
               $"[RẤT QUAN TRỌNG - CHÍNH SÁCH BẢO VỆ XƯNG HÔ & VAI DIỄN]:\n" +
-              $"1. VAI TRÒ BẮT BUỘC CỦA BẠN (AI): '{roleResult.AIRole}'.\n" +
-              $"2. VAI TRÒ CỦA NGUỜI CHAT (HỌC VIÊN): '{roleResult.UserRole}'.\n" +
+              $"1. VAI TRÒ BẮT BUỘC CỦA BẠN (AI): '{roleResult.AIRole}'. (CHỈ DÙNG NỘI BỘ ĐỂ XÁC ĐỊNH CÁCH XƯNG HÔ — TUYỆT ĐỐI KHÔNG NÓI RA CHO NGƯỜI DÙNG)\n" +
+              $"2. VAI TRÒ CỦA NGƯỜI CHAT (HỌC VIÊN): '{roleResult.UserRole}'. (CHỈ DÙNG NỘI BỘ — KHÔNG TIẾT LỘ)\n" +
               $"3. NẾU AI LÀ MENTOR/CHUYÊN GIA/BA/SENIOR CODER: AI BẮT BUỘC xưng 'Anh' (hoặc 'Chị'/'Mentor') và gọi Học viên là 'em'. TUYỆT ĐỐI KHÔNG xưng 'em' hay chào 'Em chào anh'!\n" +
               $"4. NẾU AI LÀ SINH VIÊN/NGƯỜI XIN TƯ VẤN: AI BẮT BUỘC xưng 'em' và gọi Học viên là 'Anh/Chị/Mentor'.\n" +
+              $"5. KHÔNG ĐƯỢC tự giới thiệu vai trò, chức danh của mình trong câu trả lời (ví dụ: KHÔNG nói 'Tôi là BA', 'Tôi là Business Analyst', 'Tôi là Mentor'). Chỉ cần hành xử đúng vai và xưng hô đúng.\n" +
               $"=================================================="
             : string.Empty;
 
