@@ -30,8 +30,7 @@ namespace AILA.Infrastructure.Persistence.Repositories
             return await _context.ExpertEvaluationRequests
                 .AsNoTracking()
                 .AnyAsync(
-                    x => x.PracticeAttemptId == practiceAttemptId
-                      && x.Status != ExpertEvaluationRequestStatus.Cancelled,
+                    x => x.PracticeAttemptId == practiceAttemptId,
                     cancellationToken);
         }
 
@@ -44,8 +43,7 @@ namespace AILA.Infrastructure.Persistence.Repositories
             // nhiều bản ghi trên cùng một lượt thực hành.
             return await _context.ExpertEvaluationRequests
                 .AsNoTracking()
-                .Where(x => x.PracticeAttemptId == practiceAttemptId
-                         && x.Status != ExpertEvaluationRequestStatus.Cancelled)
+                .Where(x => x.PracticeAttemptId == practiceAttemptId)
                 .OrderByDescending(x => x.RequestedAt)
                 .FirstOrDefaultAsync(cancellationToken);
         }

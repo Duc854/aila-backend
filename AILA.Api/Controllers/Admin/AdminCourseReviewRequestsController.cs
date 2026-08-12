@@ -115,20 +115,20 @@ public class AdminCourseReviewRequestsController : ControllerBase
     /// Dùng cho CoursePreviewModal ở trang admin (reports, review requests).
     /// GET /api/admin/courses/{courseId}/materials/{materialId}/preview
     /// </summary>
-    [HttpGet("/api/admin/courses/{courseId:guid}/materials/{materialId:guid}/preview")]
-    public async Task<IActionResult> PreviewMaterial(
-        Guid courseId,
-        Guid materialId,
-        CancellationToken ct)
-    {
-        var query  = new GetMaterialDetailQuery(courseId, materialId);
-        var result = await _sender.Send(query, ct);
+    //[HttpGet("/api/admin/courses/{courseId:guid}/materials/{materialId:guid}/preview")]
+    //public async Task<IActionResult> PreviewMaterial(
+    //    Guid courseId,
+    //    Guid materialId,
+    //    CancellationToken ct)
+    //{
+    //    var query  = new GetMaterialDetailQuery(courseId, materialId);
+    //    var result = await _sender.Send(query, ct);
 
-        if (!result.Success)
-            return NotFound(result);
+    //    if (!result.Success)
+    //        return NotFound(result);
 
-        return Ok(result);
-    }
+    //    return Ok(result);
+    //}
 }
 
 // Request model

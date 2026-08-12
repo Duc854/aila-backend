@@ -22,11 +22,6 @@
   <ItemGroup>
     <ProjectReference Include="..\AILA.Application\AILA.Application.csproj" />
     <ProjectReference Include="..\AILA.Infrastructure\AILA.Infrastructure.csproj" />
-    <ProjectReference Include="..\AILA.Domain\AILA.Domain.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\AILA.Application\AILA.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>

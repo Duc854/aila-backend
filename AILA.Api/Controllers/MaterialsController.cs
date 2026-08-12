@@ -41,7 +41,7 @@ namespace AILA.Api.Controllers
             }
 
             // 2. Gửi Query sang tầng Application xử lý thông qua MediatR
-            var query = new GetMaterialDetailQuery(courseId, materialId);
+            var query = new GetMaterialDetailQuery(identity.UserId,courseId, materialId);
             var result = await _sender.Send(query);
 
             // 3. Kiểm tra kết quả nghiệp vụ từ Handler trả về

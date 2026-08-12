@@ -19,7 +19,8 @@ namespace AILA.Infrastructure.Persistence.Configurations
                 x.CourseId,
                 x.MaterialId
             })
-            .IsUnique();
+            .IsUnique()
+            .HasFilter("\"Status\" = 'Pending'");
 
             builder.Property(x => x.CourseId)
                 .IsRequired();
