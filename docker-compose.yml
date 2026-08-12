@@ -114,6 +114,16 @@ services:
 
       Cloudinary__ApiSecret: ${CLOUDINARY_API_SECRET}
 
+      OpenAI__ApiKey: ${OPENAI_API_KEY}
+      OpenAI__ModelId: ${OPENAI_MODEL_ID}
+      OpenAI__BaseUrl: ${OPENAI_BASE_URL}
+
+      SePay__ApiKey: ${SEPAY_API_KEY}
+      SePay__WebhookSecret: ${SEPAY_WEBHOOK_SECRET}
+      SePay__BankAccountNumber: ${SEPAY_BANK_ACCOUNT_NUMBER}
+      SePay__BankAccountName: ${SEPAY_BANK_ACCOUNT_NAME}
+      SePay__BankCode: ${SEPAY_BANK_CODE}
+
     logging:
       driver: json-file
 

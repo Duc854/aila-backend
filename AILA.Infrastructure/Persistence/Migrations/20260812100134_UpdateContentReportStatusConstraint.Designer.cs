@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using AILA.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AILA.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260812100134_UpdateContentReportStatusConstraint")]
+    partial class UpdateContentReportStatusConstraint
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -446,13 +449,9 @@ namespace AILA.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("MaterialId");
 
-                    b.HasIndex("LearnerId", "CourseId")
-                        .IsUnique()
-                        .HasFilter("\"MaterialId\" IS NULL AND \"Status\" = 'Pending'");
-
                     b.HasIndex("LearnerId", "CourseId", "MaterialId")
                         .IsUnique()
-                        .HasFilter("\"MaterialId\" IS NOT NULL AND \"Status\" = 'Pending'");
+                        .HasFilter("\"Status\" = 'Pending'");
 
                     b.ToTable("ContentReport", (string)null);
                 });
@@ -881,13 +880,9 @@ namespace AILA.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CourseId");
-
                     b.HasIndex("KnowledgeDocumentId");
 
-                    b.HasIndex("KnowledgeDocumentId", "ChunkIndex");
-
-                    b.ToTable("KnowledgeChunks", (string)null);
+                    b.ToTable("KnowledgeChunks");
                 });
 
             modelBuilder.Entity("AILA.Domain.Entities.KnowledgeDocument", b =>
@@ -922,12 +917,7 @@ namespace AILA.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CourseId");
-
-                    b.HasIndex("MaterialId")
-                        .IsUnique();
-
-                    b.ToTable("KnowledgeDocuments", (string)null);
+                    b.ToTable("KnowledgeDocuments");
                 });
 
             modelBuilder.Entity("AILA.Domain.Entities.Learner", b =>
@@ -2191,25 +2181,6 @@ namespace AILA.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("KnowledgeDocument");
-                });
-
-            modelBuilder.Entity("AILA.Domain.Entities.KnowledgeDocument", b =>
-                {
-                    b.HasOne("AILA.Domain.Entities.Course", "Course")
-                        .WithMany()
-                        .HasForeignKey("CourseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("AILA.Domain.Entities.Material", "Material")
-                        .WithMany()
-                        .HasForeignKey("MaterialId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Course");
-
-                    b.Navigation("Material");
                 });
 
             modelBuilder.Entity("AILA.Domain.Entities.Learner", b =>

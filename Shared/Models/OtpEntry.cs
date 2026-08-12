@@ -1,4 +1,4 @@
-namespace AILA.Application.Common.Models
+namespace Shared.Models
 {
     /// <summary>
     /// Bản ghi OTP đang active của một email, đọc ra từ store (Redis HASH).

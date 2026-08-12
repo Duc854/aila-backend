@@ -1,6 +1,6 @@
 using AILA.Application.Common.Behaviours;
 using AILA.Application.Common.Interfaces;
-using AILA.Application.Common.InternalService;
+using AILA.Application.Common.InternalServices;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;

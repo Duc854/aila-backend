@@ -3,7 +3,7 @@ using AILA.Application.Common.Dtos.Recommendation;
 using AILA.Application.Common.Interfaces;
 using AILA.Domain.Constants;
 
-namespace AILA.Application.Common.InternalService
+namespace AILA.Application.Common.InternalServices
 {
     public class RecommendationService
         : IRecommendationService

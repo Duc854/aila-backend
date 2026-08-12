@@ -1,7 +1,7 @@
 using AILA.Domain.Enums;
 using MediatR;
 using AILA.Application.Common.Interfaces;
-using AILA.Application.Common.Notifications;
+using AILA.Domain.Constants;
 using AILA.Domain.Entities;
 using Shared.Wrappers;
 

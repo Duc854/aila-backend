@@ -17,6 +17,20 @@ public class PracticeAttemptDto
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public OverallScoringResult? DetailedScoring { get; set; }
-    
+
+    /// <summary>
+    /// UC-29/30: id yêu cầu nhờ chuyên gia đánh giá còn hiệu lực của lượt này.
+    /// Null nghĩa là chưa gửi yêu cầu (hoặc yêu cầu đã hủy) — FE hiện nút "Nhờ chuyên gia
+    /// đánh giá"; có giá trị thì FE đổi thành link xem đánh giá của chuyên gia.
+    /// </summary>
+    public Guid? ExpertEvaluationRequestId { get; set; }
+
+    /// <summary>
+    /// Trạng thái của yêu cầu trên: "Pending" | "InProgress" | "Completed".
+    /// Null khi <see cref="ExpertEvaluationRequestId"/> null.
+    /// </summary>
+    public string? ExpertEvaluationStatus { get; set; }
+
+
     public List<PromptSubmissionDto> Submissions { get; set; } = new();
 }
