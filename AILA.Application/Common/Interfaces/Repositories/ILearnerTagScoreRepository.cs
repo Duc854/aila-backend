@@ -24,5 +24,9 @@ namespace AILA.Application.Common.Interfaces.Repositories
             Guid learnerId,
             int minimumScore,
             CancellationToken cancellationToken = default);
+        Task<List<LearnerTagScore>> GetByUserIdAndTagIdsAsync(
+            Guid userId,
+            List<Guid> tagIds,
+            CancellationToken cancellationToken);
     }
 }
