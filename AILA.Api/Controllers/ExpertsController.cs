@@ -7,6 +7,7 @@ using AILA.Application.Features.Experts.Queries;
 using AILA.Application.Features.Experts.Queries.GetExpertDashboard;
 using AILA.Application.Features.Experts.Queries.GetExpertAiResourceUsage;
 using AILA.Application.Features.Materials.Queries.GetMaterialDetail;
+using AILA.Application.Features.Materials.Queries.GetMaterialDetailForPreview;
 using AILA.Application.Features.Profile.Commands.UpdateExpertProfile;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -258,14 +259,13 @@ namespace AILA.Api.Controllers
                 return StatusCode(StatusCodes.Status403Forbidden,
                     ResponseDto<object>.FailResult("FORBIDDEN", "Bạn không có quyền xem trước khóa học này."));
 
-            // Lấy chi tiết học liệu — dùng lại query của Learner, không ghi nhận tiến độ
-            var query = new GetMaterialDetailQuery(identity.UserId, courseId, materialId);
-            var result = await _sender.Send(query, ct);
+            // Lấy chi tiết học liệu trực tiếp (không kiểm tra enrollment)
+            var material = await _sender.Send(new GetMaterialDetailForPreviewQuery(courseId, materialId), ct);
 
-            if (!result.Success)
-                return NotFound(result);
+            if (!material.Success)
+                return NotFound(material);
 
-            return Ok(result);
+            return Ok(material);
         }
 
         /// <summary>

@@ -2,6 +2,7 @@
 using AILA.Application.Common.Dtos;
 using AILA.Application.Features.Materials.Commands.MarkMaterialAsCompleted;
 using AILA.Application.Features.Materials.Queries.GetMaterialDetail;
+using AILA.Application.Features.Materials.Queries.GetMaterialDetailForPreview;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -87,7 +88,7 @@ namespace AILA.Api.Controllers
 
         /// <summary>
         /// API cho Admin xem trước chi tiết học liệu của một khóa học.
-        /// Admin không cần enroll để xem, nhưng endpoint sẽ kiểm tra authority.
+        /// Admin không cần enroll để xem, sử dụng query preview không kiểm tra enrollment.
         /// </summary>
         [HttpGet("{materialId}/admin-preview")]
         [Authorize(Roles = "Admin")]
@@ -104,9 +105,8 @@ namespace AILA.Api.Controllers
                 ));
             }
 
-            // Admin preview không cần enroll check; chỉ cần role Admin
-            // Gửi query với userId của admin (mục đích là pass enrollment check, admin có quyền)
-            var query = new GetMaterialDetailQuery(identity.UserId, courseId, materialId);
+            // Admin preview dùng query mới không kiểm tra enrollment
+            var query = new GetMaterialDetailForPreviewQuery(courseId, materialId);
             var result = await _sender.Send(query);
 
             if (!result.Success)
