@@ -12,8 +12,6 @@ namespace AILA.Domain.Enums
 
         Expired = 2,
 
-        Cancelled = 3,
-
-        Replaced = 4
+        Replaced = 3,
     }
 }

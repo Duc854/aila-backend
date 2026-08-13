@@ -132,7 +132,11 @@ namespace AILA.Application.Features.ExpertEvaluations.Commands.RequestExpertEval
         private async Task<QuotaSnapshot> ResolveQuotaAsync(Guid learnerId, CancellationToken ct)
         {
             var subscription = await _uow.Subscriptions
-                .GetActiveSubscriptionByLearnerIdAsync(learnerId, ct);
+                .GetActiveSubscriptionByLearnerIdToCalculateResourceAsync(learnerId, ct);
+            if (subscription != null && subscription.IsExpired())
+            {
+                subscription.Expire();
+            }
 
             var accountLimit = await _uow.AccountResourceLimits
                 .GetByAccountIdAsync(learnerId, ct);
