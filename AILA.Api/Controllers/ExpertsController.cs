@@ -237,36 +237,36 @@ namespace AILA.Api.Controllers
         /// Chỉ Expert sở hữu khóa học mới được gọi endpoint này.
         /// Không tạo enrollment, tiến độ hay kết quả quiz.
         /// </summary>
-        //[HttpGet("me/courses/{courseId}/materials/{materialId}/preview")]
-        //[Authorize(Roles = "Expert")]
-        //public async Task<IActionResult> PreviewMaterial(
-        //    Guid courseId,
-        //    Guid materialId,
-        //    CancellationToken ct)
-        //{
-        //    var identity = HttpContext.GetUserIdentity();
-        //    if (identity is null)
-        //        return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực người dùng thất bại."));
+        [HttpGet("me/courses/{courseId}/materials/{materialId}/preview")]
+        [Authorize(Roles = "Expert")]
+        public async Task<IActionResult> PreviewMaterial(
+            Guid courseId,
+            Guid materialId,
+            CancellationToken ct)
+        {
+            var identity = HttpContext.GetUserIdentity();
+            if (identity is null)
+                return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực người dùng thất bại."));
 
-        //    // Kiểm tra expert sở hữu khóa học (BR-02)
-        //    var courseQuery = new GetCourseDetailQuery(courseId);
-        //    var course = await _sender.Send(courseQuery, ct);
-        //    if (course is null)
-        //        return NotFound(ResponseDto<object>.FailResult("COURSE_NOT_FOUND", "Không tìm thấy khóa học."));
+            // Kiểm tra expert sở hữu khóa học (BR-02)
+            var courseQuery = new GetCourseDetailQuery(courseId);
+            var course = await _sender.Send(courseQuery, ct);
+            if (course is null)
+                return NotFound(ResponseDto<object>.FailResult("COURSE_NOT_FOUND", "Không tìm thấy khóa học."));
 
-        //    if (course.Author?.UserId != identity.UserId)
-        //        return StatusCode(StatusCodes.Status403Forbidden,
-        //            ResponseDto<object>.FailResult("FORBIDDEN", "Bạn không có quyền xem trước khóa học này."));
+            if (course.Author?.UserId != identity.UserId)
+                return StatusCode(StatusCodes.Status403Forbidden,
+                    ResponseDto<object>.FailResult("FORBIDDEN", "Bạn không có quyền xem trước khóa học này."));
 
-        //    // Lấy chi tiết học liệu — dùng lại query của Learner, không ghi nhận tiến độ
-        //    var query = new GetMaterialDetailQuery(courseId, materialId);
-        //    var result = await _sender.Send(query, ct);
+            // Lấy chi tiết học liệu — dùng lại query của Learner, không ghi nhận tiến độ
+            var query = new GetMaterialDetailQuery(identity.UserId, courseId, materialId);
+            var result = await _sender.Send(query, ct);
 
-        //    if (!result.Success)
-        //        return NotFound(result);
+            if (!result.Success)
+                return NotFound(result);
 
-        //    return Ok(result);
-        //}
+            return Ok(result);
+        }
 
         /// <summary>
         /// Lấy toàn bộ thông tin chi tiết khóa học để xem trước (kể cả draft, tất cả modules).

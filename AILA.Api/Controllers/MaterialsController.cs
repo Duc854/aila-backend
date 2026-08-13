@@ -84,5 +84,38 @@ namespace AILA.Api.Controllers
             // Trả về dữ liệu thành công kèm wrapper chuẩn: { "success": true, "data": true }
             return Ok(result);
         }
+
+        /// <summary>
+        /// API cho Admin xem trước chi tiết học liệu của một khóa học.
+        /// Admin không cần enroll để xem, nhưng endpoint sẽ kiểm tra authority.
+        /// </summary>
+        [HttpGet("{materialId}/admin-preview")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> PreviewMaterialAsAdmin(
+            [FromRoute] Guid courseId,
+            [FromRoute] Guid materialId)
+        {
+            var identity = HttpContext.GetUserIdentity();
+            if (identity == null)
+            {
+                return Unauthorized(ResponseDto<object>.FailResult(
+                    "UNAUTHORIZED",
+                    "Xác thực người dùng thất bại."
+                ));
+            }
+
+            // Admin preview không cần enroll check; chỉ cần role Admin
+            // Gửi query với userId của admin (mục đích là pass enrollment check, admin có quyền)
+            var query = new GetMaterialDetailQuery(identity.UserId, courseId, materialId);
+            var result = await _sender.Send(query);
+
+            if (!result.Success)
+            {
+                return NotFound(result);
+            }
+
+            return Ok(result);
+        }
     }
 }
+
