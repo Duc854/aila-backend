@@ -1,5 +1,5 @@
 using AILA.Infrastructure.Persistence;
-using AILA.Infrastructure.Persistence.Seed;
+using AILA.Infrastructure.Persistence.Seeds;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;

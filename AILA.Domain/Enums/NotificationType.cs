@@ -9,7 +9,6 @@ namespace AILA.Domain.Enums
     public enum NotificationType
     {
         //Learner
-        RegisterSuccessful,
         ResetPasswordSuccessful,
         PurchaseSubcriptionSuccesful,
         EnrollACourse,

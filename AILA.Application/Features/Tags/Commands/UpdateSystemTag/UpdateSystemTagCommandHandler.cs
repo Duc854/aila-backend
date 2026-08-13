@@ -28,6 +28,13 @@ namespace AILA.Application.Features.Tags.Commands.UpdateSystemTag
                     "Không tìm thấy tag.");
             }
 
+            if (AILA.Domain.Constants.ReservedTagCodes.All.Contains(tag.Code))
+            {
+                return ResponseDto<TagDto>.FailResult(
+                    "RESERVED_TAG",
+                    $"Thẻ tag '{tag.Name}' là tag cố định của hệ thống, không được phép chỉnh sửa.");
+            }
+
             if (tag.CreatedById != null)
             {
                 return ResponseDto<TagDto>.FailResult(
@@ -37,6 +44,13 @@ namespace AILA.Application.Features.Tags.Commands.UpdateSystemTag
 
             var normalizedName = request.Name.Trim();
             var code = normalizedName.ToLower().Replace(" ", "-");
+
+            if (AILA.Domain.Constants.ReservedTagCodes.All.Contains(code))
+            {
+                return ResponseDto<TagDto>.FailResult(
+                    "RESERVED_TAG",
+                    $"Tên hoặc mã tag '{code}' trùng với tag cố định của hệ thống.");
+            }
 
             if (await uow.Tags.CodeExistsAsync(code, ct) &&
                 !string.Equals(tag.Code, code, StringComparison.OrdinalIgnoreCase))

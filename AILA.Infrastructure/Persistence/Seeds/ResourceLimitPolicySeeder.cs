@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AILA.Infrastructure.Persistence.Seed
+namespace AILA.Infrastructure.Persistence.Seeds
 {
     public class ResourceLimitPolicySeeder
     {

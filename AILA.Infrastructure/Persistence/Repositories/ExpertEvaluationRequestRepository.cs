@@ -30,9 +30,22 @@ namespace AILA.Infrastructure.Persistence.Repositories
             return await _context.ExpertEvaluationRequests
                 .AsNoTracking()
                 .AnyAsync(
-                    x => x.PracticeAttemptId == practiceAttemptId
-                      && x.Status != ExpertEvaluationRequestStatus.Cancelled,
+                    x => x.PracticeAttemptId == practiceAttemptId,
                     cancellationToken);
+        }
+
+        public async Task<ExpertEvaluationRequest?> GetActiveRequestForAttemptAsync(
+            Guid practiceAttemptId,
+            CancellationToken cancellationToken = default)
+        {
+            // Cùng điều kiện lọc với HasActiveRequestForAttemptAsync: yêu cầu đã hủy
+            // không tính, học viên được gửi lại. Lấy bản mới nhất phòng dữ liệu cũ có
+            // nhiều bản ghi trên cùng một lượt thực hành.
+            return await _context.ExpertEvaluationRequests
+                .AsNoTracking()
+                .Where(x => x.PracticeAttemptId == practiceAttemptId)
+                .OrderByDescending(x => x.RequestedAt)
+                .FirstOrDefaultAsync(cancellationToken);
         }
 
         public async Task<(IReadOnlyList<ExpertEvaluationRequest> Items, int TotalCount)> GetAssignedPageAsync(

@@ -90,6 +90,22 @@ public class CompleteAttemptCommandHandler : IRequestHandler<CompleteAttemptComm
             await _unitOfWork.Repository<AIFeedback>()
                 .AddAsync(aiFeedback);
 
+            // Cập nhật trạng thái hoàn thành học liệu (LearningProgress) và tiến độ khóa học (Enrollment)
+            var progress = await _unitOfWork.LearningProgresses
+                .GetByCompositeKeyAsync(enrollment.Id, attempt.MaterialId, cancellationToken);
+
+            if (progress == null)
+            {
+                progress = new LearningProgress(enrollment.Id, attempt.MaterialId);
+                await _unitOfWork.LearningProgresses.AddAsync(progress, cancellationToken);
+            }
+
+            if (!progress.IsCompleted)
+            {
+                progress.Complete();
+                enrollment.CompleteMaterial();
+            }
+
             if (firstCompleted)
             {
                 var behaviorTags = enrollment.Course.CourseTags

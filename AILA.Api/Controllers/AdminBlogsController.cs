@@ -1,4 +1,4 @@
-﻿using AILA.Application.Features.AdminBlog.Commands.CreateBlog;
+using AILA.Application.Features.AdminBlog.Commands.CreateBlog;
 using AILA.Application.Features.AdminBlog.Commands.DeleteBlog;
 using AILA.Application.Features.AdminBlog.Commands.PublishBlog;
 using AILA.Application.Features.AdminBlog.Commands.UnpublishBlog;
@@ -75,7 +75,7 @@ namespace AILA.Api.Controllers
         {
             if (id != command.BlogId)
             {
-                return BadRequest("Route id does not match BlogId.");
+                return BadRequest("Id trên URL không trùng khớp với BlogId trong yêu cầu.");
             }
 
             var result = await _mediator.Send(command);

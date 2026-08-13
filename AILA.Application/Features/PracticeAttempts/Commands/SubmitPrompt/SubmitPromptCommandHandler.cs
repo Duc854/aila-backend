@@ -235,5 +235,33 @@ public class SubmitPromptCommandHandler : IRequestHandler<SubmitPromptCommand, P
             cancellationToken: cancellationToken);
 
         attempt.Complete(scoringResult.Percentage, scoringResult.Summary);
+
+        var scoringJson = System.Text.Json.JsonSerializer.Serialize(scoringResult);
+        var aiFeedback = new AIFeedback(
+            attempt.Id,
+            scoringResult.Percentage,
+            scoringResult.Summary,
+            strengths: string.Join("; ", scoringResult.LearningSuggestions),
+            areasForImprovement: string.Join("; ", scoringResult.DetectedIssues),
+            detailedScoringJson: scoringJson);
+
+        await _unitOfWork.Repository<AIFeedback>().AddAsync(aiFeedback);
+
+        // Cập nhật trạng thái hoàn thành học liệu (LearningProgress) và tiến độ khóa học (Enrollment)
+        var progress = await _unitOfWork.LearningProgresses
+            .GetByCompositeKeyAsync(attempt.EnrollmentId, attempt.MaterialId, cancellationToken);
+
+        if (progress == null)
+        {
+            progress = new LearningProgress(attempt.EnrollmentId, attempt.MaterialId);
+            await _unitOfWork.LearningProgresses.AddAsync(progress, cancellationToken);
+        }
+
+        if (!progress.IsCompleted)
+        {
+            progress.Complete();
+            var enrollment = await _unitOfWork.Enrollments.GetByIdAsync(attempt.EnrollmentId);
+            enrollment?.CompleteMaterial();
+        }
     }
 }

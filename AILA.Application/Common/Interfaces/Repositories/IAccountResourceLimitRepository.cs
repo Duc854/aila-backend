@@ -13,5 +13,8 @@ namespace AILA.Application.Common.Interfaces.Repositories
         Task<AccountResourceLimit?> GetByAccountIdAsync(
             Guid accountId,
             CancellationToken cancellationToken = default);
+        Task<AccountResourceLimit?> GetByAccountIdToUpdateAsync(
+            Guid accountId,
+            CancellationToken cancellationToken = default);
     }
 }

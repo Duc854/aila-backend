@@ -1,5 +1,5 @@
 using AILA.Application.Common.Interfaces;
-using AILA.Application.Common.Notifications;
+using AILA.Domain.Constants;
 using AILA.Application.Features.Reports.Dtos;
 using AILA.Domain.Enums;
 using MediatR;

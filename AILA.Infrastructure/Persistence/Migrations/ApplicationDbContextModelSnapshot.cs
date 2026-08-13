@@ -446,8 +446,13 @@ namespace AILA.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("MaterialId");
 
+                    b.HasIndex("LearnerId", "CourseId")
+                        .IsUnique()
+                        .HasFilter("\"MaterialId\" IS NULL AND \"Status\" = 'Pending'");
+
                     b.HasIndex("LearnerId", "CourseId", "MaterialId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("\"MaterialId\" IS NOT NULL AND \"Status\" = 'Pending'");
 
                     b.ToTable("ContentReport", (string)null);
                 });
@@ -876,9 +881,13 @@ namespace AILA.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CourseId");
+
                     b.HasIndex("KnowledgeDocumentId");
 
-                    b.ToTable("KnowledgeChunks");
+                    b.HasIndex("KnowledgeDocumentId", "ChunkIndex");
+
+                    b.ToTable("KnowledgeChunks", (string)null);
                 });
 
             modelBuilder.Entity("AILA.Domain.Entities.KnowledgeDocument", b =>
@@ -913,7 +922,12 @@ namespace AILA.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("KnowledgeDocuments");
+                    b.HasIndex("CourseId");
+
+                    b.HasIndex("MaterialId")
+                        .IsUnique();
+
+                    b.ToTable("KnowledgeDocuments", (string)null);
                 });
 
             modelBuilder.Entity("AILA.Domain.Entities.Learner", b =>
@@ -2177,6 +2191,25 @@ namespace AILA.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("KnowledgeDocument");
+                });
+
+            modelBuilder.Entity("AILA.Domain.Entities.KnowledgeDocument", b =>
+                {
+                    b.HasOne("AILA.Domain.Entities.Course", "Course")
+                        .WithMany()
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AILA.Domain.Entities.Material", "Material")
+                        .WithMany()
+                        .HasForeignKey("MaterialId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+
+                    b.Navigation("Material");
                 });
 
             modelBuilder.Entity("AILA.Domain.Entities.Learner", b =>

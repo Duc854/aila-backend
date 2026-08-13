@@ -1,11 +1,11 @@
 using AILA.Application.Common.Exceptions;
 using AILA.Application.Common.Helpers;
 using AILA.Application.Common.Interfaces;
-using AILA.Application.Common.Notifications;
+using AILA.Domain.Constants;
+using Shared.Models;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Shared.Models;
 using Shared.Wrappers;
 
 namespace AILA.Application.Features.Authentication.Commands.ConfirmPasswordReset

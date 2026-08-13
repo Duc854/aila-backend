@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AILA.Application.Common.InternalService
+namespace AILA.Application.Common.InternalServices
 {
     public class LearnerBehaviorService
         : ILearnerBehaviorService
