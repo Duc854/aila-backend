@@ -75,7 +75,11 @@ public class CreateAttemptCommandHandler : IRequestHandler<CreateAttemptCommand,
     private async Task<QuotaSnapshot> ResolveQuotaAsync(Guid learnerId, CancellationToken ct)
     {
         var subscription = await _unitOfWork.Subscriptions
-            .GetActiveSubscriptionByLearnerIdAsync(learnerId, ct);
+            .GetActiveSubscriptionByLearnerIdToCalculateResourceAsync(learnerId, ct);
+        if (subscription != null && subscription.IsExpired())
+        {
+            subscription.Expire();
+        }
 
         var accountLimit = await _unitOfWork.AccountResourceLimits
             .GetByAccountIdAsync(learnerId, ct);

@@ -94,12 +94,12 @@ namespace AILA.Domain.Entities
         public bool IsActive()
         {
             return Status == SubscriptionStatus.Active
-                && DateTime.UtcNow <= ExpiredAt;
+                && DateTime.UtcNow < ExpiredAt;
         }
 
         public bool IsExpired()
         {
-            return DateTime.UtcNow > ExpiredAt;
+            return DateTime.UtcNow >= ExpiredAt;
         }
 
         public int GetRemainingDays()

@@ -31,5 +31,18 @@ namespace AILA.Infrastructure.Persistence.Repositories
                 .OrderByDescending(s => s.ActivatedAt)
                 .FirstOrDefaultAsync(cancellationToken);
         }
+
+        public async Task<Subscription?> GetActiveSubscriptionByLearnerIdToCalculateResourceAsync(
+            Guid learnerId,
+            CancellationToken cancellationToken = default)
+        {
+            return await _context.Subscriptions
+                .AsNoTracking()
+                .Include(s => s.SubscriptionPlan)
+                .Where(s => s.LearnerId == learnerId
+                            && s.Status == SubscriptionStatus.Active)
+                .OrderByDescending(s => s.ActivatedAt)
+                .FirstOrDefaultAsync(cancellationToken);
+        }
     }
 }
