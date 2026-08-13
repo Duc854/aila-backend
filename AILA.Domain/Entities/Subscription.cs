@@ -67,21 +67,6 @@ namespace AILA.Domain.Entities
         }
 
         /// <summary>
-        /// Gia hạn gói cùng Tier.
-        /// </summary>
-        public void Extend()
-        {
-            if (Status != SubscriptionStatus.Active)
-                throw new InvalidOperationException(
-                    "Chỉ gói đăng ký đang hoạt động mới có thể được gia hạn.");
-
-            ExpiredAt = ExpiredAt.AddDays(
-                PlanSnapshot.DurationInDays);
-
-            UpdateTimestamp();
-        }
-
-        /// <summary>
         /// Được thay thế bởi gói có Tier cao hơn.
         /// </summary>
         public void Replace()
@@ -102,17 +87,6 @@ namespace AILA.Domain.Entities
                     "Chỉ gói đăng ký đang hoạt động mới có thể chuyển sang trạng thái hết hạn.");
 
             Status = SubscriptionStatus.Expired;
-
-            UpdateTimestamp();
-        }
-
-        public void Cancel()
-        {
-            if (Status == SubscriptionStatus.Cancelled)
-                throw new InvalidOperationException(
-                    "Gói đăng ký đã bị hủy.");
-
-            Status = SubscriptionStatus.Cancelled;
 
             UpdateTimestamp();
         }
