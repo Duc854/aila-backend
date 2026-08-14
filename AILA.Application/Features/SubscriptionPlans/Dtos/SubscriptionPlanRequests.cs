@@ -25,15 +25,17 @@ namespace AILA.Application.Features.SubscriptionPlans.Dtos
     }
 
     /// <summary>
-    /// UC-91 - Request cập nhật gói. Cố ý KHÔNG có Name/TierLevel (INV-01, BR-01)
-    /// và không có DurationInDays vì <c>SubscriptionPlan.Update()</c> không nhận trường này.
-    /// Client gửi kèm cũng bị bỏ qua.
+    /// UC-91 - Request cập nhật gói. Cố ý KHÔNG có Name/TierLevel (INV-01, BR-01) —
+    /// client gửi kèm cũng bị bỏ qua. DurationInDays sửa được: giá trị mới chỉ dùng cho
+    /// các lượt mua/gia hạn sau, subscription đã bán giữ nguyên snapshot (INV-03, BR-04).
     /// </summary>
     public class UpdateSubscriptionPlanRequest
     {
         public string? Description { get; set; }
 
         public decimal Price { get; set; }
+
+        public int DurationInDays { get; set; }
 
         public int AiTokenLimit { get; set; }
 
