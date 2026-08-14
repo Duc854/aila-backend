@@ -44,13 +44,12 @@ public sealed class CreateLearningMaterialCommandHandler
                     "Bạn không có quyền thêm học liệu.");
         }
 
-        var hasEnrollments = await _uow.Enrollments.HasEnrollmentsForCourseAsync(module.CourseId, ct);
-        if (module.Course.IsPublished || hasEnrollments)
+        if (module.Course.IsPublished)
         {
             return ResponseDto<LearningMaterialDto>
                 .FailResult(
                     "COURSE_NOT_MODIFIABLE",
-                    "Không thể thêm học liệu mới vì khóa học đã được công khai hoặc đã có học viên đăng ký.");
+                    "Không thể thêm học liệu mới khi khóa học đang ở trạng thái công khai. Vui lòng chuyển khóa học sang trạng thái ẩn trước khi thay đổi.");
         }
 
         // 3. Tự tính OrderIndex

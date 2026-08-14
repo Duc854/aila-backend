@@ -51,6 +51,15 @@ public sealed class BulkCreateQuizCommandHandler
                     "Học liệu này không phải Quiz.");
         }
 
+        var isPublished = material.Module.Course.IsPublished;
+
+        if (isPublished)
+        {
+            return ResponseDto<object>.FailResult(
+                "COURSE_NOT_MODIFIABLE",
+                "Không thể tạo/chỉnh sửa Quiz khi khóa học đang ở trạng thái công khai. Vui lòng chuyển khóa học sang trạng thái ẩn trước khi thay đổi.");
+        }
+
         await _uow.BeginTransactionAsync(ct);
 
         try

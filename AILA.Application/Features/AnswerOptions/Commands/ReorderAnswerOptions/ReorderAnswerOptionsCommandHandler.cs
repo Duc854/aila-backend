@@ -43,13 +43,12 @@ public sealed class ReorderAnswerOptionsCommandHandler
                     "Bạn không có quyền thực hiện.");
         }
 
-        var hasEnrollments = await _uow.Enrollments.HasEnrollmentsForCourseAsync(question.QuizMaterial.Material.Module.CourseId, ct);
-        if (question.QuizMaterial.Material.Module.Course.IsPublished || hasEnrollments)
+        if (question.QuizMaterial.Material.Module.Course.IsPublished)
         {
             return ResponseDto<object>
                 .FailResult(
                     "COURSE_NOT_MODIFIABLE",
-                    "Không thể sắp xếp lại đáp án vì khóa học đã được công khai hoặc đã có học viên đăng ký.");
+                    "Không thể sắp xếp lại đáp án khi khóa học đang ở trạng thái công khai. Vui lòng chuyển khóa học sang trạng thái ẩn trước khi thay đổi.");
         }
 
         var answers = await _uow.AnswerOptions

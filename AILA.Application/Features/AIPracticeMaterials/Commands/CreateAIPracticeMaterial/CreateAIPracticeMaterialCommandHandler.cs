@@ -48,12 +48,11 @@ namespace AILA.Application.Features.AIPracticeMaterials.Commands.CreateAIPractic
                     "Bạn không có quyền thêm AI Practice Scenario.");
             }
 
-            var hasEnrollments = await _uow.Enrollments.HasEnrollmentsForCourseAsync(module.CourseId, ct);
-            if (module.Course.IsPublished || hasEnrollments)
+            if (module.Course.IsPublished)
             {
                 return ResponseDto<AIPracticeMaterialDto>.FailResult(
                     "COURSE_NOT_MODIFIABLE",
-                    "Không thể thêm bài Thực hành AI vì khóa học đã được công khai hoặc đã có học viên đăng ký.");
+                    "Không thể thêm bài Thực hành AI khi khóa học đang ở trạng thái công khai. Vui lòng chuyển khóa học sang trạng thái ẩn trước khi thay đổi.");
             }
 
             // 3. Tính OrderIndex

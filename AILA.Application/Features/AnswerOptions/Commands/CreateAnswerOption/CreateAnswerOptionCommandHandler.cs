@@ -47,13 +47,12 @@ public sealed class CreateAnswerOptionCommandHandler
                     "Bạn không có quyền chỉnh sửa.");
         }
 
-        var hasEnrollments = await _uow.Enrollments.HasEnrollmentsForCourseAsync(question.QuizMaterial.Material.Module.CourseId, ct);
-        if (question.QuizMaterial.Material.Module.Course.IsPublished || hasEnrollments)
+        if (question.QuizMaterial.Material.Module.Course.IsPublished)
         {
             return ResponseDto<AnswerOptionDto>
                 .FailResult(
                     "COURSE_NOT_MODIFIABLE",
-                    "Không thể thêm đáp án vì khóa học đã được công khai hoặc đã có học viên đăng ký.");
+                    "Không thể thêm đáp án khi khóa học đang ở trạng thái công khai. Vui lòng chuyển khóa học sang trạng thái ẩn trước khi thay đổi.");
         }
 
         var nextOrder =
