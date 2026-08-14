@@ -12,8 +12,9 @@ using Shared.Wrappers;
 namespace AILA.Application.Features.Authentication.Commands.RequestPasswordReset
 {
     /// <summary>
-    /// AC-1/AC-2/AC-3: sinh OTP, lưu hash vào store với TTL, đẩy email chứa OTP sang
-    /// Email Service. Response luôn trung tính để không lộ email có tồn tại hay không.
+    /// AC-1/AC-2/AC-3: sinh OTP, lưu hash vào store với TTL, gửi email chứa OTP qua
+    /// Email Service ngay trong request. Response luôn trung tính để không lộ email
+    /// có tồn tại hay không.
     /// </summary>
     public class RequestPasswordResetCommandHandler
         : IRequestHandler<RequestPasswordResetCommand, ResponseDto<RequestPasswordResetResponseDto>>
@@ -115,17 +116,29 @@ namespace AILA.Application.Features.Authentication.Commands.RequestPasswordReset
 
                 await _store.SaveOtpAsync(email, otpHash, cancellationToken);
 
-                // --- Đẩy email sang Email Service (enqueue, không block response) ---
-                await _emailSender.SendPasswordResetOtpAsync(
-                    user.Email,
-                    user.FullName,
-                    otp,
-                    _settings.OtpTtlSeconds / 60,
-                    cancellationToken);
+                // --- Gửi email qua Email Service ngay trong request (SMTP đồng bộ, không retry) ---
+                // EDGE-11: SMTP hỏng thì nuốt lỗi và vẫn trả response trung tính — nếu để
+                // exception thoát ra, nhánh "email tồn tại" trả 500 còn nhánh "không tồn tại"
+                // trả 200, chính là kênh dò email mà toàn bộ handler này sinh ra để chặn.
+                try
+                {
+                    await _emailSender.SendPasswordResetOtpAsync(
+                        user.Email,
+                        user.FullName,
+                        otp,
+                        _settings.OtpTtlSeconds / 60,
+                        cancellationToken);
 
-                _logger.LogInformation(
-                    "Password reset OTP đã được sinh và đưa vào hàng đợi gửi. email={Email}",
-                    maskedEmail);
+                    _logger.LogInformation(
+                        "Password reset OTP đã được sinh và gửi đi. email={Email}",
+                        maskedEmail);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex,
+                        "Gửi email OTP reset password thất bại. email={Email}",
+                        maskedEmail);
+                }
 
                 await PadResponseTimeAsync(stopwatch, cancellationToken);
                 return NeutralResult();
