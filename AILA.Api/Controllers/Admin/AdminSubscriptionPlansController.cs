@@ -90,6 +90,7 @@ namespace AILA.Api.Controllers.Admin
                     planId,
                     request.Description,
                     request.Price,
+                    request.DurationInDays,
                     request.AiTokenLimit,
                     request.AiPracticeScenarioLimit,
                     request.ExpertEvaluationLimit,
