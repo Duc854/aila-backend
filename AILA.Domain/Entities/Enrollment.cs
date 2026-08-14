@@ -59,10 +59,6 @@ namespace AILA.Domain.Entities
         /// </summary>
         public bool CompleteMaterial()
         {
-            if (Status == EnrollmentStatus.Completed)
-                return false;
-
-
             if (CompletedMaterials >= TotalMaterials)
                 throw new InvalidOperationException(
                     "Số học liệu hoàn thành không thể vượt quá tổng số học liệu.");
@@ -82,32 +78,16 @@ namespace AILA.Domain.Entities
         }
 
         /// <summary>
-        /// Ghi nhận nếu học viên hủy bỏ trạng thái hoàn thành của 1 bài học (nếu có tính năng học lại/làm lại)
-        /// </summary>
-        public void UncompleteMaterial()
-        {
-            if (CompletedMaterials <= 0) return;
-
-            CompletedMaterials--;
-
-            // Nếu đang ở trạng thái Completed mà bị lùi bài, hạ trạng thái xuống Active
-            if (Status == EnrollmentStatus.Completed)
-            {
-                Status = EnrollmentStatus.Active;
-                CompletedAt = null;
-            }
-
-            CalculateProgress();
-            TrackAccess();
-        }
-
-        /// <summary>
         /// Cập nhật lại tổng số học liệu khi khóa học được Expert thêm bài mới
         /// </summary>
         public void UpdateTotalMaterials(int newTotal)
         {
             if (newTotal < CompletedMaterials)
-                throw new ArgumentException("Tổng số học liệu mới không được nhỏ hơn số học liệu học viên đã hoàn thành.");
+                throw new ArgumentException(
+                    "Tổng số học liệu mới không được nhỏ hơn số học liệu đã hoàn thành.");
+            if (newTotal < TotalMaterials)
+                throw new ArgumentException(
+                    "Tổng số học liệu không thể giảm.");
 
             TotalMaterials = newTotal;
             CalculateProgress();
@@ -135,7 +115,7 @@ namespace AILA.Domain.Entities
 
         public bool IsCompleted()
         {
-            return CompletedMaterials >= TotalMaterials;
+            return Status == EnrollmentStatus.Completed;
         }
     }
 }
