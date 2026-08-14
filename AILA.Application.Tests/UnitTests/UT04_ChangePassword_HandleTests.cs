@@ -9,14 +9,16 @@ namespace AILA.Application.Tests.UnitTests;
 
 /// <summary>
 /// Sheet: UT04_ChangePassword — <see cref="ChangePasswordCommandHandler.Handle"/>
-/// Module: Profile · CC = 9 · 12 test case
+/// Module: Profile · CC = 9 · 13 test case
 ///
 /// Nhánh: B1 = NewPassword rỗng · B2 = độ dài &lt; 8 · B3 = user null · B4 = user inactive
-///        B5 = đã có PasswordHash · B6 = CurrentPassword rỗng
-///        B7 = mật khẩu hiện tại sai · B8 = mật khẩu mới trùng mật khẩu cũ
+///        B5 = đã có PasswordHash · B5a = chưa có PasswordHash và không phải tài khoản Google
+///        B6 = CurrentPassword rỗng · B7 = mật khẩu hiện tại sai · B8 = mật khẩu mới trùng mật khẩu cũ
 ///
 /// B5 là điều kiện chắn cho toàn bộ B6/B7/B8: nếu mọi test đều dùng tài khoản Google
 /// (PasswordHash = null) thì ba nhánh này KHÔNG BAO GIỜ được thực thi.
+/// Chỉ tài khoản Google mới được đi vào nhánh đặt mật khẩu lần đầu; tài khoản không có
+/// GoogleId lẫn PasswordHash bị chặn bằng PASSWORD_NOT_SET.
 /// </summary>
 public class UT04_ChangePassword_HandleTests
 {
@@ -43,6 +45,20 @@ public class UT04_ChangePassword_HandleTests
 
     private static User UserWithGoogleOnly() =>
         new("user@aila.vn", "Nguyen Van A", UserRole.Learner, googleId: "google-sub-123");
+
+    /// <summary>
+    /// Tài khoản không có cả PasswordHash lẫn GoogleId — trạng thái mà constructor của User
+    /// từ chối tạo (invariant "phải có ít nhất một phương thức xác thực"), nên phải dựng bằng
+    /// reflection. Mô phỏng dữ liệu hỏng trong DB, đúng nhánh mà PASSWORD_NOT_SET bảo vệ.
+    /// </summary>
+    private static User UserWithoutAnyCredential()
+    {
+        var user = UserWithPassword();
+        typeof(User).GetProperty(nameof(User.PasswordHash))!
+            .GetSetMethod(nonPublic: true)!
+            .Invoke(user, new object?[] { null });
+        return user;
+    }
 
     private static User InactiveUser()
     {
@@ -126,7 +142,7 @@ public class UT04_ChangePassword_HandleTests
     }
 
     /// <summary>
-    /// UTCID06 · B5=F · Type N — tài khoản Google đặt mật khẩu lần đầu.
+    /// UTCID06 · B5=F, B5a=F · Type N — tài khoản Google đặt mật khẩu lần đầu.
     /// Nhánh đặc quyền: bỏ qua toàn bộ kiểm tra mật khẩu cũ ⇒ hasher.Verify KHÔNG được gọi.
     /// </summary>
     [Fact]
@@ -141,6 +157,25 @@ public class UT04_ChangePassword_HandleTests
         _hasher.Verify(x => x.Verify(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         Assert.Equal($"HASH({NewPassword})", user.PasswordHash);
         _uow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    /// <summary>
+    /// UTCID06b · B5=F, B5a=T · Type A — tài khoản KHÔNG phải Google mà PasswordHash null.
+    /// Không có mật khẩu hiện tại lẫn danh tính Google để xác minh ⇒ chặn, không ghi mật khẩu mới.
+    /// </summary>
+    [Fact]
+    public async Task UTCID06b_NonGoogleUserWithoutPassword_ReturnsPasswordNotSet()
+    {
+        var user = SetupUser(UserWithoutAnyCredential());
+
+        var result = await CreateSut().Handle(
+            new ChangePasswordCommand(_userId, null, NewPassword), CancellationToken.None);
+
+        Assert.False(result.Success);
+        Assert.Equal("PASSWORD_NOT_SET", result.ErrorCode);
+        Assert.Null(user.PasswordHash);
+        _hasher.Verify(x => x.HashPassword(It.IsAny<string>()), Times.Never);
+        _uow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     /// <summary>UTCID07 · B5=T, B6=T · Type A — đã có mật khẩu nhưng không nhập mật khẩu hiện tại.</summary>

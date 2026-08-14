@@ -1,3 +1,4 @@
+using AILA.Api.Extensions;
 using AILA.Application.Features.Reports.Commands.DismissReport;
 using AILA.Application.Features.Reports.Commands.LockCourseFromReport;
 using AILA.Application.Features.Reports.Commands.ResolveReport;
@@ -8,6 +9,7 @@ using AILA.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Shared.Wrappers;
 
 namespace AILA.Api.Controllers.Admin
 {
@@ -73,8 +75,12 @@ namespace AILA.Api.Controllers.Admin
             Guid reportId,
             [FromBody] DismissReportRequest? body)
         {
+            var identity = HttpContext.GetUserIdentity();
+            if (identity is null)
+                return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực người dùng thất bại."));
+
             var result = await _sender.Send(
-                new DismissReportCommand(reportId, body?.Note));
+                new DismissReportCommand(reportId, body?.Note, identity.UserId));
 
             if (!result.Success)
             {
@@ -96,8 +102,12 @@ namespace AILA.Api.Controllers.Admin
         [HttpPatch("{reportId:guid}/lock-course")]
         public async Task<IActionResult> LockCourseFromReport(Guid reportId)
         {
+            var identity = HttpContext.GetUserIdentity();
+            if (identity is null)
+                return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực người dùng thất bại."));
+
             var result = await _sender.Send(
-                new LockCourseFromReportCommand(reportId));
+                new LockCourseFromReportCommand(reportId, identity.UserId));
 
             if (!result.Success)
             {

@@ -68,5 +68,16 @@ namespace AILA.Infrastructure.Persistence.Repositories
                 .Include(x => x.Tag)
                 .ToListAsync(cancellationToken);
         }
+        public async Task<List<LearnerTagScore>> GetByUserIdAndTagIdsAsync(
+            Guid userId,
+            List<Guid> tagIds,
+            CancellationToken cancellationToken)
+        {
+            return await _context.LearnerTagScores
+                .Where(x =>
+                    x.LearnerId == userId &&
+                    tagIds.Contains(x.TagId))
+                .ToListAsync(cancellationToken);
+        }
     }
 }

@@ -9,5 +9,6 @@ namespace AILA.Application.Features.CourseReviewRequests.Commands.ApproveCourseR
 /// </summary>
 public sealed record ApproveCourseReReviewCommand(
     Guid RequestId,
-    string? ReviewComment
+    string? ReviewComment,
+    Guid AdminId
 ) : IRequest<ResponseDto<CourseReviewRequestAdminDto>>;

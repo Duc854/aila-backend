@@ -43,7 +43,7 @@ public sealed class DeleteLearningMaterialCommandHandler
         {
             return ResponseDto<object>.FailResult(
                 "COURSE_NOT_MODIFIABLE",
-                "Không thể xóa vì khóa học đã được công khai hoặc đã có học viên đăng ký.");
+                "Không thể xóa học liệu vì khóa học đã được công khai hoặc đã có học viên đăng ký.");
         }
 
         var moduleId = material.ModuleId;

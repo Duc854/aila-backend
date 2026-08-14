@@ -49,7 +49,7 @@ public sealed class DeleteQuestionCommandHandler
             return ResponseDto<object>
                 .FailResult(
                     "COURSE_NOT_MODIFIABLE",
-                    "Không thể xóa vì khóa học đã được công khai hoặc đã có học viên đăng ký.");
+                    "Không thể xóa câu hỏi vì khóa học đã được công khai hoặc đã có học viên đăng ký.");
         }
 
         _uow.Questions.Delete(question);

@@ -86,27 +86,38 @@ namespace AILA.Application.Features.Onboarding.Commands.CompleteOnboarding
 
 
                 // 6. Tạo LearnerTagScore
-                var allTags =
-                    interestTags
-                        .Concat(systemTags)
-                        .DistinctBy(x => x.Id)
-                        .ToList();
+                var allTags = interestTags
+                    .Concat(systemTags)
+                    .DistinctBy(x => x.Id)
+                    .ToList();
 
+                var existingScores = await _unitOfWork
+                    .LearnerTagScores
+                    .GetByUserIdAndTagIdsAsync(
+                        learner.UserId,
+                        allTags.Select(x => x.Id).ToList(),
+                        cancellationToken);
 
+                var existingScoreByTagId = existingScores
+                    .ToDictionary(x => x.TagId);
 
                 foreach (var tag in allTags)
                 {
-                    var learnerTagScore =
-                        new LearnerTagScore(
+                    if (existingScoreByTagId.TryGetValue(tag.Id, out var existingScore))
+                    {
+                        existingScore.UpdateProfileSeed(200);
+                    }
+                    else
+                    {
+                        var learnerTagScore = new LearnerTagScore(
                             learner.UserId,
                             tag.Id,
                             profileSeed: 200);
 
-
-
-                    await _unitOfWork
-                        .LearnerTagScores
-                        .AddAsync(learnerTagScore);
+                        await _unitOfWork
+                            .LearnerTagScores
+                            .AddAsync(learnerTagScore);
+                    }
                 }
 
 

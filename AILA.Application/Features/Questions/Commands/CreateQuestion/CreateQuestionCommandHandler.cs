@@ -47,6 +47,14 @@ public sealed class CreateQuestionCommandHandler
                     "Bạn không có quyền thêm câu hỏi.");
         }
 
+        if (quiz.Material.Module.Course.IsPublished)
+        {
+            return ResponseDto<QuestionDto>
+                .FailResult(
+                    "COURSE_NOT_MODIFIABLE",
+                    "Không thể thêm câu hỏi khi khóa học đang ở trạng thái công khai. Vui lòng chuyển khóa học sang trạng thái ẩn trước khi thay đổi.");
+        }
+
         // 3. Lấy danh sách Question hiện tại từ DB
         var questions = await _uow.Questions
             .GetByQuizIdAsync(

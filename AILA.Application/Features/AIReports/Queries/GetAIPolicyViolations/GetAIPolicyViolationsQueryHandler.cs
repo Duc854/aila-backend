@@ -2,6 +2,7 @@ using AILA.Application.Common.Interfaces;
 using AILA.Application.Features.AIReports.Dtos;
 using AILA.Domain.Entities;
 using MediatR;
+using Shared.Wrappers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace AILA.Application.Features.AIReports.Queries.GetAIPolicyViolations;
 
-public class GetAIPolicyViolationsQueryHandler : IRequestHandler<GetAIPolicyViolationsQuery, PaginatedViolationListDto>
+public class GetAIPolicyViolationsQueryHandler : IRequestHandler<GetAIPolicyViolationsQuery, ResponseDto<PaginatedViolationListDto>>
 {
     private readonly IUnitOfWork _unitOfWork;
 
@@ -19,7 +20,7 @@ public class GetAIPolicyViolationsQueryHandler : IRequestHandler<GetAIPolicyViol
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<PaginatedViolationListDto> Handle(GetAIPolicyViolationsQuery request, CancellationToken cancellationToken)
+    public async Task<ResponseDto<PaginatedViolationListDto>> Handle(GetAIPolicyViolationsQuery request, CancellationToken cancellationToken)
     {
         var records = await _unitOfWork.Repository<UserViolationRecord>().FindAsync(v =>
             string.IsNullOrEmpty(request.ViolationType) || v.ViolationType.ToLower() == request.ViolationType.ToLower());
@@ -56,12 +57,12 @@ public class GetAIPolicyViolationsQueryHandler : IRequestHandler<GetAIPolicyViol
             })
             .ToList();
 
-        return new PaginatedViolationListDto
+        return ResponseDto<PaginatedViolationListDto>.SuccessResult(new PaginatedViolationListDto
         {
             Items = pagedItems,
             PageNumber = pageNumber,
             TotalPages = totalPages == 0 ? 1 : totalPages,
             TotalCount = totalCount
-        };
+        });
     }
 }

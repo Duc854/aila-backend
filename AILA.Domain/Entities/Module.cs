@@ -28,13 +28,13 @@ namespace AILA.Domain.Entities
         public Module(Guid courseId, string title, int orderIndex, string? description = null)
         {
             if (courseId == Guid.Empty)
-                throw new ArgumentException("CourseId không hợp lệ.", nameof(courseId));
+                throw new ArgumentException("Mã khóa học không hợp lệ.", nameof(courseId));
 
             if (string.IsNullOrWhiteSpace(title) || title.Length < 5 || title.Length > 255)
-                throw new ArgumentException("Tiêu đề chương phải từ 5 đến 255 ký tự.", nameof(title));
+                throw new ArgumentException("Tiêu đề học phần phải từ 5 đến 255 ký tự.", nameof(title));
 
             if (orderIndex <= 0 || orderIndex > 999)
-                throw new ArgumentException("Vị trí sắp xếp (OrderIndex) phải nằm trong khoảng từ 1 đến 999.", nameof(orderIndex));
+                throw new ArgumentException("Thứ tự phải nằm trong khoảng từ 1 đến 999.", nameof(orderIndex));
 
             Id = Guid.NewGuid();
             CourseId = courseId;
@@ -51,7 +51,7 @@ namespace AILA.Domain.Entities
         public void UpdateInfo(string title, string? description)
         {
             if (string.IsNullOrWhiteSpace(title) || title.Length < 5 || title.Length > 255)
-                throw new ArgumentException("Tiêu đề chương phải từ 5 đến 255 ký tự.", nameof(title));
+                throw new ArgumentException("Tiêu đề học phần phải từ 5 đến 255 ký tự.", nameof(title));
 
             Title = title.Trim();
             Description = description?.Trim();
@@ -80,7 +80,7 @@ namespace AILA.Domain.Entities
         {
             if (!_materials.Any())
                 throw new InvalidOperationException(
-                    "Module phải có ít nhất một learning material.");
+                    "Mỗi học phần phải có ít nhất một học liệu.");
             UpdateTimestamp();
         }
 

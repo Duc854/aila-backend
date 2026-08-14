@@ -36,25 +36,33 @@ public sealed class DismissReportCommandHandler
         // Domain chỉ có Resolve — dùng chung, phân biệt qua message
         report.Resolve();
 
-        // Ghi nhật ký AdminActivityLog
-        var adminId = (await _uow.Users.GetAdminUserIdsAsync(ct)).FirstOrDefault();
-        if (adminId != Guid.Empty)
+        // Begin transaction
+        await _uow.BeginTransactionAsync(ct);
+
+        try
         {
+            // Log admin action
             var activityLog = new Domain.Entities.AdminActivityLog(
-                adminId,
+                request.AdminId,
                 AdminAction.Reject,
                 $"Admin đã bác bỏ báo cáo nội dung {report.Id}. Lý do: {request.Note ?? "Nội dung không vi phạm."}");
             await _uow.AdminActivityLogs.AddAsync(activityLog);
+
+            await _uow.SaveChangesAsync(ct);
+            await _uow.CommitTransactionAsync(ct);
+
+            return ResponseDto<ResolveReportResponseDto>.SuccessResult(new ResolveReportResponseDto
+            {
+                ReportId   = report.Id,
+                Status     = report.Status.ToString(),
+                ResolvedAt = report.ResolvedAt!.Value,
+                Message    = "Đã từ chối báo cáo — nội dung không vi phạm."
+            });
         }
-
-        await _uow.SaveChangesAsync(ct);
-
-        return ResponseDto<ResolveReportResponseDto>.SuccessResult(new ResolveReportResponseDto
+        catch
         {
-            ReportId   = report.Id,
-            Status     = report.Status.ToString(),
-            ResolvedAt = report.ResolvedAt!.Value,
-            Message    = "Đã từ chối báo cáo — nội dung không vi phạm."
-        });
+            await _uow.RollbackTransactionAsync(ct);
+            throw;
+        }
     }
 }

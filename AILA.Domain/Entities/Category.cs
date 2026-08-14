@@ -24,7 +24,7 @@ namespace AILA.Domain.Entities
                 throw new ArgumentException("Tên danh mục phải từ 2 đến 100 ký tự.", nameof(name));
 
             if (orderIndex < 0)
-                throw new ArgumentException("Vị trí sắp xếp (OrderIndex) không được nhỏ hơn 0.", nameof(orderIndex));
+                throw new ArgumentException("Thứ tự không được nhỏ hơn 0.", nameof(orderIndex));
 
             Id = Guid.NewGuid();
             Name = name.Trim();
@@ -55,7 +55,7 @@ namespace AILA.Domain.Entities
         public void ChangeOrder(int newOrderIndex)
         {
             if (newOrderIndex < 0)
-                throw new ArgumentException("Vị trí sắp xếp không được nhỏ hơn 0.", nameof(newOrderIndex));
+                throw new ArgumentException("Thứ tự không được nhỏ hơn 0.", nameof(newOrderIndex));
 
             if (OrderIndex == newOrderIndex) return;
 

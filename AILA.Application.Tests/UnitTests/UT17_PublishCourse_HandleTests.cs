@@ -24,11 +24,19 @@ public class UT17_PublishCourse_HandleTests
 
     private readonly Mock<IUnitOfWork> _uow = new();
     private readonly Mock<ICourseRepository> _courses = new();
+    private readonly Mock<IEnrollmentRepository> _enrollments = new();
 
     public UT17_PublishCourse_HandleTests()
     {
         _uow.SetupGet(x => x.Courses).Returns(_courses.Object);
+        _uow.SetupGet(x => x.Enrollments).Returns(_enrollments.Object);
         _uow.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        
+        // Default setup for enrollments
+        _enrollments.Setup(x => x.GetByCourseIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+                   .ReturnsAsync(new List<Enrollment>());
+        _courses.Setup(x => x.CountMaterialsAsync(It.IsAny<Guid>()))
+                .ReturnsAsync(5);
     }
 
     private PublishCourseCommandHandler CreateSut() => new(_uow.Object);
@@ -128,5 +136,52 @@ public class UT17_PublishCourse_HandleTests
         Assert.True(result.Success);
         Assert.True(course.IsPublished);
         _uow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    /// <summary>
+    /// UTCID06 · Enrollment UpdateTotalMaterials functionality test.
+    /// Verify that when a course is published, all enrollments get updated with current material count.
+    /// </summary>
+    [Fact]
+    public async Task UTCID06_PublishWithEnrollments_UpdatesEnrollmentTotalMaterials()
+    {
+        // Arrange
+        var course = BuildCourse(ExpertId, withValidModule: true);
+        var courseId = course.Id;
+        SetupCourse(course);
+        
+        var learner1Id = Guid.NewGuid();
+        var learner2Id = Guid.NewGuid();
+        
+        var enrollment1 = new Enrollment(learner1Id, courseId, 3); // Old count: 3 materials
+        var enrollment2 = new Enrollment(learner2Id, courseId, 3); // Old count: 3 materials
+        var enrollments = new List<Enrollment> { enrollment1, enrollment2 };
+        
+        // Setup specific mocks for this test
+        _enrollments.Setup(x => x.GetByCourseIdAsync(courseId, It.IsAny<CancellationToken>()))
+                   .ReturnsAsync(enrollments);
+        _courses.Setup(x => x.CountMaterialsAsync(courseId))
+                .ReturnsAsync(5); // New count: 5 materials
+
+        // Act
+        var result = await CreateSut().Handle(new PublishCourseCommand(courseId, ExpertId), CancellationToken.None);
+
+        // Assert
+        Assert.True(result.Success);
+        Assert.True(course.IsPublished);
+        
+        // Verify enrollments were updated
+        Assert.Equal(5, enrollment1.TotalMaterials);
+        Assert.Equal(5, enrollment2.TotalMaterials);
+        
+        // Verify Update was called for each enrollment
+        _enrollments.Verify(x => x.Update(enrollment1), Times.Once);
+        _enrollments.Verify(x => x.Update(enrollment2), Times.Once);
+        
+        // Verify response includes enrollment count - use reflection since it's an anonymous type
+        var responseData = result.Data;
+        var enrollmentsUpdatedProp = responseData?.GetType().GetProperty("EnrollmentsUpdated");
+        var enrollmentsUpdated = enrollmentsUpdatedProp?.GetValue(responseData);
+        Assert.Equal(2, enrollmentsUpdated);
     }
 }

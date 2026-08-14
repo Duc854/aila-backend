@@ -2,6 +2,7 @@ using AILA.Application.Common.Interfaces;
 using AILA.Application.Features.AIReports.Dtos;
 using AILA.Domain.Entities;
 using MediatR;
+using Shared.Wrappers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace AILA.Application.Features.AIReports.Queries.GetAIServiceBreakdown;
 
-public class GetAIServiceBreakdownQueryHandler : IRequestHandler<GetAIServiceBreakdownQuery, AIServiceBreakdownResponseDto>
+public class GetAIServiceBreakdownQueryHandler : IRequestHandler<GetAIServiceBreakdownQuery, ResponseDto<AIServiceBreakdownResponseDto>>
 {
     private readonly IUnitOfWork _unitOfWork;
     private const decimal ExchangeRate = 25400m;
@@ -20,7 +21,7 @@ public class GetAIServiceBreakdownQueryHandler : IRequestHandler<GetAIServiceBre
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<AIServiceBreakdownResponseDto> Handle(GetAIServiceBreakdownQuery request, CancellationToken cancellationToken)
+    public async Task<ResponseDto<AIServiceBreakdownResponseDto>> Handle(GetAIServiceBreakdownQuery request, CancellationToken cancellationToken)
     {
         var logs = await _unitOfWork.Repository<AITokenLog>().FindAsync(log =>
             (!request.StartDate.HasValue || log.CreatedAt >= request.StartDate.Value) &&
@@ -92,7 +93,7 @@ public class GetAIServiceBreakdownQueryHandler : IRequestHandler<GetAIServiceBre
             }
         }
 
-        return new AIServiceBreakdownResponseDto
+        return ResponseDto<AIServiceBreakdownResponseDto>.SuccessResult(new AIServiceBreakdownResponseDto
         {
             PeriodStart = request.StartDate,
             PeriodEnd = request.EndDate,
@@ -100,7 +101,7 @@ public class GetAIServiceBreakdownQueryHandler : IRequestHandler<GetAIServiceBre
             TotalEstimatedCostUsd = Math.Round(totalAllCostUsd, 6),
             TotalEstimatedCostVnd = Math.Round(totalAllCostUsd * ExchangeRate, 0),
             Services = breakdownItems.OrderByDescending(s => s.TotalTokens).ToList()
-        };
+        });
     }
 
     private static string MapServiceDisplayName(string serviceType) => serviceType switch

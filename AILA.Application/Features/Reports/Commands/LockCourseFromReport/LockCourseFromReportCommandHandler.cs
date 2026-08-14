@@ -49,27 +49,35 @@ public sealed class LockCourseFromReportCommandHandler
         await _uow.Notifications.AddAsync(
             NotificationTemplates.CourseLocked(course.ExpertId, course.Id, course.Name));
 
-        // Ghi nhật ký AdminActivityLog
-        var adminId = (await _uow.Users.GetAdminUserIdsAsync(ct)).FirstOrDefault();
-        if (adminId != Guid.Empty)
+        // Begin transaction
+        await _uow.BeginTransactionAsync(ct);
+
+        try
         {
+            // Log admin action
             var activityLog = new Domain.Entities.AdminActivityLog(
-                adminId,
+                request.AdminId,
                 AdminAction.Lock,
                 $"Admin đã khóa khóa học '{course.Name}' từ báo cáo {report.Id}.");
             await _uow.AdminActivityLogs.AddAsync(activityLog);
+
+            await _uow.SaveChangesAsync(ct);
+            await _uow.CommitTransactionAsync(ct);
+
+            return ResponseDto<CourseModerationResponseDto>.SuccessResult(
+                new CourseModerationResponseDto
+                {
+                    CourseId            = course.Id,
+                    CourseName          = course.Name,
+                    IsPublished         = course.IsPublished,
+                    IsPublicationLocked = course.IsPublicationLocked,
+                    Message             = "Khóa học đã bị khoá và báo cáo đã được đánh dấu xử lý."
+                });
         }
-
-        await _uow.SaveChangesAsync(ct);
-
-        return ResponseDto<CourseModerationResponseDto>.SuccessResult(
-            new CourseModerationResponseDto
-            {
-                CourseId            = course.Id,
-                CourseName          = course.Name,
-                IsPublished         = course.IsPublished,
-                IsPublicationLocked = course.IsPublicationLocked,
-                Message             = "Khóa học đã bị khoá và báo cáo đã được đánh dấu xử lý."
-            });
+        catch
+        {
+            await _uow.RollbackTransactionAsync(ct);
+            throw;
+        }
     }
 }

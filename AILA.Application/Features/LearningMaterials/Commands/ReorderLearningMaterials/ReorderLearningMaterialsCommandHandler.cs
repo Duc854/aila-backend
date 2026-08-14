@@ -40,6 +40,13 @@ public sealed class ReorderLearningMaterialsCommandHandler
                 "Bạn không có quyền sắp xếp học liệu.");
         }
 
+        if (module.Course.IsPublished)
+        {
+            return ResponseDto<object>.FailResult(
+                "COURSE_NOT_MODIFIABLE",
+                "Không thể sắp xếp lại học liệu khi khóa học đang ở trạng thái công khai. Vui lòng chuyển khóa học sang trạng thái ẩn trước khi thay đổi.");
+        }
+
         var materials = await _uow.Materials
             .GetByModuleIdAsync(
                 request.ModuleId,

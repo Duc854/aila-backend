@@ -45,6 +45,14 @@ public sealed class UpdateAnswerOptionCommandHandler
                     "Bạn không có quyền chỉnh sửa.");
         }
 
+        if (answer.Question.QuizMaterial.Material.Module.Course.IsPublished)
+        {
+            return ResponseDto<AnswerOptionDto>
+                .FailResult(
+                    "COURSE_NOT_MODIFIABLE",
+                    "Không thể chỉnh sửa đáp án khi khóa học đang ở trạng thái công khai. Vui lòng chuyển khóa học sang trạng thái ẩn trước khi thay đổi.");
+        }
+
         answer.Update(
             request.Content,
             request.IsCorrect,
