@@ -99,6 +99,15 @@ public class GoogleCallbackCommandHandler : IRequestHandler<GoogleCallbackComman
 
         var accessToken = _tokenProvider.GenerateAccessToken(user);
         var refreshToken = _tokenProvider.GenerateRefreshToken();
+        var refreshTokenHash = _tokenProvider.HashToken(refreshToken);
+
+        var userToken = new UserToken(
+            user.Id,
+            refreshTokenHash,
+            DateTime.UtcNow.AddDays(7));
+
+        _unitOfWork.UserTokens.Add(userToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return ResponseDto<LoginResponseDto>.SuccessResult(new LoginResponseDto
         {
