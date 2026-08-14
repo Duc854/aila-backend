@@ -51,40 +51,43 @@ namespace AILA.Application.Features.Courses.Commands
             }
 
             // 6. Gán Tags nếu có
-            var courseTags = new List<Tag>();
+            var allTagIds = new List<Guid>(request.TagIds);
 
-            if (request.TagIds.Any())
+            // System auto tag theo level - get level tag ID
+            var levelTagCode = level switch
             {
-                var tags = await _uow.Tags
-                    .GetByIdsAsync(
-                        request.TagIds,
-                        cancellationToken);
+                KnowledgeLevel.Beginner => ReservedTagCodes.Beginner,
+                KnowledgeLevel.Intermediate => ReservedTagCodes.Intermediate,
+                KnowledgeLevel.Advanced => ReservedTagCodes.Advanced,
+                _ => throw new ArgumentOutOfRangeException(nameof(level))
+            };
+
+            var levelTag = await _uow.Tags.GetByCodeAsync(levelTagCode, cancellationToken);
+            if (levelTag == null)
+                throw new InvalidOperationException($"Không tìm thấy level tag: {levelTagCode}");
+
+            // Add level tag ID if not already in the list
+            if (!allTagIds.Contains(levelTag.Id))
+            {
+                allTagIds.Add(levelTag.Id);
+            }
+
+            // Load all tags in a single query to avoid tracking conflicts
+            var courseTags = new List<Tag>();
+            if (allTagIds.Any())
+            {
+                var tags = await _uow.Tags.GetByIdsAsync(allTagIds, cancellationToken);
 
                 // Validate: Tất cả tags phải tồn tại
-                if (tags.Count != request.TagIds.Count)
+                if (tags.Count != allTagIds.Count)
                 {
-                    throw new InvalidOperationException(
-                        "Một hoặc nhiều tag không tồn tại.");
+                    throw new InvalidOperationException("Một hoặc nhiều tag không tồn tại.");
                 }
 
                 courseTags.AddRange(tags);
             }
 
-
-            // System auto tag theo level
-            var levelTag = await GetLevelTagAsync(
-                level,
-                cancellationToken);
-
-
-            courseTags.Add(levelTag);
-
-
-
-            course.AssignTags(
-                courseTags
-                    .DistinctBy(x => x.Id)
-                    .ToList());
+            course.AssignTags(courseTags);
 
             await _uow.Courses.AddAsync(course);
             await _uow.SaveChangesAsync(cancellationToken);
@@ -103,32 +106,6 @@ namespace AILA.Application.Features.Courses.Commands
                 CreatedAt    = course.CreatedAt,
                 UpdatedAt    = course.UpdatedAt
             };
-        }
-
-        private async Task<Tag> GetLevelTagAsync(
-            KnowledgeLevel level,
-            CancellationToken cancellationToken)
-        {
-            var code = level switch
-            {
-                KnowledgeLevel.Beginner
-                    => ReservedTagCodes.Beginner,
-
-                KnowledgeLevel.Intermediate
-                    => ReservedTagCodes.Intermediate,
-
-                KnowledgeLevel.Advanced
-                    => ReservedTagCodes.Advanced,
-
-                _ => throw new ArgumentOutOfRangeException(nameof(level))
-            };
-
-
-            return await _uow.Tags.GetTagLevelAsync(
-                code,
-                cancellationToken)
-                ?? throw new InvalidOperationException(
-                    $"Không tìm thấy level tag: {code}");
         }
     }
 }
