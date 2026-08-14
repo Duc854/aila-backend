@@ -13,7 +13,7 @@ namespace AILA.Api.Controllers
     /// <summary>
     /// UC-19 Steps 4–7: Nhận webhook xác nhận thanh toán từ SePay.
     /// Endpoint này KHÔNG yêu cầu JWT (SePay gọi từ server của họ).
-    /// Bảo mật bằng HMAC-SHA256 signature trên header "X-Signature".
+    /// Bảo mật bằng HMAC-SHA256 signature trên header "X-SePay-Signature".
     /// </summary>
     [ApiController]
     [Route("api/webhooks/sepay")]
@@ -33,7 +33,7 @@ namespace AILA.Api.Controllers
 
         /// <summary>
         /// UC-19 Step 4: SePay POST tới đây khi learner đã thanh toán thành công.
-        /// Header "X-Signature": HMAC-SHA256(rawBody, webhookSecret).
+        /// Header "X-SePay-Signature": sha256=HMAC-SHA256(rawBody, webhookSecret).
         /// </summary>
         [HttpPost]
         [ProducesResponseType(typeof(ResponseDto<object>), StatusCodes.Status200OK)]
@@ -46,7 +46,7 @@ namespace AILA.Api.Controllers
             var rawBody      = await reader.ReadToEndAsync(ct);
             Request.Body.Position = 0;
 
-            var signature = Request.Headers["X-Signature"].FirstOrDefault() ?? string.Empty;
+            var signature = Request.Headers["X-SePay-Signature"].FirstOrDefault() ?? string.Empty;
 
             // 2. Deserialize payload
             SePayWebhookDto? payload;
@@ -66,6 +66,10 @@ namespace AILA.Api.Controllers
             if (payload is null)
                 return BadRequest(ResponseDto<object>.FailResult(
                     PaymentErrors.PaymentNotFound, "Payload trống."));
+
+            _logger.LogInformation(
+                "SePay webhook received. OrderCode={OrderCode}, Amount={Amount}, Signature={Signature}",
+                payload.Code, payload.TransferAmount, signature);
 
             // 3. Gửi command xử lý
             var command = new ConfirmPaymentCommand(rawBody, signature, payload);
