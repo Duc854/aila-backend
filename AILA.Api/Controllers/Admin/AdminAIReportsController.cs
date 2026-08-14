@@ -33,7 +33,8 @@ public class AdminAIReportsController : ControllerBase
         [FromQuery] DateTime? endDate,
         CancellationToken ct)
     {
-        var result = await _mediator.Send(new GetAIResourceConsumptionReportQuery(startDate, endDate), ct);
+        var result = await _mediator.Send(
+            new GetAIResourceConsumptionReportQuery(startDate.ToUtc(), endDate.ToUtcEndOfDay()), ct);
         return result.Success ? Ok(result) : BadRequest(result);
     }
 
@@ -47,7 +48,8 @@ public class AdminAIReportsController : ControllerBase
         [FromQuery] string interval = "day",
         CancellationToken ct = default)
     {
-        var result = await _mediator.Send(new GetAIConsumptionTrendQuery(startDate, endDate, interval), ct);
+        var result = await _mediator.Send(
+            new GetAIConsumptionTrendQuery(startDate.ToUtc(), endDate.ToUtcEndOfDay(), interval), ct);
         return result.Success ? Ok(result) : BadRequest(result);
     }
 
@@ -60,7 +62,8 @@ public class AdminAIReportsController : ControllerBase
         [FromQuery] DateTime? endDate,
         CancellationToken ct = default)
     {
-        var result = await _mediator.Send(new GetAIServiceBreakdownQuery(startDate, endDate), ct);
+        var result = await _mediator.Send(
+            new GetAIServiceBreakdownQuery(startDate.ToUtc(), endDate.ToUtcEndOfDay()), ct);
         return result.Success ? Ok(result) : BadRequest(result);
     }
 
@@ -74,7 +77,8 @@ public class AdminAIReportsController : ControllerBase
         [FromQuery] int top = 5,
         CancellationToken ct = default)
     {
-        var result = await _mediator.Send(new GetAITopConsumersQuery(startDate, endDate, top), ct);
+        var result = await _mediator.Send(
+            new GetAITopConsumersQuery(startDate.ToUtc(), endDate.ToUtcEndOfDay(), top), ct);
         return result.Success ? Ok(result) : BadRequest(result);
     }
 
@@ -88,7 +92,23 @@ public class AdminAIReportsController : ControllerBase
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
-        var result = await _mediator.Send(new GetAIPolicyViolationsQuery(violationType, pageNumber, pageSize), ct);
+        var result = await _mediator.Send(
+            new GetAIPolicyViolationsQuery(violationType, pageNumber, pageSize), ct);
         return result.Success ? Ok(result) : BadRequest(result);
     }
+}
+
+/// <summary>
+/// Extension helpers để normalize DateTime từ query string (Kind=Unspecified) → UTC
+/// trước khi truyền vào handlers / EF Core / Npgsql.
+/// </summary>
+internal static class DateTimeExtensions
+{
+    /// <summary>Start of day in UTC (00:00:00).</summary>
+    internal static DateTime? ToUtc(this DateTime? dt)
+        => dt is null ? null : DateTime.SpecifyKind(dt.Value.Date, DateTimeKind.Utc);
+
+    /// <summary>End of day in UTC (23:59:59.999).</summary>
+    internal static DateTime? ToUtcEndOfDay(this DateTime? dt)
+        => dt is null ? null : DateTime.SpecifyKind(dt.Value.Date.AddDays(1).AddTicks(-1), DateTimeKind.Utc);
 }

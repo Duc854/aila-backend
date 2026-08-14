@@ -63,6 +63,7 @@ namespace AILA.Application.Features.Courses.Queries
                 Level = course.Level.ToString(),
                 DurationHours = course.DurationHours,
                 IsPublished = course.IsPublished,
+                IsPublicationLocked = course.IsPublicationLocked,
 
                 Category = new CategoryDto
                 {

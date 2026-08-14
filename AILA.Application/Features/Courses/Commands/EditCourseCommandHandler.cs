@@ -42,7 +42,10 @@ namespace AILA.Application.Features.Courses.Commands
             // 5. Cập nhật thông tin cơ bản qua domain method
             course.UpdateInfo(request.Name, request.CategoryId, level, request.Description, request.ThumbnailUrl);
 
-            // 6. Cập nhật Tags
+            // 6. Cập nhật duration
+            course.UpdateDuration(request.DurationHours);
+
+            // 7. Cập nhật Tags
             var courseTags = new List<Tag>();
 
             if (request.TagIds.Any())

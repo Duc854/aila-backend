@@ -44,7 +44,13 @@ namespace AILA.Application.Features.Courses.Commands
                 request.Description,
                 request.ThumbnailUrl);
 
-            // 5. Gán Tags nếu có
+            // 5. Cập nhật duration nếu được cung cấp
+            if (request.DurationHours > 0)
+            {
+                course.UpdateDuration(request.DurationHours);
+            }
+
+            // 6. Gán Tags nếu có
             var courseTags = new List<Tag>();
 
             if (request.TagIds.Any())
