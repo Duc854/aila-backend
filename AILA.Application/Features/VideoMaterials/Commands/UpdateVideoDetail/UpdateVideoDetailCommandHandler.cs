@@ -43,8 +43,8 @@ public sealed class UpdateVideoDetailCommandHandler
             {
                 return ResponseDto<VideoMaterialDto>
                     .FailResult(
-                        "COURSE_PUBLISHED",
-                        "Không thể chỉnh sửa vì khóa học đã được công khai.");
+                        "COURSE_NOT_MODIFIABLE",
+                        "Không thể chỉnh sửa video khi khóa học đang ở trạng thái công khai. Vui lòng chuyển khóa học sang trạng thái ẩn trước khi thay đổi.");
             }
 
             video.UpdateDetails(
@@ -85,8 +85,8 @@ public sealed class UpdateVideoDetailCommandHandler
         {
             return ResponseDto<VideoMaterialDto>
                 .FailResult(
-                    "COURSE_PUBLISHED",
-                    "Không thể chỉnh sửa vì khóa học đã được công khai.");
+                    "COURSE_NOT_MODIFIABLE",
+                    "Không thể chỉnh sửa video khi khóa học đang ở trạng thái công khai. Vui lòng chuyển khóa học sang trạng thái ẩn trước khi thay đổi.");
         }
 
         if (material.MaterialType != MaterialType.Video)

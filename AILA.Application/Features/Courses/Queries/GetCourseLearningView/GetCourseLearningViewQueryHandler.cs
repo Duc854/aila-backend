@@ -26,7 +26,15 @@ namespace AILA.Application.Features.Courses.Queries.GetCourseLearningView
             var course = await _uow.Courses.GetCourseWithFullContentAsync(request.CourseId);
             if (course == null)
                 return ResponseDto<CourseLearningViewDto>.FailResult("COURSE_NOT_FOUND", "Không tìm thấy thông tin khóa học.");
-
+            var enrollment = await _uow.Enrollments.GetByCourseAndLearnerAsync(request.CourseId, request.LearnerId, cancellationToken);
+            if (enrollment == null)
+            {
+                return ResponseDto<CourseLearningViewDto>.FailResult("ENROLLMENT_NOT_FOUND", "Không thể truy cập nội dung chi tiết khóa học do bạn chưa tham gia khóa học này");
+            }
+            if (!enrollment.Course.IsPublished)
+            {
+                return ResponseDto<CourseLearningViewDto>.FailResult("UNPUBLISH_COURSE", "Không thể truy cập nội dung chi tiết khóa học do khóa học đã bị ẩn");
+            }
             var completedMaterialIds = await _uow.LearningProgresses.GetCompletedMaterialIdsAsync(request.CourseId, request.LearnerId);
 
             var completedIds = completedMaterialIds.ToHashSet();
@@ -60,7 +68,7 @@ namespace AILA.Application.Features.Courses.Queries.GetCourseLearningView
                         }).ToList()
                 }).ToList();
 
-            var enrollment = await _uow.Enrollments.GetByCourseAndLearnerAsync(request.CourseId, request.LearnerId, cancellationToken);
+
 
             var totalMaterials = modules.Sum(x => x.Materials.Count);
             var learningViewDto = new CourseLearningViewDto
