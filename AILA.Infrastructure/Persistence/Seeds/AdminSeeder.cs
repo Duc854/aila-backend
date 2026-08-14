@@ -45,7 +45,7 @@ namespace AILA.Infrastructure.Persistence.Seeds
             );
 
             _context.Users.Add(admin);
-            await _context.SaveChangesAsync();
+            //await _context.SaveChangesAsync();
         }
     }
 }

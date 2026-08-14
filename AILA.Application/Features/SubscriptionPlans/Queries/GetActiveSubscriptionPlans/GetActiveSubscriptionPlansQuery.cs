@@ -6,7 +6,8 @@ namespace AILA.Application.Features.SubscriptionPlans.Queries.GetActiveSubscript
 {
     /// <summary>
     /// UC-09 - Explore Subscription Plans (Allowed Roles: Public).
+    /// LearnerId chỉ có khi caller đã đăng nhập — dùng để tính PurchaseAction của từng gói.
     /// </summary>
-    public record GetActiveSubscriptionPlansQuery()
+    public record GetActiveSubscriptionPlansQuery(Guid? LearnerId = null)
         : IRequest<ResponseDto<IEnumerable<SubscriptionPlanDto>>>;
 }

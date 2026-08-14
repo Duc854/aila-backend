@@ -47,6 +47,7 @@ namespace AILA.Api.Controllers
             Request.Body.Position = 0;
 
             var signature = Request.Headers["X-SePay-Signature"].FirstOrDefault() ?? string.Empty;
+            var timestamp = Request.Headers["X-SePay-Timestamp"].FirstOrDefault() ?? string.Empty;
 
             // 2. Deserialize payload
             SePayWebhookDto? payload;
@@ -68,11 +69,11 @@ namespace AILA.Api.Controllers
                     PaymentErrors.PaymentNotFound, "Payload trống."));
 
             _logger.LogInformation(
-                "SePay webhook received. OrderCode={OrderCode}, Amount={Amount}, Signature={Signature}",
-                payload.Code, payload.TransferAmount, signature);
+                "SePay webhook received. OrderCode={OrderCode}, Amount={Amount}, Signature={Signature}, Timestamp={Timestamp}",
+                payload.Code, payload.TransferAmount, signature, timestamp);
 
             // 3. Gửi command xử lý
-            var command = new ConfirmPaymentCommand(rawBody, signature, payload);
+            var command = new ConfirmPaymentCommand(rawBody, signature, payload, timestamp);
             var result  = await _sender.Send(command, ct);
 
             if (!result.Success)

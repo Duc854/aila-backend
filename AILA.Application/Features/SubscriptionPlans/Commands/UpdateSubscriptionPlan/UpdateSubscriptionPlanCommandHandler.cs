@@ -22,6 +22,7 @@ namespace AILA.Application.Features.SubscriptionPlans.Commands.UpdateSubscriptio
             var validationError = SubscriptionPlanRules.ValidateCommonFields(
                 request.Description,
                 request.Price,
+                request.DurationInDays,
                 request.AiTokenLimit,
                 request.AiPracticeScenarioLimit,
                 request.ExpertEvaluationLimit,
@@ -47,6 +48,7 @@ namespace AILA.Application.Features.SubscriptionPlans.Commands.UpdateSubscriptio
                 plan.Update(
                     request.Description,
                     request.Price,
+                    request.DurationInDays,
                     request.AiTokenLimit,
                     request.AiPracticeScenarioLimit,
                     request.ExpertEvaluationLimit,
