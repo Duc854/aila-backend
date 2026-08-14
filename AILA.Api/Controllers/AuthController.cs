@@ -56,19 +56,27 @@ namespace AILA.Api.Controllers
         }
 
         [HttpPost("expert/login")]
-        public async Task<IActionResult> ExpertLogin([FromBody] ExpertLoginRequestDto request)
+        public async Task<IActionResult> ExpertLogin(
+            [FromBody] ExpertLoginRequestDto request)
         {
             var command = new ExpertLoginCommand(request.Email, request.Password);
+
             var result = await _sender.Send(command);
 
-            if (result is null)
-                return Unauthorized(
-                    ResponseDto<object>.FailResult(
-                        "INVALID_CREDENTIALS",
-                        "Email hoặc mật khẩu không đúng, hoặc tài khoản không có quyền Expert."));
+            if (!result.Success)
+            {
+                return result.ErrorCode switch
+                {
+                    "CREDENTIAL_FAILED" => Unauthorized(result),
+                    "ACCESS_DENIED" => Forbid(),
+                    "ACCOUNT_INACTIVE" => StatusCode(StatusCodes.Status403Forbidden, result),
+                    _ => BadRequest(result)
+                };
+            }
 
-            SetRefreshTokenCookie(result.RefreshToken);
-            return Ok(ResponseDto<LoginResponseDto>.SuccessResult(result));
+            SetRefreshTokenCookie(result.Data!.RefreshToken);
+
+            return Ok(result);
         }
 
         [HttpPost("register")]
