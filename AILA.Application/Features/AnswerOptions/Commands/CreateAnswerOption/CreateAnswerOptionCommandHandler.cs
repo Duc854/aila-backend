@@ -47,6 +47,15 @@ public sealed class CreateAnswerOptionCommandHandler
                     "Bạn không có quyền chỉnh sửa.");
         }
 
+        var hasEnrollments = await _uow.Enrollments.HasEnrollmentsForCourseAsync(question.QuizMaterial.Material.Module.CourseId, ct);
+        if (question.QuizMaterial.Material.Module.Course.IsPublished || hasEnrollments)
+        {
+            return ResponseDto<AnswerOptionDto>
+                .FailResult(
+                    "COURSE_NOT_MODIFIABLE",
+                    "Không thể thêm đáp án vì khóa học đã được công khai hoặc đã có học viên đăng ký.");
+        }
+
         var nextOrder =
             question.AnswerOptions.Any()
                 ? question.AnswerOptions.Max(x => x.OrderIndex) + 1

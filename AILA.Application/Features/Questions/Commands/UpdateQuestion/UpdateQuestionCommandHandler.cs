@@ -45,12 +45,13 @@ public sealed class UpdateQuestionCommandHandler
                     "Bạn không có quyền chỉnh sửa câu hỏi.");
         }
 
-        if (question.QuizMaterial.Material.Module.Course.IsPublished)
+        var hasEnrollments = await _uow.Enrollments.HasEnrollmentsForCourseAsync(question.QuizMaterial.Material.Module.CourseId, ct);
+        if (question.QuizMaterial.Material.Module.Course.IsPublished || hasEnrollments)
         {
             return ResponseDto<QuestionDto>
                 .FailResult(
-                    "COURSE_PUBLISHED",
-                    "Không thể chỉnh sửa vì khóa học đã được công khai.");
+                    "COURSE_NOT_MODIFIABLE",
+                    "Không thể chỉnh sửa câu hỏi vì khóa học đã được công khai hoặc đã có học viên đăng ký.");
         }
 
         question.Update(

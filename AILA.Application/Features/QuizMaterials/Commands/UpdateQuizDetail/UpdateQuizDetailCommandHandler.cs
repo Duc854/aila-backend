@@ -44,12 +44,13 @@ public sealed class UpdateQuizDetailCommandHandler
                         "Bạn không có quyền chỉnh sửa Quiz.");
             }
 
-            if (quiz.Material.Module.Course.IsPublished)
+            var hasEnrollmentsForQuiz = await _uow.Enrollments.HasEnrollmentsForCourseAsync(quiz.Material.Module.CourseId, ct);
+            if (quiz.Material.Module.Course.IsPublished || hasEnrollmentsForQuiz)
             {
                 return ResponseDto<QuizMaterialDto>
                     .FailResult(
-                        "COURSE_PUBLISHED",
-                        "Không thể chỉnh sửa vì khóa học đã được công khai.");
+                        "COURSE_NOT_MODIFIABLE",
+                        "Không thể chỉnh sửa Quiz vì khóa học đã được công khai hoặc đã có học viên đăng ký.");
             }
 
             quiz.UpdateSetting(
@@ -90,12 +91,13 @@ public sealed class UpdateQuizDetailCommandHandler
                     "Bạn không có quyền chỉnh sửa Quiz.");
         }
 
-        if (material.Module.Course.IsPublished)
+        var hasEnrollments = await _uow.Enrollments.HasEnrollmentsForCourseAsync(material.Module.CourseId, ct);
+        if (material.Module.Course.IsPublished || hasEnrollments)
         {
             return ResponseDto<QuizMaterialDto>
                 .FailResult(
-                    "COURSE_PUBLISHED",
-                    "Không thể chỉnh sửa vì khóa học đã được công khai.");
+                    "COURSE_NOT_MODIFIABLE",
+                    "Không thể chỉnh sửa Quiz vì khóa học đã được công khai hoặc đã có học viên đăng ký.");
         }
 
         if (material.MaterialType != MaterialType.Quiz)

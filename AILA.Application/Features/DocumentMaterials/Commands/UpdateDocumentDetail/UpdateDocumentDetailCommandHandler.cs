@@ -38,12 +38,13 @@ public sealed class UpdateDocumentDetailCommandHandler
                         "Bạn không có quyền chỉnh sửa.");
             }
 
-            if (document.Material.Module.Course.IsPublished)
+            var hasEnrollmentsForDoc = await _uow.Enrollments.HasEnrollmentsForCourseAsync(document.Material.Module.CourseId, ct);
+            if (document.Material.Module.Course.IsPublished || hasEnrollmentsForDoc)
             {
                 return ResponseDto<DocumentMaterialDto>
                     .FailResult(
-                        "COURSE_PUBLISHED",
-                        "Không thể chỉnh sửa vì khóa học đã được công khai.");
+                        "COURSE_NOT_MODIFIABLE",
+                        "Không thể chỉnh sửa tài liệu vì khóa học đã được công khai hoặc đã có học viên đăng ký.");
             }
 
             document.UpdateDetails(request.Content);
@@ -77,12 +78,13 @@ public sealed class UpdateDocumentDetailCommandHandler
                     "Bạn không có quyền chỉnh sửa.");
         }
 
-        if (material.Module.Course.IsPublished)
+        var hasEnrollments = await _uow.Enrollments.HasEnrollmentsForCourseAsync(material.Module.CourseId, ct);
+        if (material.Module.Course.IsPublished || hasEnrollments)
         {
             return ResponseDto<DocumentMaterialDto>
                 .FailResult(
-                    "COURSE_PUBLISHED",
-                    "Không thể chỉnh sửa vì khóa học đã được công khai.");
+                    "COURSE_NOT_MODIFIABLE",
+                    "Không thể chỉnh sửa tài liệu vì khóa học đã được công khai hoặc đã có học viên đăng ký.");
         }
 
         if (material.MaterialType != MaterialType.Document)

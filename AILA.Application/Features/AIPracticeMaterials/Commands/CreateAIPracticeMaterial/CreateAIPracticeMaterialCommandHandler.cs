@@ -48,6 +48,14 @@ namespace AILA.Application.Features.AIPracticeMaterials.Commands.CreateAIPractic
                     "Bạn không có quyền thêm AI Practice Scenario.");
             }
 
+            var hasEnrollments = await _uow.Enrollments.HasEnrollmentsForCourseAsync(module.CourseId, ct);
+            if (module.Course.IsPublished || hasEnrollments)
+            {
+                return ResponseDto<AIPracticeMaterialDto>.FailResult(
+                    "COURSE_NOT_MODIFIABLE",
+                    "Không thể thêm bài Thực hành AI vì khóa học đã được công khai hoặc đã có học viên đăng ký.");
+            }
+
             // 3. Tính OrderIndex
             var orderIndex = module.Materials.Any()
                 ? module.Materials.Max(x => x.OrderIndex) + 1

@@ -45,6 +45,15 @@ public sealed class UpdateAnswerOptionCommandHandler
                     "Bạn không có quyền chỉnh sửa.");
         }
 
+        var hasEnrollments = await _uow.Enrollments.HasEnrollmentsForCourseAsync(answer.Question.QuizMaterial.Material.Module.CourseId, ct);
+        if (answer.Question.QuizMaterial.Material.Module.Course.IsPublished || hasEnrollments)
+        {
+            return ResponseDto<AnswerOptionDto>
+                .FailResult(
+                    "COURSE_NOT_MODIFIABLE",
+                    "Không thể chỉnh sửa đáp án vì khóa học đã được công khai hoặc đã có học viên đăng ký.");
+        }
+
         answer.Update(
             request.Content,
             request.IsCorrect,
