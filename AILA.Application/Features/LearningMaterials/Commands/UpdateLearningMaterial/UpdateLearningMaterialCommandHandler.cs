@@ -43,13 +43,12 @@ public sealed class UpdateLearningMaterialCommandHandler
                     "Bạn không có quyền chỉnh sửa học liệu.");
         }
 
-        var hasEnrollments = await _uow.Enrollments.HasEnrollmentsForCourseAsync(material.Module.CourseId, ct);
-        if (material.Module.Course.IsPublished || hasEnrollments)
+        if (material.Module.Course.IsPublished)
         {
             return ResponseDto<LearningMaterialDto>
                 .FailResult(
                     "COURSE_NOT_MODIFIABLE",
-                    "Không thể chỉnh sửa học liệu vì khóa học đã được công khai hoặc đã có học viên đăng ký.");
+                    "Không thể chỉnh sửa học liệu khi khóa học đang ở trạng thái công khai. Vui lòng chuyển khóa học sang trạng thái ẩn trước khi thay đổi.");
         }
 
         material.UpdateTitle(request.Title);

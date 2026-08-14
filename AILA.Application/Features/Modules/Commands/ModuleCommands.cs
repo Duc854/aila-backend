@@ -38,9 +38,8 @@ namespace AILA.Application.Features.Modules.Commands
             if (course.ExpertId != request.ExpertId)
                 return ResponseDto<ModuleDto>.FailResult("FORBIDDEN", "Bạn không có quyền thêm chương vào khóa học này.");
 
-            var hasEnrollments = await _uow.Enrollments.HasEnrollmentsForCourseAsync(request.CourseId, ct);
-            if (course.IsPublished || hasEnrollments)
-                return ResponseDto<ModuleDto>.FailResult("COURSE_NOT_MODIFIABLE", "Không thể thêm chương học mới vì khóa học đã được công khai hoặc đã có học viên đăng ký.");
+            if (course.IsPublished)
+                return ResponseDto<ModuleDto>.FailResult("COURSE_NOT_MODIFIABLE", "Không thể thêm chương học mới khi khóa học đang ở trạng thái công khai. Vui lòng ẩn khóa học trước.");
 
             // 2. Tạo Module mới theo DDD constructor (validation nằm trong Entity)
             var module = new Module(
@@ -84,9 +83,8 @@ namespace AILA.Application.Features.Modules.Commands
             if (module.Course.ExpertId != request.ExpertId)
                 return ResponseDto<ModuleDto>.FailResult("FORBIDDEN", "Bạn không có quyền chỉnh sửa chương học này.");
 
-            var hasEnrollments = await _uow.Enrollments.HasEnrollmentsForCourseAsync(module.CourseId, ct);
-            if (module.Course.IsPublished || hasEnrollments)
-                return ResponseDto<ModuleDto>.FailResult("COURSE_NOT_MODIFIABLE", "Không thể chỉnh sửa chương học vì khóa học đã được công khai hoặc đã có học viên đăng ký.");
+            if (module.Course.IsPublished)
+                return ResponseDto<ModuleDto>.FailResult("COURSE_NOT_MODIFIABLE", "Không thể chỉnh sửa chương học khi khóa học đang ở trạng thái công khai. Vui lòng ẩn khóa học trước.");
 
             // Gọi Domain method — validation nằm trong Entity
             module.UpdateInfo(request.Title, request.Description);
@@ -184,9 +182,8 @@ namespace AILA.Application.Features.Modules.Commands
             if (course.ExpertId != request.ExpertId)
                 return ResponseDto<object>.FailResult("FORBIDDEN", "Bạn không có quyền sắp xếp chương của khóa học này.");
 
-            var hasEnrollments = await _uow.Enrollments.HasEnrollmentsForCourseAsync(request.CourseId, ct);
-            if (course.IsPublished || hasEnrollments)
-                return ResponseDto<object>.FailResult("COURSE_NOT_MODIFIABLE", "Không thể sắp xếp lại chương học vì khóa học đã được công khai hoặc đã có học viên đăng ký.");
+            if (course.IsPublished)
+                return ResponseDto<object>.FailResult("COURSE_NOT_MODIFIABLE", "Không thể sắp xếp lại chương học khi khóa học đang ở trạng thái công khai. Vui lòng ẩn khóa học trước.");
 
             // Lấy toàn bộ Module của Course
             var modules = await _uow.Modules.GetByCourseIdAsync(request.CourseId, ct);

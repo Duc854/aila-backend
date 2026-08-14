@@ -47,12 +47,11 @@ namespace AILA.Application.Features.AIPracticeMaterials.Commands.UpdateAIPractic
                     "Bạn không có quyền cập nhật AI Practice Scenario này.");
             }
 
-            var hasEnrollments = await _uow.Enrollments.HasEnrollmentsForCourseAsync(aiPractice.Material.Module.CourseId, ct);
-            if (aiPractice.Material.Module.Course.IsPublished || hasEnrollments)
+            if (aiPractice.Material.Module.Course.IsPublished)
             {
                 return ResponseDto<bool>.FailResult(
                     "COURSE_NOT_MODIFIABLE",
-                    "Không thể cập nhật bài Thực hành AI vì khóa học đã được công khai hoặc đã có học viên đăng ký.");
+                    "Không thể cập nhật bài Thực hành AI khi khóa học đang ở trạng thái công khai. Vui lòng chuyển khóa học sang trạng thái ẩn trước khi thay đổi.");
             }
 
             try
