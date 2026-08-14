@@ -49,7 +49,7 @@ namespace AILA.Application.Features.Authentication.Commands.LearnerLogin
             if (!user.IsActive)
                 return ResponseDto<LoginResponseDto>.FailResult("ACCOUNT_BANNED", "Tài khoản của bạn đã bị khóa.");
 
-            if (!_passwordHasher.Verify(request.Password, user.PasswordHash!))
+            if (string.IsNullOrEmpty(user.PasswordHash) || !_passwordHasher.Verify(request.Password, user.PasswordHash))
                 return ResponseDto<LoginResponseDto>.FailResult("INVALID_CREDENTIALS", "Email hoặc mật khẩu không đúng.");
 
             var accessToken = _tokenProvider.GenerateAccessToken(user);

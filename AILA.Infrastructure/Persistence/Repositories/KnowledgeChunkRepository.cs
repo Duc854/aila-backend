@@ -50,25 +50,26 @@ public class KnowledgeChunkRepository : IKnowledgeChunkRepository
         }
     }
 
-    public async Task<List<(KnowledgeChunk Chunk, double SimilarityScore)>> SearchSimilarChunksAsync(Guid courseId, float[] queryEmbedding, int topK = 5, CancellationToken cancellationToken = default)
+    public async Task<List<(KnowledgeChunk Chunk, double SimilarityScore)>> SearchSimilarChunksAsync(
+        Guid courseId, 
+        float[] queryEmbedding, 
+        int topK = 5, 
+        double minSimilarity = 0.60, 
+        CancellationToken cancellationToken = default)
     {
         var chunks = await _context.KnowledgeChunks
             .Where(x => x.CourseId == courseId)
             .ToListAsync(cancellationToken);
 
-        if (!chunks.Any())
+        if (!chunks.Any() || queryEmbedding == null || queryEmbedding.Length == 0)
             return new List<(KnowledgeChunk Chunk, double SimilarityScore)>();
-
-        if (queryEmbedding == null || queryEmbedding.Length == 0)
-        {
-            return chunks.Take(topK).Select(c => (c, 0.85)).ToList();
-        }
 
         return chunks
             .Select(c => (
                 Chunk: c,
                 Similarity: CalculateCosineSimilarity(queryEmbedding, c.Embedding)
             ))
+            .Where(x => x.Similarity >= minSimilarity)
             .OrderByDescending(x => x.Similarity)
             .Take(topK)
             .Select(x => (x.Chunk, Math.Round(x.Similarity, 4)))

@@ -147,52 +147,68 @@ public class RagChatService : IRagChatService
             throw new InvalidOperationException($"Không tìm thấy phiên trò chuyện RAG ID: {sessionId}");
         }
 
-        // 5. Generate Vector Embedding for user question & Retrieve top 3 chunks
+        // 5. Generate Vector Embedding for user question & Retrieve top chunks with similarity >= 0.60
         var queryEmbedding = await _knowledgeBaseService.GenerateEmbeddingAsync(sanitizedQuestion, cancellationToken);
-        var similarChunks = await _repository.SearchSimilarChunksAsync(session.CourseId, queryEmbedding, topK: 3, cancellationToken);
+        var similarChunks = await _repository.SearchSimilarChunksAsync(session.CourseId, queryEmbedding, topK: 3, minSimilarity: 0.60, cancellationToken);
 
-        // 6. Build Citations List
+        // 6. Build Citations List & Context (ONLY if chunks genuinely match the question)
         var citations = new List<RagCitationDto>();
         var contextTextBuilder = new System.Text.StringBuilder();
 
-        for (int i = 0; i < similarChunks.Count; i++)
+        bool hasRelevantCourseContent = similarChunks.Any();
+
+        if (hasRelevantCourseContent)
         {
-            var (chunk, realScore) = similarChunks[i];
-            string title = $"Bài học #{chunk.ChunkIndex}";
-            if (!string.IsNullOrWhiteSpace(chunk.MetadataJson))
+            for (int i = 0; i < similarChunks.Count; i++)
             {
-                try
+                var (chunk, realScore) = similarChunks[i];
+                string title = $"Bài học #{chunk.ChunkIndex}";
+                if (!string.IsNullOrWhiteSpace(chunk.MetadataJson))
                 {
-                    using var metaDoc = JsonDocument.Parse(chunk.MetadataJson);
-                    if (metaDoc.RootElement.TryGetProperty("MaterialTitle", out var tProp))
+                    try
                     {
-                        title = tProp.GetString() ?? title;
+                        using var metaDoc = JsonDocument.Parse(chunk.MetadataJson);
+                        if (metaDoc.RootElement.TryGetProperty("MaterialTitle", out var tProp))
+                        {
+                            title = tProp.GetString() ?? title;
+                        }
                     }
+                    catch { }
                 }
-                catch { }
+
+                citations.Add(new RagCitationDto
+                {
+                    MaterialId = chunk.MaterialId,
+                    MaterialTitle = title,
+                    Snippet = chunk.Content.Length > 150 ? chunk.Content.Substring(0, 150) + "..." : chunk.Content,
+                    SimilarityScore = realScore
+                });
+
+                contextTextBuilder.AppendLine($"--- [Trích dẫn từ bài học: {title}] ---");
+                contextTextBuilder.AppendLine(chunk.Content);
+                contextTextBuilder.AppendLine();
             }
-
-            citations.Add(new RagCitationDto
-            {
-                MaterialId = chunk.MaterialId,
-                MaterialTitle = title,
-                Snippet = chunk.Content.Length > 150 ? chunk.Content.Substring(0, 150) + "..." : chunk.Content,
-                SimilarityScore = realScore > 0 ? realScore : 0.85
-            });
-
-            contextTextBuilder.AppendLine($"--- [Trích dẫn từ bài học: {title}] ---");
-            contextTextBuilder.AppendLine(chunk.Content);
-            contextTextBuilder.AppendLine();
         }
 
-        // 7. Build RAG Prompt (Hybrid RAG: Course Material Priority + LLM General Knowledge Fallback)
-        var systemInstruction = @"Bạn là trợ lý AI thông minh phụ trách giải đáp thắc mắc cho Học viên trong khóa học.
-Dưới đây là NỘI DUNG TÀI LIỆU BÀI HỌC được trích xuất từ hệ thống:
+        // 7. Build RAG Prompt dynamically based on relevance
+        string systemInstruction;
+        if (hasRelevantCourseContent)
+        {
+            systemInstruction = @"Bạn là trợ lý AI thông minh phụ trách giải đáp thắc mắc cho Học viên trong khóa học.
+Dưới đây là NỘI DUNG TÀI LIỆU BÀI HỌC liên quan trực tiếp đến câu hỏi được trích xuất từ hệ thống:
 " + contextTextBuilder.ToString() + @"
 YÊU CẦU TRẢ LỜI:
-1. ƯU TIÊN HÀNG ĐẦU: Nếu câu hỏi nằm trong NỘI DUNG TÀI LIỆU BÀI HỌC ở trên, hãy dùng kiến thức đó để giải đáp chính xác cho Học viên.
-2. NẾU CÂU HỎI NẰM NGOÀI TÀI LIỆU BÀI HỌC: Hãy vận dụng kiến thức chuyên môn rộng lớn của bạn để giải đáp chi tiết, chu đáo và hữu ích cho Học viên (TUYỆT ĐỐI KHÔNG từ chối trả lời hoặc bảo 'tôi không biết').
-3. Trả lời bằng tiếng Việt, mạch lạc, dễ hiểu, thái độ hỗ trợ nhiệt tình.";
+1. Hãy sử dụng NỘI DUNG TÀI LIỆU BÀI HỌC ở trên để giải đáp chính xác, rõ ràng và mạch lạc cho Học viên.
+2. Trả lời bằng tiếng Việt, thái độ hỗ trợ nhiệt tình, dễ hiểu.";
+        }
+        else
+        {
+            systemInstruction = @"Bạn là trợ lý AI thông minh phụ trách hỗ trợ và giải đáp thắc mắc cho Học viên trong khóa học.
+HƯỚNG DẪN TRẢ LỜI:
+1. NẾU NGƯỜI DÙNG CHÀO HỎI HOẶC GIAO TIẾP XÃ GIAO (ví dụ: 'hello', 'hi', 'chào bạn', 'cảm ơn'): Hãy chào lại một cách thân thiện, tự nhiên và sẵn sàng giải đáp các câu hỏi về khóa học. TUYỆT ĐỐI KHÔNG tự ý đưa ra các bài học cụ thể hay giới thiệu tài liệu khi người dùng chưa hỏi.
+2. NẾU NGƯỜI DÙNG HỎI KIẾN THỨC CHUNG HOẶC NGOÀI KHÓA HỌC: Hãy vận dụng kiến thức chuyên môn rộng lớn của bạn để giải đáp chi tiết, chu đáo và hữu ích cho Học viên (TUYỆT ĐỐI KHÔNG từ chối trả lời hoặc bảo 'tôi không biết').
+3. Trả lời bằng tiếng Việt, lịch sự, thân thiện và mạch lạc.";
+        }
 
         // 8. Fetch Recent Conversation History for Multi-turn Context via Semantic Kernel
         var previousMessages = await _repository.GetMessagesBySessionIdAsync(sessionId, cancellationToken);

@@ -1,4 +1,4 @@
-﻿using AILA.Infrastructure.Services.AI;
+using AILA.Infrastructure.Services.AI;
 
 namespace AILA.Application.Tests.UnitTests;
 
@@ -91,5 +91,18 @@ public class UT30_PrivacyService_GetSensitiveDataTypesTests
             "Lien he abc@gmail.com, goi 0912345678, CCCD 123456789, Địa chỉ nha rieng");
 
         Assert.Equal(new[] { "Email", "Số điện thoại", "CCCD/CMND", "Địa chỉ" }, result);
+    }
+
+    /// <summary>UTCID10 · Khi người dùng copy lại đúng câu gợi ý đã mask [Email], [Số điện thoại], [CCCD], [Địa chỉ] → Không được báo lỗi PII.</summary>
+    [Fact]
+    public void UTCID10_CopiedMaskedSuggestion_ReturnsEmptyListAndFalse()
+    {
+        var maskedSuggestion = "Lien he [Email], goi [Số điện thoại], CCCD [CCCD], tại [Địa chỉ] nha rieng";
+
+        var types = _sut.GetSensitiveDataTypes(maskedSuggestion);
+        var hasSensitive = _sut.HasSensitiveData(maskedSuggestion);
+
+        Assert.Empty(types);
+        Assert.False(hasSensitive);
     }
 }
