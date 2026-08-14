@@ -2,6 +2,7 @@ using AILA.Application.Common.Interfaces;
 using AILA.Application.Features.AIReports.Dtos;
 using AILA.Domain.Entities;
 using MediatR;
+using Shared.Wrappers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace AILA.Application.Features.AIReports.Queries.GetAIResourceConsumptionReport;
 
-public class GetAIResourceConsumptionReportQueryHandler : IRequestHandler<GetAIResourceConsumptionReportQuery, AIResourceConsumptionReportDto>
+public class GetAIResourceConsumptionReportQueryHandler : IRequestHandler<GetAIResourceConsumptionReportQuery, ResponseDto<AIResourceConsumptionReportDto>>
 {
     private readonly IUnitOfWork _unitOfWork;
 
@@ -19,7 +20,7 @@ public class GetAIResourceConsumptionReportQueryHandler : IRequestHandler<GetAIR
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<AIResourceConsumptionReportDto> Handle(GetAIResourceConsumptionReportQuery request, CancellationToken cancellationToken)
+    public async Task<ResponseDto<AIResourceConsumptionReportDto>> Handle(GetAIResourceConsumptionReportQuery request, CancellationToken cancellationToken)
     {
         // 1. Fetch token logs filtered by date range
         var logs = await _unitOfWork.Repository<AITokenLog>().FindAsync(log =>
@@ -78,7 +79,7 @@ public class GetAIResourceConsumptionReportQueryHandler : IRequestHandler<GetAIR
             });
         }
 
-        return new AIResourceConsumptionReportDto
+        return ResponseDto<AIResourceConsumptionReportDto>.SuccessResult(new AIResourceConsumptionReportDto
         {
             TotalPromptTokens = totalPromptTokens,
             TotalCompletionTokens = totalCompletionTokens,
@@ -90,6 +91,6 @@ public class GetAIResourceConsumptionReportQueryHandler : IRequestHandler<GetAIR
             PeriodStart = request.StartDate,
             PeriodEnd = request.EndDate,
             ModelBreakdown = modelBreakdown.OrderByDescending(m => m.TotalTokens).ToList()
-        };
+        });
     }
 }
