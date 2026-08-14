@@ -2,6 +2,7 @@ using AILA.Application.Common.Interfaces;
 using AILA.Application.Features.AIReports.Dtos;
 using AILA.Domain.Entities;
 using MediatR;
+using Shared.Wrappers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace AILA.Application.Features.AIReports.Queries.GetAIConsumptionTrend;
 
-public class GetAIConsumptionTrendQueryHandler : IRequestHandler<GetAIConsumptionTrendQuery, AIConsumptionTrendResponseDto>
+public class GetAIConsumptionTrendQueryHandler : IRequestHandler<GetAIConsumptionTrendQuery, ResponseDto<AIConsumptionTrendResponseDto>>
 {
     private readonly IUnitOfWork _unitOfWork;
     private const decimal ExchangeRate = 25400m;
@@ -20,7 +21,7 @@ public class GetAIConsumptionTrendQueryHandler : IRequestHandler<GetAIConsumptio
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<AIConsumptionTrendResponseDto> Handle(GetAIConsumptionTrendQuery request, CancellationToken cancellationToken)
+    public async Task<ResponseDto<AIConsumptionTrendResponseDto>> Handle(GetAIConsumptionTrendQuery request, CancellationToken cancellationToken)
     {
         // 1. Fetch token logs
         var logs = await _unitOfWork.Repository<AITokenLog>().FindAsync(log =>
@@ -92,7 +93,7 @@ public class GetAIConsumptionTrendQueryHandler : IRequestHandler<GetAIConsumptio
             });
         }
 
-        return new AIConsumptionTrendResponseDto
+        return ResponseDto<AIConsumptionTrendResponseDto>.SuccessResult(new AIConsumptionTrendResponseDto
         {
             Interval = request.Interval ?? "day",
             PeriodStart = request.StartDate,
@@ -101,6 +102,6 @@ public class GetAIConsumptionTrendQueryHandler : IRequestHandler<GetAIConsumptio
             TotalEstimatedCostUsd = Math.Round(totalAllCostUsd, 6),
             TotalEstimatedCostVnd = Math.Round(totalAllCostUsd * ExchangeRate, 0),
             DataPoints = dataPoints
-        };
+        });
     }
 }

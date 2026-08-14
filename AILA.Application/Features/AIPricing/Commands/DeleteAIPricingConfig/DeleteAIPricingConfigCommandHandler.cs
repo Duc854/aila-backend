@@ -1,13 +1,13 @@
-using AILA.Application.Common.Exceptions;
 using AILA.Application.Common.Interfaces;
 using AILA.Domain.Entities;
 using MediatR;
+using Shared.Wrappers;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace AILA.Application.Features.AIPricing.Commands.DeleteAIPricingConfig;
 
-public class DeleteAIPricingConfigCommandHandler : IRequestHandler<DeleteAIPricingConfigCommand, bool>
+public class DeleteAIPricingConfigCommandHandler : IRequestHandler<DeleteAIPricingConfigCommand, ResponseDto<bool>>
 {
     private readonly IUnitOfWork _unitOfWork;
 
@@ -16,17 +16,15 @@ public class DeleteAIPricingConfigCommandHandler : IRequestHandler<DeleteAIPrici
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<bool> Handle(DeleteAIPricingConfigCommand request, CancellationToken cancellationToken)
+    public async Task<ResponseDto<bool>> Handle(DeleteAIPricingConfigCommand request, CancellationToken cancellationToken)
     {
         var setting = await _unitOfWork.Repository<AIApiCostSetting>().GetByIdAsync(request.Id);
         if (setting == null)
-        {
-            throw new NotFoundException(nameof(AIApiCostSetting), request.Id);
-        }
+            return ResponseDto<bool>.FailResult("NOT_FOUND", "Không tìm thấy cấu hình giá.");
 
         _unitOfWork.Repository<AIApiCostSetting>().Delete(setting);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return true;
+        return ResponseDto<bool>.SuccessResult(true);
     }
 }

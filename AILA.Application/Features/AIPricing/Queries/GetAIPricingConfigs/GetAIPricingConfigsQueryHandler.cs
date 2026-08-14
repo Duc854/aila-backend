@@ -2,13 +2,14 @@ using AILA.Application.Common.Interfaces;
 using AILA.Application.Features.AIPricing.Dtos;
 using AILA.Domain.Entities;
 using MediatR;
+using Shared.Wrappers;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace AILA.Application.Features.AIPricing.Queries.GetAIPricingConfigs;
 
-public class GetAIPricingConfigsQueryHandler : IRequestHandler<GetAIPricingConfigsQuery, AIPricingListResponseDto>
+public class GetAIPricingConfigsQueryHandler : IRequestHandler<GetAIPricingConfigsQuery, ResponseDto<AIPricingListResponseDto>>
 {
     private readonly IUnitOfWork _unitOfWork;
 
@@ -17,7 +18,7 @@ public class GetAIPricingConfigsQueryHandler : IRequestHandler<GetAIPricingConfi
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<AIPricingListResponseDto> Handle(GetAIPricingConfigsQuery request, CancellationToken cancellationToken)
+    public async Task<ResponseDto<AIPricingListResponseDto>> Handle(GetAIPricingConfigsQuery request, CancellationToken cancellationToken)
     {
         var configs = await _unitOfWork.Repository<AIApiCostSetting>().GetAllAsync();
         var configList = configs.OrderByDescending(c => c.IsActive).ThenBy(c => c.ModelId).ToList();
@@ -39,12 +40,12 @@ public class GetAIPricingConfigsQueryHandler : IRequestHandler<GetAIPricingConfi
 
         var defaultModel = configList.FirstOrDefault(c => c.IsActive)?.ModelId ?? "llama-3.3-70b-versatile";
 
-        return new AIPricingListResponseDto
+        return ResponseDto<AIPricingListResponseDto>.SuccessResult(new AIPricingListResponseDto
         {
             IsConfigured = isConfigured,
             DefaultModelId = defaultModel,
             ExchangeRateUsdToVnd = 25400m,
             Items = items
-        };
+        });
     }
 }

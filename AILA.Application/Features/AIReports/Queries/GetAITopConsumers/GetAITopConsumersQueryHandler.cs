@@ -2,6 +2,7 @@ using AILA.Application.Common.Interfaces;
 using AILA.Application.Features.AIReports.Dtos;
 using AILA.Domain.Entities;
 using MediatR;
+using Shared.Wrappers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace AILA.Application.Features.AIReports.Queries.GetAITopConsumers;
 
-public class GetAITopConsumersQueryHandler : IRequestHandler<GetAITopConsumersQuery, AITopConsumersResponseDto>
+public class GetAITopConsumersQueryHandler : IRequestHandler<GetAITopConsumersQuery, ResponseDto<AITopConsumersResponseDto>>
 {
     private readonly IUnitOfWork _unitOfWork;
     private const decimal ExchangeRate = 25400m;
@@ -20,7 +21,7 @@ public class GetAITopConsumersQueryHandler : IRequestHandler<GetAITopConsumersQu
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<AITopConsumersResponseDto> Handle(GetAITopConsumersQuery request, CancellationToken cancellationToken)
+    public async Task<ResponseDto<AITopConsumersResponseDto>> Handle(GetAITopConsumersQuery request, CancellationToken cancellationToken)
     {
         var topCount = request.Top <= 0 ? 5 : Math.Min(request.Top, 50);
 
@@ -149,12 +150,12 @@ public class GetAITopConsumersQueryHandler : IRequestHandler<GetAITopConsumersQu
 
         var topMaterials = materialConsumers.OrderByDescending(m => m.TotalTokens).Take(topCount).ToList();
 
-        return new AITopConsumersResponseDto
+        return ResponseDto<AITopConsumersResponseDto>.SuccessResult(new AITopConsumersResponseDto
         {
             PeriodStart = request.StartDate,
             PeriodEnd = request.EndDate,
             TopUsers = topUsers,
             TopMaterials = topMaterials
-        };
+        });
     }
 }

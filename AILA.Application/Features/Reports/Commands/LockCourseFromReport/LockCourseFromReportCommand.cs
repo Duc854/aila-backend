@@ -8,5 +8,7 @@ namespace AILA.Application.Features.Reports.Commands.LockCourseFromReport;
 /// Admin lock course liên quan đến report.
 /// Đồng thời resolve report và gọi Course.LockVisibility().
 /// </summary>
-public sealed record LockCourseFromReportCommand(Guid ReportId)
-    : IRequest<ResponseDto<CourseModerationResponseDto>>;
+public sealed record LockCourseFromReportCommand(
+    Guid ReportId,
+    Guid AdminId
+) : IRequest<ResponseDto<CourseModerationResponseDto>>;
