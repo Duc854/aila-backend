@@ -21,7 +21,7 @@ namespace Shared.Models
         /// Nằm thẳng trong đường phản hồi của endpoint request-OTP (gửi đồng bộ),
         /// nên đây cũng là mức chờ tối đa người dùng phải chịu khi SMTP treo.
         /// </summary>
-        public int TimeoutSeconds { get; set; } = 7;
+        public int TimeoutSeconds { get; set; } = 15;
 
         /// <summary>
         /// Chưa cấu hình Host/FromEmail thì coi như chưa bật SMTP — hệ thống rơi về
