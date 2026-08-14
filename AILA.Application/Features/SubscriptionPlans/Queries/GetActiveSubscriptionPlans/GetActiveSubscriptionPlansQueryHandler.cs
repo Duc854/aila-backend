@@ -22,7 +22,19 @@ namespace AILA.Application.Features.SubscriptionPlans.Queries.GetActiveSubscript
         {
             var plans = await uow.SubscriptionPlans.GetActivePlansOrderedAsync(ct);
 
-            var result = plans.Select(p => p.ToPublicDto()).ToList();
+            // BR-05: so tier ngay ở BE để UI biết gói nào mua / nâng cấp / gia hạn được,
+            // mà DTO công khai vẫn không phải trả TierLevel ra ngoài.
+            int? activeTier = null;
+
+            if (request.LearnerId is Guid learnerId)
+            {
+                var current = await uow.Subscriptions
+                    .GetActiveSubscriptionByLearnerIdAsync(learnerId, ct);
+
+                activeTier = current?.PlanSnapshot.TierLevel;
+            }
+
+            var result = plans.Select(p => p.ToPublicDto(activeTier)).ToList();
 
             return ResponseDto<IEnumerable<SubscriptionPlanDto>>.SuccessResult(result);
         }
