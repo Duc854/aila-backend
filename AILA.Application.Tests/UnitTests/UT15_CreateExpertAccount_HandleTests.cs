@@ -1,4 +1,4 @@
-﻿using AILA.Application.Common.Interfaces;
+using AILA.Application.Common.Interfaces;
 using AILA.Application.Common.Interfaces.Repositories;
 using AILA.Application.Features.Users.Commands.CreateExpertAccount;
 using AILA.Domain.Entities;
@@ -99,14 +99,14 @@ public class UT15_CreateExpertAccount_HandleTests
 
         Assert.False(result.Success);
         Assert.Equal("INVALID_PASSWORD", result.ErrorCode);
-        Assert.Equal("Mật khẩu phải có ít nhất 6 ký tự.", result.ErrorMessage);
+        Assert.Equal("Mật khẩu phải có ít nhất 8 ký tự.", result.ErrorMessage);
     }
 
-    /// <summary>UTCID06 · B4=F, B5=T · Type B — mật khẩu 5 ký tự (biên dưới không hợp lệ).</summary>
+    /// <summary>UTCID06 · B4=F, B5=T · Type B — mật khẩu 7 ký tự (biên dưới không hợp lệ).</summary>
     [Fact]
-    public async Task UTCID06_PasswordLength5_ReturnsInvalidPassword()
+    public async Task UTCID06_PasswordLength7_ReturnsInvalidPassword()
     {
-        var result = await Act(password: "12345");
+        var result = await Act(password: "1234567");
 
         Assert.False(result.Success);
         Assert.Equal("INVALID_PASSWORD", result.ErrorCode);
@@ -114,16 +114,15 @@ public class UT15_CreateExpertAccount_HandleTests
     }
 
     /// <summary>
-    /// UTCID07 · B5=F · Type B — mật khẩu đúng 6 ký tự (biên dưới hợp lệ).
-    /// Khoá lại khác biệt policy: 6 ký tự bị PasswordPolicy (UT02) từ chối nhưng ở đây hợp lệ.
+    /// UTCID07 · B5=F · Type B — mật khẩu đúng 8 ký tự (biên dưới hợp lệ).
     /// </summary>
     [Fact]
-    public async Task UTCID07_PasswordLengthExactly6_Succeeds()
+    public async Task UTCID07_PasswordLengthExactly8_Succeeds()
     {
-        var result = await Act(password: "123456");
+        var result = await Act(password: "12345678");
 
         Assert.True(result.Success);
-        _hasher.Verify(x => x.HashPassword("123456"), Times.Once);
+        _hasher.Verify(x => x.HashPassword("12345678"), Times.Once);
     }
 
     /// <summary>UTCID08 · B6=T · Type A — email đã tồn tại trong hệ thống.</summary>

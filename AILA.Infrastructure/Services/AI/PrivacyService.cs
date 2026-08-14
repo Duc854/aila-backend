@@ -6,6 +6,11 @@ namespace AILA.Infrastructure.Services.AI;
 
 public class PrivacyService : IPrivacyService
 {
+    // Regex nhận diện các nhãn đã được mask/che sẵn để không bắt lỗi lại khi người dùng copy paste gợi ý
+    private static readonly Regex MaskedPlaceholderRegex = new(
+        @"\[(Email|Số điện thoại|CCCD|CCCD/CMND|Địa chỉ|Phone|Address|CMND)\]|\*{3,}",
+        RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
     // Pre-compiled regex for performance
     private static readonly Regex EmailRegex = new(
         @"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}",
@@ -41,8 +46,21 @@ public class PrivacyService : IPrivacyService
         // 3. Mask CCCD/CMND
         masked = CccdRegex.Replace(masked, "[CCCD]");
 
-        // 4. Mask Địa chỉ
-        masked = AddressRegex.Replace(masked, "[Địa chỉ]");
+        // 4. Mask Địa chỉ (chỉ mask các đoạn chưa nằm trong placeholder mask)
+        var unmaskedTokens = MaskedPlaceholderRegex.Matches(masked);
+        masked = AddressRegex.Replace(masked, match =>
+        {
+            // Nếu đoạn match chính là một phần của placeholder đã mask như "[Địa chỉ]" thì giữ nguyên
+            int idx = match.Index;
+            foreach (Match m in unmaskedTokens)
+            {
+                if (idx >= m.Index && idx < m.Index + m.Length)
+                {
+                    return match.Value;
+                }
+            }
+            return "[Địa chỉ]";
+        });
 
         return masked;
     }
@@ -51,11 +69,15 @@ public class PrivacyService : IPrivacyService
     {
         if (string.IsNullOrEmpty(input)) return false;
 
-        if (EmailRegex.IsMatch(input) || PhoneVnRegex.IsMatch(input) || AddressRegex.IsMatch(input))
+        // Loại bỏ các placeholder đã che sẵn (như [Email], [Số điện thoại], [CCCD], [Địa chỉ], ***) trước khi kiểm tra PII
+        var unmasked = MaskedPlaceholderRegex.Replace(input, string.Empty);
+        if (string.IsNullOrWhiteSpace(unmasked)) return false;
+
+        if (EmailRegex.IsMatch(unmasked) || PhoneVnRegex.IsMatch(unmasked) || AddressRegex.IsMatch(unmasked))
             return true;
 
         // Bỏ qua số điện thoại đã nhận diện để không bị kiểm tra trùng sang CCCD
-        var remaining = PhoneVnRegex.Replace(input, string.Empty);
+        var remaining = PhoneVnRegex.Replace(unmasked, string.Empty);
         return CccdRegex.IsMatch(remaining);
     }
 
@@ -65,14 +87,18 @@ public class PrivacyService : IPrivacyService
 
         if (string.IsNullOrEmpty(input)) return types;
 
-        if (EmailRegex.IsMatch(input)) types.Add("Email");
-        if (PhoneVnRegex.IsMatch(input)) types.Add("Số điện thoại");
+        // Loại bỏ các placeholder đã che sẵn trước khi trích xuất loại PII
+        var unmasked = MaskedPlaceholderRegex.Replace(input, string.Empty);
+        if (string.IsNullOrWhiteSpace(unmasked)) return types;
+
+        if (EmailRegex.IsMatch(unmasked)) types.Add("Email");
+        if (PhoneVnRegex.IsMatch(unmasked)) types.Add("Số điện thoại");
 
         // Loại bỏ các đoạn đã khớp số điện thoại trước khi kiểm tra CCCD
-        var remaining = PhoneVnRegex.Replace(input, string.Empty);
+        var remaining = PhoneVnRegex.Replace(unmasked, string.Empty);
         if (CccdRegex.IsMatch(remaining)) types.Add("CCCD/CMND");
 
-        if (AddressRegex.IsMatch(input)) types.Add("Địa chỉ");
+        if (AddressRegex.IsMatch(unmasked)) types.Add("Địa chỉ");
 
         return types;
     }

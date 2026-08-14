@@ -60,8 +60,9 @@ namespace AILA.Application.Features.Users.Commands.UpdateUserStatus
 
 
             // Ghi nhật ký AdminActivityLog
-            var adminId = (await _unitOfWork.Users.GetAdminUserIdsAsync(cancellationToken)).FirstOrDefault();
-            if (adminId != Guid.Empty)
+            var adminUserIds = _unitOfWork.Users != null ? await _unitOfWork.Users.GetAdminUserIdsAsync(cancellationToken) : null;
+            var adminId = adminUserIds?.FirstOrDefault() ?? Guid.Empty;
+            if (adminId != Guid.Empty && _unitOfWork.AdminActivityLogs != null)
             {
                 var action = request.IsActive ? AdminAction.Unlock : AdminAction.Lock;
                 var activityLog = new Domain.Entities.AdminActivityLog(
