@@ -81,6 +81,7 @@ namespace AILA.Application.Features.Profile.Commands.UpdateLearnerProfile
                 learner.User.Email,
                 learner.User.AvatarUrl,
                 learner.User.Role.ToString(),
+                !string.IsNullOrEmpty(learner.User.PasswordHash),
                 new LearnerInfoDto(
                     learner.LearnerType?.ToString(),
                     learner.KnowledgeLevel?.ToString(),

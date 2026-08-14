@@ -63,6 +63,7 @@ namespace AILA.Application.Features.Profile.Queries.GetLearnerProfile
                 learner.User.Email,
                 learner.User.AvatarUrl,
                 learner.User.Role.ToString(),
+                !string.IsNullOrEmpty(learner.User.PasswordHash),
                 new LearnerInfoDto(
                     learner.LearnerType?.ToString(),
                     learner.KnowledgeLevel?.ToString(),
