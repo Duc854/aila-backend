@@ -76,9 +76,14 @@ public class CreateAttemptCommandHandler : IRequestHandler<CreateAttemptCommand,
     {
         var subscription = await _unitOfWork.Subscriptions
             .GetActiveSubscriptionByLearnerIdToCalculateResourceAsync(learnerId, ct);
-        if (subscription != null && subscription.IsExpired())
+
+        // Hệ thống không có background job nên gói được cho hết hạn ngay tại lúc dùng tài nguyên.
+        // Lưu ngay để trạng thái không bị mất khi luồng phía sau dừng vì hết định ngạch.
+        if (subscription is not null && subscription.IsExpired())
         {
             subscription.Expire();
+            await _unitOfWork.SaveChangesAsync(ct);
+            subscription = null;
         }
 
         var accountLimit = await _unitOfWork.AccountResourceLimits

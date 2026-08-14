@@ -133,9 +133,14 @@ namespace AILA.Application.Features.ExpertEvaluations.Commands.RequestExpertEval
         {
             var subscription = await _uow.Subscriptions
                 .GetActiveSubscriptionByLearnerIdToCalculateResourceAsync(learnerId, ct);
-            if (subscription != null && subscription.IsExpired())
+
+            // Hệ thống không có background job nên gói được cho hết hạn ngay tại lúc dùng tài nguyên.
+            // Lưu ngay để trạng thái không bị mất khi luồng phía sau dừng vì hết định ngạch.
+            if (subscription is not null && subscription.IsExpired())
             {
                 subscription.Expire();
+                await _uow.SaveChangesAsync(ct);
+                subscription = null;
             }
 
             var accountLimit = await _uow.AccountResourceLimits
