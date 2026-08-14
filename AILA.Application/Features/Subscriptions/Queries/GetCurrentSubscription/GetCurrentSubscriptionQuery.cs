@@ -31,7 +31,7 @@ namespace AILA.Application.Features.Subscriptions.Queries.GetCurrentSubscription
                 var noSub = new CurrentSubscriptionDto(
                     HasActiveSubscription: false,
                     SubscriptionId: null,
-                    SubscriptionPlanName: "Gói Mặc Định (Free)",
+                    SubscriptionPlanName: "Gói mặc định (Miễn phí)",
                     TierLevel: null,
                     Status: "None",
                     ActivatedAt: null,
