@@ -77,22 +77,5 @@ namespace AILA.Domain.Entities
 
             UpdateTimestamp();
         }
-
-        /// <summary>
-        /// Hủy yêu cầu khi chưa hoàn tất. Kết quả đã chốt là bất biến nên không thể hủy.
-        /// </summary>
-        public void Cancel()
-        {
-            if (Status == ExpertEvaluationRequestStatus.Completed)
-                throw new InvalidOperationException(
-                    "Không thể hủy yêu cầu đã hoàn tất.");
-
-            if (Status == ExpertEvaluationRequestStatus.Cancelled)
-                return;
-
-            Status = ExpertEvaluationRequestStatus.Cancelled;
-
-            UpdateTimestamp();
-        }
     }
 }

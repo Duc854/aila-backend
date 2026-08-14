@@ -7,8 +7,8 @@ namespace AILA.Application.Features.Payments.Commands.ConfirmPayment
 {
     /// <summary>
     /// UC-19 Steps 4–7: Xử lý webhook SePay → xác nhận payment → áp dụng subscription policy.
-    /// BR-03: Gia hạn (cùng tier) → Extend subscription hiện tại.
-    /// BR-04: Nâng cấp (tier cao hơn) → Replace subscription cũ, tạo mới.
+    /// BR-03: Khi purchase cùng tier → tạo subscription mới, không extend.
+    /// BR-04: Khi upgrade (tier cao hơn) → Replace subscription cũ, tạo mới.
     /// AF-02: Payment không hoàn thành / hết hạn / bị huỷ → không thay đổi subscription.
     /// </summary>
     public class ConfirmPaymentCommandHandler(
@@ -87,9 +87,14 @@ namespace AILA.Application.Features.Payments.Commands.ConfirmPayment
 
                 if (currentSubscription is not null && newTier == currentTier)
                 {
-                    // BR-03: Gia hạn — cùng tier → kéo dài ExpiredAt của subscription cũ
-                    currentSubscription.Extend();
+                    // BR-03: Cùng tier → Replace subscription cũ, tạo subscription mới
+                    // (không extend subscription hiện tại)
+                    currentSubscription.Replace();
                     uow.Subscriptions.Update(currentSubscription);
+                    
+                    // Tạo subscription mới
+                    var newSubscription = Subscription.Create(payment);
+                    await uow.Subscriptions.AddAsync(newSubscription);
                 }
                 else
                 {
@@ -100,18 +105,18 @@ namespace AILA.Application.Features.Payments.Commands.ConfirmPayment
                         uow.Subscriptions.Update(currentSubscription);
                     }
 
-                    // 5.3 Tạo subscription mới từ payment đã thành công
+                    // Tạo subscription mới từ payment đã thành công
                     var newSubscription = Subscription.Create(payment);
                     await uow.Subscriptions.AddAsync(newSubscription);
-
-                    // 5.4 Cập nhật resource limits theo snapshot của plan mới
-                    await ApplySubscriptionQuotaAsync(
-                        payment.LearnerId,
-                        payment.PlanSnapshot.AiTokenLimit,
-                        payment.PlanSnapshot.AiPracticeScenarioLimit,
-                        payment.PlanSnapshot.ExpertEvaluationLimit,
-                        cancellationToken);
                 }
+
+                // Cập nhật resource limits theo snapshot của plan mới
+                await ApplySubscriptionQuotaAsync(
+                    payment.LearnerId,
+                    payment.PlanSnapshot.AiTokenLimit,
+                    payment.PlanSnapshot.AiPracticeScenarioLimit,
+                    payment.PlanSnapshot.ExpertEvaluationLimit,
+                    cancellationToken);
 
                 await uow.CommitTransactionAsync(cancellationToken);
             }

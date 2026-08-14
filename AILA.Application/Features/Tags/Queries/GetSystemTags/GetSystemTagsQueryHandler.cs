@@ -48,6 +48,7 @@ namespace AILA.Application.Features.Tags.Queries.GetSystemTags
                     IsPublished = tag.IsPublished,
                     Source = "System",
                     UsageCount = usageCount,
+                    IsReserved = AILA.Domain.Constants.ReservedTagCodes.All.Contains(tag.Code),
                     CreatedAt = tag.CreatedAt
                 });
             }

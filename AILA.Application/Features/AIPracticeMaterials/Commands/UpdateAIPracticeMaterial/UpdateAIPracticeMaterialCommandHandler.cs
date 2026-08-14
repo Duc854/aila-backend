@@ -47,6 +47,13 @@ namespace AILA.Application.Features.AIPracticeMaterials.Commands.UpdateAIPractic
                     "Bạn không có quyền cập nhật AI Practice Scenario này.");
             }
 
+            if (aiPractice.Material.Module.Course.IsPublished)
+            {
+                return ResponseDto<bool>.FailResult(
+                    "COURSE_NOT_MODIFIABLE",
+                    "Không thể cập nhật bài Thực hành AI khi khóa học đang ở trạng thái công khai. Vui lòng chuyển khóa học sang trạng thái ẩn trước khi thay đổi.");
+            }
+
             try
             {
                 await _uow.BeginTransactionAsync(ct);

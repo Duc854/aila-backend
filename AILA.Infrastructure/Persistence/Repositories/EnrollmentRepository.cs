@@ -12,13 +12,13 @@ namespace AILA.Infrastructure.Persistence.Repositories
 
         public async Task<Enrollment?> GetByLearnerAndCourseAsync(Guid learnerId, Guid courseId)
         {
-            return await _context.Enrollments
+            return await _context.Enrollments.Include(e => e.Course)
                 .FirstOrDefaultAsync(e => e.LearnerId == learnerId && e.CourseId == courseId);
         }
 
         public async Task<Enrollment?> GetByCourseAndLearnerAsync(Guid courseId, Guid learnerId, CancellationToken cancellationToken = default)
         {
-            return await _context.Enrollments
+            return await _context.Enrollments.Include(e => e.Course)
                 .FirstOrDefaultAsync(e => e.CourseId == courseId && e.LearnerId == learnerId, cancellationToken);
         }
 
@@ -102,6 +102,13 @@ namespace AILA.Infrastructure.Persistence.Repositories
                 .FirstOrDefaultAsync(
                     e => e.Id == enrollmentId,
                     cancellationToken);
+        }
+
+        public async Task<List<Enrollment>> GetByCourseIdAsync(Guid courseId, CancellationToken cancellationToken = default)
+        {
+            return await _context.Enrollments
+                .Where(e => e.CourseId == courseId)
+                .ToListAsync(cancellationToken);
         }
     }
 }

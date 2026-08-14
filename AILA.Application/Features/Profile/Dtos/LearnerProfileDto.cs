@@ -81,6 +81,8 @@ namespace AILA.Application.Features.Profile.Dtos
         string Email,
         string? AvatarUrl,
         string Role,
+        // false = tài khoản Google chưa từng đặt mật khẩu ⇒ FE ẩn ô "Mật khẩu hiện tại".
+        bool HasPassword,
         LearnerInfoDto Learner,
         IEnumerable<EnrollmentSummaryDto> Enrollments,
         LearningSummaryDto Summary,

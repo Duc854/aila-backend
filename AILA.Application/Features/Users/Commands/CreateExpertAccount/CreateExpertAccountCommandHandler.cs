@@ -88,8 +88,9 @@ namespace AILA.Application.Features.Users.Commands.CreateExpertAccount
                     cancellationToken);
 
                 // Ghi nhật ký AdminActivityLog
-                var adminId = (await _unitOfWork.Users.GetAdminUserIdsAsync(cancellationToken)).FirstOrDefault();
-                if (adminId != Guid.Empty)
+                var adminUserIds = _unitOfWork.Users != null ? await _unitOfWork.Users.GetAdminUserIdsAsync(cancellationToken) : null;
+                var adminId = adminUserIds?.FirstOrDefault() ?? Guid.Empty;
+                if (adminId != Guid.Empty && _unitOfWork.AdminActivityLogs != null)
                 {
                     var activityLog = new AdminActivityLog(
                         adminId,

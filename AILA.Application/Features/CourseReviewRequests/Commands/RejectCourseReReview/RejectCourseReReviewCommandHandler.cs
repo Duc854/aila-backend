@@ -1,5 +1,7 @@
 using AILA.Application.Common.Interfaces;
-using AILA.Application.Common.Notifications;
+using AILA.Domain.Constants;
+using AILA.Domain.Entities;
+using AILA.Domain.Enums;
 using AILA.Application.Features.CourseReviewRequests.Dtos;
 using MediatR;
 using Shared.Wrappers;
@@ -44,29 +46,49 @@ public sealed class RejectCourseReReviewCommandHandler
         var course = reviewRequest.Course;
         var expert = course.Expert;
 
-        await _uow.Notifications.AddAsync(
-            NotificationTemplates.CourseReReviewRejected(
-                expert?.UserId ?? Guid.Empty,
-                course.Id,
-                course.Name,
-                request.ReviewComment!));
+        // Begin transaction
+        await _uow.BeginTransactionAsync(ct);
 
-        await _uow.SaveChangesAsync(ct);
-
-        return ResponseDto<CourseReviewRequestAdminDto>.SuccessResult(new CourseReviewRequestAdminDto
+        try
         {
-            Id             = reviewRequest.Id,
-            CourseId       = course.Id,
-            CourseName     = course.Name,
-            IsCourseLocked = course.IsPublicationLocked,
-            ExpertId       = expert?.UserId ?? Guid.Empty,
-            ExpertName     = expert?.User?.FullName ?? string.Empty,
-            ExpertEmail    = expert?.User?.Email ?? string.Empty,
-            Reason         = reviewRequest.Reason,
-            Status         = reviewRequest.Status.ToString(),
-            ReviewComment  = reviewRequest.ReviewComment,
-            CreatedAt      = reviewRequest.CreatedAt,
-            ReviewedAt     = reviewRequest.ReviewedAt
-        });
+            await _uow.Notifications.AddAsync(
+                NotificationTemplates.CourseReReviewRejected(
+                    expert?.UserId ?? Guid.Empty,
+                    course.Id,
+                    course.Name,
+                    request.ReviewComment!));
+
+            // Log admin action
+            var activityLog = new AdminActivityLog(
+                request.AdminId,
+                AdminAction.Reject,
+                $"Từ chối yêu cầu xem xét lại khóa học '{course.Name}' (ID: {course.Id}). Lý do: {request.ReviewComment}");
+
+            await _uow.AdminActivityLogs.AddAsync(activityLog);
+
+            await _uow.SaveChangesAsync(ct);
+            await _uow.CommitTransactionAsync(ct);
+
+            return ResponseDto<CourseReviewRequestAdminDto>.SuccessResult(new CourseReviewRequestAdminDto
+            {
+                Id             = reviewRequest.Id,
+                CourseId       = course.Id,
+                CourseName     = course.Name,
+                IsCourseLocked = course.IsPublicationLocked,
+                ExpertId       = expert?.UserId ?? Guid.Empty,
+                ExpertName     = expert?.User?.FullName ?? string.Empty,
+                ExpertEmail    = expert?.User?.Email ?? string.Empty,
+                Reason         = reviewRequest.Reason,
+                Status         = reviewRequest.Status.ToString(),
+                ReviewComment  = reviewRequest.ReviewComment,
+                CreatedAt      = reviewRequest.CreatedAt,
+                ReviewedAt     = reviewRequest.ReviewedAt
+            });
+        }
+        catch
+        {
+            await _uow.RollbackTransactionAsync(ct);
+            throw;
+        }
     }
 }

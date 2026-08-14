@@ -1,16 +1,21 @@
 using AILA.Application.Features.AIPricing.Dtos;
+using AILA.Application.Features.AIPricing.Commands.CreateAIPricingConfig;
 using AILA.Application.Features.AIPricing.Commands.UpdateAIPricingConfig;
+using AILA.Application.Features.AIPricing.Commands.DeleteAIPricingConfig;
 using AILA.Application.Features.AIPricing.Queries.GetAIPricingConfigs;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Shared.Wrappers;
 using System;
-using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AILA.Api.Controllers.Admin;
 
 [ApiController]
 [Route("api/admin/ai-pricing")]
+[Authorize(Roles = "Admin")]
 public class AdminAIPricingController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -21,50 +26,68 @@ public class AdminAIPricingController : ControllerBase
     }
 
     /// <summary>
-    /// UC-89 Step 1-2: Admin xem cấu hình thông tin đơn giá AI Token hiện tại
+    /// UC-89: Admin xem danh sách cấu hình đơn giá AI Token
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<List<AIPricingConfigDto>>> GetPricingConfigs()
+    public async Task<IActionResult> GetPricingConfigs(CancellationToken ct)
     {
-        var result = await _mediator.Send(new GetAIPricingConfigsQuery());
-        return Ok(result);
+        var result = await _mediator.Send(new GetAIPricingConfigsQuery(), ct);
+        return result.Success ? Ok(result) : BadRequest(result);
     }
 
     /// <summary>
-    /// UC-89 Step 3-6: Admin cập nhật thông tin đơn giá AI Token
+    /// UC-89: Admin tạo mới đơn giá cho một Model AI
     /// </summary>
-    [HttpPut]
-    public async Task<ActionResult<AIPricingConfigDto>> UpdatePricingConfig([FromBody] UpdateAIPricingRequest request)
+    [HttpPost]
+    public async Task<IActionResult> CreatePricingConfig(
+        [FromBody] CreateAIPricingRequest request,
+        CancellationToken ct)
     {
-        var command = new UpdateAIPricingConfigCommand(
-            Id: null,
-            ModelId: request.ModelId,
-            ServiceName: request.ServiceName,
-            CostPerInputToken: request.CostPerInputToken,
+        var command = new CreateAIPricingConfigCommand(
+            ModelId:            request.ModelId,
+            ServiceName:        request.ServiceName,
+            CostPerInputToken:  request.CostPerInputToken,
             CostPerOutputToken: request.CostPerOutputToken,
-            Currency: request.Currency,
-            IsActive: request.IsActive);
+            Currency:           request.Currency,
+            IsActive:           request.IsActive);
 
-        var result = await _mediator.Send(command);
-        return Ok(result);
+        var result = await _mediator.Send(command, ct);
+
+        if (!result.Success)
+            return result.ErrorCode == "DUPLICATE_MODEL" ? Conflict(result) : BadRequest(result);
+
+        return CreatedAtAction(nameof(GetPricingConfigs), result);
     }
 
     /// <summary>
-    /// UC-89 Step 3-6: Admin cập nhật đơn giá theo Id cụ thể
+    /// UC-89: Admin cập nhật đơn giá theo Id
     /// </summary>
     [HttpPut("{id:guid}")]
-    public async Task<ActionResult<AIPricingConfigDto>> UpdatePricingConfigById(Guid id, [FromBody] UpdateAIPricingRequest request)
+    public async Task<IActionResult> UpdatePricingConfig(
+        Guid id,
+        [FromBody] UpdateAIPricingRequest request,
+        CancellationToken ct)
     {
         var command = new UpdateAIPricingConfigCommand(
-            Id: id,
-            ModelId: request.ModelId,
-            ServiceName: request.ServiceName,
-            CostPerInputToken: request.CostPerInputToken,
+            Id:                 id,
+            ModelId:            request.ModelId ?? string.Empty,
+            ServiceName:        request.ServiceName,
+            CostPerInputToken:  request.CostPerInputToken,
             CostPerOutputToken: request.CostPerOutputToken,
-            Currency: request.Currency,
-            IsActive: request.IsActive);
+            Currency:           request.Currency,
+            IsActive:           request.IsActive);
 
-        var result = await _mediator.Send(command);
-        return Ok(result);
+        var result = await _mediator.Send(command, ct);
+        return result.Success ? Ok(result) : BadRequest(result);
+    }
+
+    /// <summary>
+    /// UC-89: Admin xóa một cấu hình đơn giá Model AI
+    /// </summary>
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> DeletePricingConfig(Guid id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new DeleteAIPricingConfigCommand(id), ct);
+        return result.Success ? Ok(result) : NotFound(result);
     }
 }

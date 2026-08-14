@@ -22,6 +22,16 @@ namespace AILA.Application.Common.Interfaces.Repositories
             CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Yêu cầu còn hiệu lực của một lượt thực hành (cùng điều kiện với
+        /// <see cref="HasActiveRequestForAttemptAsync"/>) — dùng để FE biết nên hiện nút
+        /// "Nhờ chuyên gia đánh giá" hay link sang kết quả đã có. Trả null khi chưa gửi
+        /// yêu cầu nào hoặc yêu cầu duy nhất đã bị hủy.
+        /// </summary>
+        Task<ExpertEvaluationRequest?> GetActiveRequestForAttemptAsync(
+            Guid practiceAttemptId,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// UC-63: hàng chờ của chuyên gia, phân trang, mặc định đang xử lý trước / cũ nhất trước.
         /// </summary>
         Task<(IReadOnlyList<ExpertEvaluationRequest> Items, int TotalCount)> GetAssignedPageAsync(

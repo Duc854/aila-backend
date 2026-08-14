@@ -29,7 +29,7 @@ namespace AILA.Api.Controllers
             var result = await _sender.Send(new GetBlogDetailQuery(id), ct);
 
             if (result == null)
-                return NotFound(ResponseDto<object>.FailResult("BLOG_NOT_FOUND", "Blog not found."));
+                return NotFound(ResponseDto<object>.FailResult("BLOG_NOT_FOUND", "Không tìm thấy bài viết."));
 
             return Ok(ResponseDto<object>.SuccessResult(result));
         }

@@ -3,7 +3,7 @@ using AILA.Application.Common.Interfaces;
 using AILA.Application.Common.Interfaces.AI;
 using AILA.Application.Common.Interfaces.Repositories;using AILA.Infrastructure.Persistence;
 using AILA.Infrastructure.Persistence.Repositories;
-using AILA.Infrastructure.Persistence.Seed;
+using AILA.Infrastructure.Persistence.Seeds;
 using AILA.Infrastructure.Security;
 using AILA.Infrastructure.Services;
 using AILA.Infrastructure.Services.AI;using AILA.Infrastructure.Services.Email;
@@ -144,10 +144,7 @@ namespace AILA.Infrastructure
         {
             services.AddSingleton<IOtpService, OtpService>();
 
-            services.AddSingleton<IEmailQueue>(
-                _ => new ChannelEmailQueue());
-
-            services.AddSingleton<IEmailSender, QueuedEmailSender>();
+            services.AddSingleton<IEmailSender, SmtpEmailSender>();
 
             services.AddSingleton<IEmailTransport>(sp =>
             {
@@ -158,8 +155,6 @@ namespace AILA.Infrastructure
                     ? new SmtpEmailTransport(smtpSettings)
                     : ActivatorUtilities.CreateInstance<LoggingEmailTransport>(sp);
             });
-
-            services.AddHostedService<EmailBackgroundService>();
 
             return services;
         }

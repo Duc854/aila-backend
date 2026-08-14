@@ -29,7 +29,7 @@ namespace AILA.Application.Features.AdminBlog.Queries.GetAdminBlogDetail
             {
                 return ResponseDto<AdminBlogDto>.FailResult(
                     "BLOG_NOT_FOUND",
-                    "Blog does not exist.");
+                    "Không tìm thấy bài viết.");
             }
 
             return ResponseDto<AdminBlogDto>.SuccessResult(

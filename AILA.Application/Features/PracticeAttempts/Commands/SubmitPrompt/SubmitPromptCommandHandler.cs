@@ -49,7 +49,7 @@ public class SubmitPromptCommandHandler : IRequestHandler<SubmitPromptCommand, P
         var attempt = await _attemptRepo.GetByIdAsync(request.AttemptId, cancellationToken)
             ?? throw new NotFoundException(nameof(PracticeAttempt), request.AttemptId);
 
-        var material = await _materialRepo.GetByIdAsync(attempt.MaterialId)
+        var material = await _materialRepo.GetByIdWithDetailsAsync(attempt.MaterialId, cancellationToken)
             ?? throw new NotFoundException(nameof(AIPracticeMaterial), attempt.MaterialId);
 
         // 2. Guard: Max prompt attempts (chỉ tính số lượt submit THÀNH CÔNG có AI Response)
@@ -189,6 +189,7 @@ public class SubmitPromptCommandHandler : IRequestHandler<SubmitPromptCommand, P
 
         // 8. Khởi tạo submission thông qua DDD Aggregate Root method (PracticeAttempt)
         var submission = attempt.AddSubmission(sanitizedPrompt, sanitizedAiResponse);
+        await _unitOfWork.Repository<PromptSubmission>().AddAsync(submission);
 
         // 9. Check MaxPromptAttempts -> Auto-Complete if reaching max valid attempts
         var validSubmissionsCount = attempt.Submissions.Count;
@@ -234,5 +235,33 @@ public class SubmitPromptCommandHandler : IRequestHandler<SubmitPromptCommand, P
             cancellationToken: cancellationToken);
 
         attempt.Complete(scoringResult.Percentage, scoringResult.Summary);
+
+        var scoringJson = System.Text.Json.JsonSerializer.Serialize(scoringResult);
+        var aiFeedback = new AIFeedback(
+            attempt.Id,
+            scoringResult.Percentage,
+            scoringResult.Summary,
+            strengths: string.Join("; ", scoringResult.LearningSuggestions),
+            areasForImprovement: string.Join("; ", scoringResult.DetectedIssues),
+            detailedScoringJson: scoringJson);
+
+        await _unitOfWork.Repository<AIFeedback>().AddAsync(aiFeedback);
+
+        // Cập nhật trạng thái hoàn thành học liệu (LearningProgress) và tiến độ khóa học (Enrollment)
+        var progress = await _unitOfWork.LearningProgresses
+            .GetByCompositeKeyAsync(attempt.EnrollmentId, attempt.MaterialId, cancellationToken);
+
+        if (progress == null)
+        {
+            progress = new LearningProgress(attempt.EnrollmentId, attempt.MaterialId);
+            await _unitOfWork.LearningProgresses.AddAsync(progress, cancellationToken);
+        }
+
+        if (!progress.IsCompleted)
+        {
+            progress.Complete();
+            var enrollment = await _unitOfWork.Enrollments.GetByIdAsync(attempt.EnrollmentId);
+            enrollment?.CompleteMaterial();
+        }
     }
 }

@@ -12,16 +12,16 @@ namespace AILA.Application.Features.Users.Dtos
 
     public class ManageUserRequest
     {
-        [Required(ErrorMessage = "User Id là bắt buộc.")]
+        [Required(ErrorMessage = "Mã người dùng là bắt buộc.")]
         public Guid? UserId { get; init; }
 
-        [StringLength(100, ErrorMessage = "Search Keyword tối đa 100 ký tự.")]
+        [StringLength(100, ErrorMessage = "Từ khóa tìm kiếm tối đa 100 ký tự.")]
         public string? SearchKeyword { get; init; }
 
-        [Required(ErrorMessage = "Account Status là bắt buộc.")]
+        [Required(ErrorMessage = "Trạng thái tài khoản là bắt buộc.")]
         public AccountStatus? AccountStatus { get; init; }
 
-        [Required(ErrorMessage = "User Role là bắt buộc.")]
+        [Required(ErrorMessage = "Vai trò người dùng là bắt buộc.")]
         public UserRole? UserRole { get; init; }
     }
 }

@@ -1,5 +1,5 @@
 using AILA.Application.Common.Interfaces;
-using AILA.Application.Common.Notifications;
+using AILA.Domain.Constants;
 using AILA.Application.Features.ExpertEvaluations.Dtos;
 using AILA.Domain.Entities;
 using AILA.Domain.Enums;
@@ -132,7 +132,16 @@ namespace AILA.Application.Features.ExpertEvaluations.Commands.RequestExpertEval
         private async Task<QuotaSnapshot> ResolveQuotaAsync(Guid learnerId, CancellationToken ct)
         {
             var subscription = await _uow.Subscriptions
-                .GetActiveSubscriptionByLearnerIdAsync(learnerId, ct);
+                .GetActiveSubscriptionByLearnerIdToCalculateResourceAsync(learnerId, ct);
+
+            // Hệ thống không có background job nên gói được cho hết hạn ngay tại lúc dùng tài nguyên.
+            // Lưu ngay để trạng thái không bị mất khi luồng phía sau dừng vì hết định ngạch.
+            if (subscription is not null && subscription.IsExpired())
+            {
+                subscription.Expire();
+                await _uow.SaveChangesAsync(ct);
+                subscription = null;
+            }
 
             var accountLimit = await _uow.AccountResourceLimits
                 .GetByAccountIdAsync(learnerId, ct);

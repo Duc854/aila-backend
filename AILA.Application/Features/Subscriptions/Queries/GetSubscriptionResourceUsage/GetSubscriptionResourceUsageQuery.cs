@@ -71,7 +71,7 @@ namespace AILA.Application.Features.Subscriptions.Queries.GetSubscriptionResourc
                 SubscriptionPlanId = activeSubscription?.SubscriptionPlanId,
                 SubscriptionPlanName = activeSubscription != null
                     ? (activeSubscription.SubscriptionPlan?.Name ?? "Gói Đang Hoạt Động")
-                    : "Gói Mặc Định Sàn (Free)",
+                    : "Gói mặc định (Miễn phí)",
                 TierLevel = activeSubscription?.PlanSnapshot?.TierLevel ?? activeSubscription?.SubscriptionPlan?.TierLevel,
                 ActivatedAt = activeSubscription?.ActivatedAt,
                 ExpiredAt = activeSubscription?.ExpiredAt,

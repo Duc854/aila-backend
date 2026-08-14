@@ -25,10 +25,16 @@ namespace AILA.Application.Features.Profile.Commands.ChangePassword
             if (!user.IsActive)
                 return ResponseDto<object>.FailResult("ACCOUNT_INACTIVE", "Tài khoản đã bị vô hiệu hóa.");
 
-            bool isFirstTime = user.PasswordHash == null;
+            // Chỉ tài khoản Google mới được đặt mật khẩu lần đầu mà không cần mật khẩu hiện tại.
+            bool isGoogleFirstTime = string.IsNullOrEmpty(user.PasswordHash)
+                                     && !string.IsNullOrEmpty(user.GoogleId);
+
+            if (string.IsNullOrEmpty(user.PasswordHash) && !isGoogleFirstTime)
+                return ResponseDto<object>.FailResult("PASSWORD_NOT_SET",
+                    "Tài khoản chưa có mật khẩu, không thể đổi mật khẩu.");
 
             // --- Verify current password if user already has one ---
-            if (!isFirstTime)
+            if (!isGoogleFirstTime)
             {
                 if (string.IsNullOrEmpty(request.CurrentPassword))
                     return ResponseDto<object>.FailResult("VALIDATION_ERROR", "Mật khẩu hiện tại không được để trống.");

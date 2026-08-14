@@ -3,7 +3,7 @@ using AILA.Api.Extensions;
 using AILA.Application;
 using AILA.Infrastructure;
 using AILA.Infrastructure.Persistence;
-using AILA.Infrastructure.Persistence.Seed;
+using AILA.Infrastructure.Persistence.Seeds;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.OpenApi.Models;
 using System.Text.Json.Serialization;
@@ -63,7 +63,7 @@ builder.Services.AddCustomAuthentication(builder.Configuration);
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("AILA", policy =>
     {
         policy.WithOrigins(
                 "http://localhost:5173",
@@ -89,8 +89,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseExceptionMiddleware();
 app.UseHttpsRedirection();
+app.UseCors("AILA");
 app.UseRouting();
-app.UseCors("AllowAll");
+
 
 // Cho phép đọc lại request body tại webhook endpoint (cần để verify HMAC signature)
 app.Use(async (context, next) =>

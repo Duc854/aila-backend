@@ -22,25 +22,59 @@ public class PracticeAttemptRepository : IPracticeAttemptRepository
 
     public async Task<PracticeAttempt?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await _context.PracticeAttempts
-            .Include(x => x.Submissions)
+        var attempt = await _context.PracticeAttempts
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        if (attempt != null)
+        {
+            var submissions = await _context.PromptSubmissions
+                .Where(s => s.AttemptId == id)
+                .OrderBy(s => s.CreatedAt)
+                .ToListAsync(cancellationToken);
+            attempt.Submissions.Clear();
+            attempt.Submissions.AddRange(submissions);
+        }
+        return attempt;
     }
 
     public async Task<PracticeAttempt?> GetByIdWithDetailsAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await _context.PracticeAttempts
-            .Include(a => a.Submissions)
+        var attempt = await _context.PracticeAttempts
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        if (attempt != null)
+        {
+            var submissions = await _context.PromptSubmissions
+                .Where(s => s.AttemptId == id)
+                .OrderBy(s => s.CreatedAt)
+                .ToListAsync(cancellationToken);
+            attempt.Submissions.Clear();
+            attempt.Submissions.AddRange(submissions);
+        }
+        return attempt;
     }
 
     public async Task<List<PracticeAttempt>> GetByEnrollmentIdAsync(Guid enrollmentId, CancellationToken cancellationToken = default)
     {
-        return await _context.PracticeAttempts
-            .Include(a => a.Submissions)
+        var attempts = await _context.PracticeAttempts
             .Where(x => x.EnrollmentId == enrollmentId)
             .OrderByDescending(x => x.CreatedAt)
             .ToListAsync(cancellationToken);
+
+        var attemptIds = attempts.Select(a => a.Id).ToList();
+        if (attemptIds.Any())
+        {
+            var allSubmissions = await _context.PromptSubmissions
+                .Where(s => attemptIds.Contains(s.AttemptId))
+                .OrderBy(s => s.CreatedAt)
+                .ToListAsync(cancellationToken);
+
+            foreach (var attempt in attempts)
+            {
+                attempt.Submissions.Clear();
+                attempt.Submissions.AddRange(allSubmissions.Where(s => s.AttemptId == attempt.Id));
+            }
+        }
+
+        return attempts;
     }
 
     public async Task AddAsync(PracticeAttempt attempt, CancellationToken cancellationToken = default)

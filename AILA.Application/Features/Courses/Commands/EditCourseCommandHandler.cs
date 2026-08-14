@@ -42,24 +42,25 @@ namespace AILA.Application.Features.Courses.Commands
             // 5. Cập nhật thông tin cơ bản qua domain method
             course.UpdateInfo(request.Name, request.CategoryId, level, request.Description, request.ThumbnailUrl);
 
-            // 6. Cập nhật Tags
-            var courseTags = new List<Tag>();
+            // 6. Cập nhật duration
+            course.UpdateDuration(request.DurationHours);
 
+            // 7. Cập nhật Tags
+            var courseTags = new List<Tag>();
 
             if (request.TagIds.Any())
             {
                 var tags = await _uow.Tags
-                    .GetPublishedByIdsAsync(
+                    .GetByIdsAsync(
                         request.TagIds,
                         cancellationToken);
 
-
+                // Validate: Tất cả tags phải tồn tại
                 if (tags.Count != request.TagIds.Count)
                 {
                     throw new InvalidOperationException(
-                        "Một hoặc nhiều tag không tồn tại hoặc chưa được duyệt.");
+                        "Một hoặc nhiều tag không tồn tại.");
                 }
-
 
                 courseTags.AddRange(tags);
             }

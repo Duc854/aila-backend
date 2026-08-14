@@ -1,5 +1,6 @@
 ﻿using AILA.Application.Common.Interfaces.Repositories;
 using AILA.Domain.Entities;
+using AILA.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -42,6 +43,47 @@ namespace AILA.Infrastructure.Persistence.Repositories
                     x => x.CreatedAt <= toDate.Value);
             }
 
+
+            return await query
+                .OrderByDescending(x => x.CreatedAt)
+                .ToListAsync();
+        }
+
+        public async Task<IReadOnlyList<AdminActivityLog>> GetLogsWithActionAsync(
+            DateTime? fromDate,
+            DateTime? toDate,
+            AdminAction? action)
+        {
+            IQueryable<AdminActivityLog> query =
+                _context.Set<AdminActivityLog>()
+                    .AsNoTracking()
+                    .Include(x => x.Admin);
+
+            if (fromDate.HasValue)
+            {
+                var startDateUtc = DateTime.SpecifyKind(
+                    fromDate.Value.Date,
+                    DateTimeKind.Utc);
+
+                query = query.Where(
+                    x => x.CreatedAt >= startDateUtc);
+            }
+
+            if (toDate.HasValue)
+            {
+                var endDateUtc = DateTime.SpecifyKind(
+                    toDate.Value.Date.AddDays(1),
+                    DateTimeKind.Utc);
+
+                query = query.Where(
+                    x => x.CreatedAt < endDateUtc);
+            }
+
+            if (action.HasValue)
+            {
+                query = query.Where(
+                    x => x.Action == action.Value);
+            }
 
             return await query
                 .OrderByDescending(x => x.CreatedAt)

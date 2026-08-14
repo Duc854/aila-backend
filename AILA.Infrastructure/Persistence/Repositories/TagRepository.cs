@@ -60,7 +60,8 @@ namespace AILA.Infrastructure.Persistence.Repositories
             => await _context.Tags
                 .Include(t => t.PublishRequest)
                 .Where(t => !t.IsPublished
-                         && t.PublishRequest != null)
+                         && t.PublishRequest != null
+                         && t.PublishRequest.Status == Domain.Enums.TagPublishRequestStatus.Pending)
                 .OrderByDescending(t => t.PublishRequest!.CreatedAt)
                 .AsNoTracking()
                 .ToListAsync(ct);
@@ -151,6 +152,10 @@ namespace AILA.Infrastructure.Persistence.Repositories
                 .OrderBy(t => t.Name)
                 .ToListAsync(cancellationToken);
         }
+
+        public async Task<Tag?> GetTagLevelAsync(string code, CancellationToken ct = default)
+            => await _context.Tags
+        .FirstOrDefaultAsync(t => t.Code == code.ToLower().Trim(), ct);
     }
 }
 

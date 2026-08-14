@@ -13,5 +13,9 @@ namespace AILA.Application.Common.Interfaces.Repositories
         Task<Subscription?> GetActiveSubscriptionByLearnerIdAsync(
             Guid learnerId,
             CancellationToken cancellationToken = default);
+
+        Task<Subscription?> GetActiveSubscriptionByLearnerIdToCalculateResourceAsync(
+            Guid learnerId,
+            CancellationToken cancellationToken = default);
     }
 }

@@ -43,6 +43,15 @@ public sealed class DeleteAnswerOptionCommandHandler
                     "Bạn không có quyền xóa.");
         }
 
+        var hasEnrollments = await _uow.Enrollments.HasEnrollmentsForCourseAsync(answer.Question.QuizMaterial.Material.Module.CourseId, ct);
+        if (answer.Question.QuizMaterial.Material.Module.Course.IsPublished || hasEnrollments)
+        {
+            return ResponseDto<object>
+                .FailResult(
+                    "COURSE_NOT_MODIFIABLE",
+                    "Không thể xóa đáp án vì khóa học đã được công khai hoặc đã có học viên đăng ký.");
+        }
+
         var question = await _uow.Questions
             .GetWithQuizAndAnswersAsync(
                 answer.QuestionId,

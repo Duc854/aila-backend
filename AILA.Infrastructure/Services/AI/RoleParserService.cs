@@ -26,7 +26,7 @@ public class RoleParserService : IRoleParserService
         }
         else
         {
-            _logger.LogWarning("⚠️ Regex parse failed for AITask — using Unknown roles.");
+            _logger.LogWarning("⚠️ Phân tích vai trò bằng Regex thất bại — sử dụng vai trò mặc định.");
         }
 
         return Task.FromResult(result);
@@ -38,15 +38,15 @@ public class RoleParserService : IRoleParserService
         {
             return new RoleParseResultDto
             {
-                UserRole = "Unknown",
-                AIRole = "Unknown",
+                UserRole = "Chưa xác định",
+                AIRole = "Chưa xác định",
                 IsSuccess = false,
-                ErrorMessage = "AITask is null or empty"
+                ErrorMessage = "Nhiệm vụ AI (AITask) bị trống."
             };
         }
 
-        var userRole = "Unknown";
-        var aiRole   = "Unknown";
+        var userRole = "Chưa xác định";
+        var aiRole   = "Chưa xác định";
         var found    = false;
 
         // Pattern 1: "Bạn LÀ X (Y)" → aiRole = Y
@@ -109,10 +109,10 @@ public class RoleParserService : IRoleParserService
         {
             return new RoleParseResultDto
             {
-                UserRole = "Unknown",
-                AIRole = "Unknown",
+                UserRole = "Chưa xác định",
+                AIRole = "Chưa xác định",
                 IsSuccess = false,
-                ErrorMessage = "Cannot parse roles from AITask with Regex"
+                ErrorMessage = "Không thể phân tích vai trò từ nhiệm vụ AI."
             };
         }
 
@@ -120,9 +120,9 @@ public class RoleParserService : IRoleParserService
         {
             UserRole = userRole,
             AIRole   = aiRole,
-            IsSuccess = userRole != "Unknown" && aiRole != "Unknown",
-            ErrorMessage = (userRole == "Unknown" || aiRole == "Unknown")
-                ? "Partial parse: one role is Unknown"
+            IsSuccess = userRole != "Chưa xác định" && aiRole != "Chưa xác định",
+            ErrorMessage = (userRole == "Chưa xác định" || aiRole == "Chưa xác định")
+                ? "Chỉ phân tích được một phần: có vai trò chưa xác định."
                 : null
         };
     }

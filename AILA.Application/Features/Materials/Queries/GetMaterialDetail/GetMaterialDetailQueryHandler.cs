@@ -22,6 +22,15 @@ namespace AILA.Application.Features.Materials.Queries.GetMaterialDetail
 
         public async Task<ResponseDto<MaterialDetailDto>> Handle(GetMaterialDetailQuery request, CancellationToken cancellationToken)
         {
+            var enrollment = await _unitOfWork.Enrollments.GetByLearnerAndCourseAsync(request.LeanrerId, request.CourseId);
+            if (enrollment == null)
+            {
+                return ResponseDto<MaterialDetailDto>.FailResult("ENROLLMENT_NOT_FOUND", "Không thể truy cập học liệu do bạn chưa tham gia khóa học này");
+            }
+            if(!enrollment.Course.IsPublished)
+            {
+                return ResponseDto<MaterialDetailDto>.FailResult("UNPUBLISH_COURSE", "Không thể truy cập học liệu do khóa học đã bị ẩn");
+            }
             var material = await _unitOfWork.Materials.GetMaterialDetailAsync(request.CourseId, request.MaterialId);
 
             if (material == null)

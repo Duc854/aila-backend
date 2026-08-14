@@ -10,5 +10,6 @@ namespace AILA.Application.Features.Reports.Commands.DismissReport;
 /// </summary>
 public sealed record DismissReportCommand(
     Guid ReportId,
-    string? Note
+    string? Note,
+    Guid AdminId
 ) : IRequest<ResponseDto<ResolveReportResponseDto>>;

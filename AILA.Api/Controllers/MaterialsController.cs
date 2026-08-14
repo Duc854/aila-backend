@@ -2,6 +2,7 @@
 using AILA.Application.Common.Dtos;
 using AILA.Application.Features.Materials.Commands.MarkMaterialAsCompleted;
 using AILA.Application.Features.Materials.Queries.GetMaterialDetail;
+using AILA.Application.Features.Materials.Queries.GetMaterialDetailForPreview;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -41,7 +42,7 @@ namespace AILA.Api.Controllers
             }
 
             // 2. Gửi Query sang tầng Application xử lý thông qua MediatR
-            var query = new GetMaterialDetailQuery(courseId, materialId);
+            var query = new GetMaterialDetailQuery(identity.UserId,courseId, materialId);
             var result = await _sender.Send(query);
 
             // 3. Kiểm tra kết quả nghiệp vụ từ Handler trả về
@@ -84,5 +85,37 @@ namespace AILA.Api.Controllers
             // Trả về dữ liệu thành công kèm wrapper chuẩn: { "success": true, "data": true }
             return Ok(result);
         }
+
+        /// <summary>
+        /// API cho Admin xem trước chi tiết học liệu của một khóa học.
+        /// Admin không cần enroll để xem, sử dụng query preview không kiểm tra enrollment.
+        /// </summary>
+        [HttpGet("{materialId}/admin-preview")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> PreviewMaterialAsAdmin(
+            [FromRoute] Guid courseId,
+            [FromRoute] Guid materialId)
+        {
+            var identity = HttpContext.GetUserIdentity();
+            if (identity == null)
+            {
+                return Unauthorized(ResponseDto<object>.FailResult(
+                    "UNAUTHORIZED",
+                    "Xác thực người dùng thất bại."
+                ));
+            }
+
+            // Admin preview dùng query mới không kiểm tra enrollment
+            var query = new GetMaterialDetailForPreviewQuery(courseId, materialId);
+            var result = await _sender.Send(query);
+
+            if (!result.Success)
+            {
+                return NotFound(result);
+            }
+
+            return Ok(result);
+        }
     }
 }
+

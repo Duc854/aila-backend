@@ -48,8 +48,8 @@ public sealed class UpdateQuizDetailCommandHandler
             {
                 return ResponseDto<QuizMaterialDto>
                     .FailResult(
-                        "COURSE_PUBLISHED",
-                        "Không thể chỉnh sửa vì khóa học đã được công khai.");
+                        "COURSE_NOT_MODIFIABLE",
+                        "Không thể chỉnh sửa Quiz khi khóa học đang ở trạng thái công khai. Vui lòng chuyển khóa học sang trạng thái ẩn trước khi thay đổi.");
             }
 
             quiz.UpdateSetting(
@@ -94,8 +94,8 @@ public sealed class UpdateQuizDetailCommandHandler
         {
             return ResponseDto<QuizMaterialDto>
                 .FailResult(
-                    "COURSE_PUBLISHED",
-                    "Không thể chỉnh sửa vì khóa học đã được công khai.");
+                    "COURSE_NOT_MODIFIABLE",
+                    "Không thể chỉnh sửa Quiz khi khóa học đang ở trạng thái công khai. Vui lòng chuyển khóa học sang trạng thái ẩn trước khi thay đổi.");
         }
 
         if (material.MaterialType != MaterialType.Quiz)

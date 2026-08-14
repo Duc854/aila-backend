@@ -1,7 +1,7 @@
 using AILA.Domain.Entities;
 using AILA.Domain.Enums;
 
-namespace AILA.Application.Common.Notifications
+namespace AILA.Domain.Constants
 {
     /// <summary>
     /// Nơi tập trung nội dung của mọi thông báo trong hệ thống.

@@ -37,7 +37,7 @@ public class GetAttemptDetailQueryHandler : IRequestHandler<GetAttemptDetailQuer
         var enrollment = await _unitOfWork.Enrollments.GetByIdAsync(attempt.EnrollmentId)
             ?? throw new NotFoundException(nameof(Enrollment), attempt.EnrollmentId);
 
-        var material = await _materialRepo.GetByIdAsync(attempt.MaterialId);
+        var material = await _materialRepo.GetByIdWithDetailsAsync(attempt.MaterialId, cancellationToken);
         var criteriaList = material?.ScoringCriterias.ToList() ?? new List<ScoringCriteria>();
 
         OverallScoringResult? detailedScoring = null;
@@ -77,6 +77,11 @@ public class GetAttemptDetailQueryHandler : IRequestHandler<GetAttemptDetailQuer
             }
         }
 
+        // UC-29/30: cho FE biết lượt này đã nhờ chuyên gia đánh giá hay chưa, để màn kết quả
+        // hiện link xem đánh giá thay vì nút gửi yêu cầu mới (backend sẽ chặn bằng BR-02).
+        var evaluationRequest = await _unitOfWork.ExpertEvaluationRequests
+            .GetActiveRequestForAttemptAsync(attempt.Id, cancellationToken);
+
         return new PracticeAttemptDto
         {
             Id = attempt.Id,
@@ -88,6 +93,8 @@ public class GetAttemptDetailQueryHandler : IRequestHandler<GetAttemptDetailQuer
             FinalScore = attempt.FinalScore,
             OverallSuggestion = attempt.OverallSuggestion,
             DetailedScoring = detailedScoring,
+            ExpertEvaluationRequestId = evaluationRequest?.Id,
+            ExpertEvaluationStatus = evaluationRequest?.Status.ToString(),
             Submissions = attempt.Submissions.Select(s => new PromptSubmissionDto
             {
                 Id = s.Id,

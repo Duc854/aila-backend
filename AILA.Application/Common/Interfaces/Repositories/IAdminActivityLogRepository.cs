@@ -1,4 +1,5 @@
 ﻿using AILA.Domain.Entities;
+using AILA.Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,5 +14,10 @@ namespace AILA.Application.Common.Interfaces.Repositories
         Task<IReadOnlyList<AdminActivityLog>> GetLogsAsync(
             DateTime? fromDate,
             DateTime? toDate);
+
+        Task<IReadOnlyList<AdminActivityLog>> GetLogsWithActionAsync(
+            DateTime? fromDate,
+            DateTime? toDate,
+            AdminAction? action);
     }
 }

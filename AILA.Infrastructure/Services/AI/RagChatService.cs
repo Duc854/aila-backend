@@ -24,6 +24,8 @@ public class RagChatService : IRagChatService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IChatCompletionService _chatCompletion;
     private readonly IConfiguration _configuration;
+    private readonly IPrivacyService _privacyService;
+    private readonly IModerationService _moderationService;
 
     public RagChatService(
         IKnowledgeChunkRepository repository,
@@ -31,7 +33,9 @@ public class RagChatService : IRagChatService
         IQuotaService quotaService,
         IUnitOfWork unitOfWork,
         IChatCompletionService chatCompletion,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IPrivacyService privacyService,
+        IModerationService moderationService)
     {
         _repository = repository;
         _knowledgeBaseService = knowledgeBaseService;
@@ -39,6 +43,8 @@ public class RagChatService : IRagChatService
         _unitOfWork = unitOfWork;
         _chatCompletion = chatCompletion;
         _configuration = configuration;
+        _privacyService = privacyService;
+        _moderationService = moderationService;
     }
 
     public async Task<AskRagQuestionResponseDto> AskCourseQuestionAsync(
@@ -47,80 +53,164 @@ public class RagChatService : IRagChatService
         string question,
         CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(question))
+        if (string.IsNullOrWhiteSpace(question) || question.Trim().Length < 2)
         {
-            throw new ArgumentException("Câu hỏi không được để trống.", nameof(question));
+            return new AskRagQuestionResponseDto
+            {
+                MessageId = Guid.Empty,
+                Question = question ?? string.Empty,
+                Answer = string.Empty,
+                Status = "ValidationError",
+                IsViolation = false,
+                WarningMessage = "Câu hỏi quá ngắn hoặc không có nội dung."
+            };
         }
 
-        // 1. Check Quota Limit
+        var trimmedQuestion = question.Trim();
+
+        // 1. PII Masking & Privacy Violation Check (Chặn ngay lập tức thông tin cá nhân như số điện thoại, CCCD, Email...)
+        var sanitizedQuestion = _privacyService.MaskSensitiveData(trimmedQuestion);
+        if (_privacyService.HasSensitiveData(trimmedQuestion))
+        {
+            var piiTypes = _privacyService.GetSensitiveDataTypes(trimmedQuestion);
+            var violationReason = $"Phát hiện thông tin cá nhân ({string.Join(", ", piiTypes)}). Vui lòng nhập theo hướng: \"{sanitizedQuestion}\"";
+
+            // Lưu vết vi phạm vào UserViolationRecord
+            var violationRecord = new UserViolationRecord(
+                accountId,
+                "PromptValidationViolation",
+                "PIIViolation",
+                violationReason,
+                sanitizedQuestion);
+
+            await _unitOfWork.Repository<UserViolationRecord>().AddAsync(violationRecord);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            // Chặn luôn, không gọi AI
+            return new AskRagQuestionResponseDto
+            {
+                MessageId = Guid.NewGuid(),
+                Question = sanitizedQuestion,
+                Answer = string.Empty,
+                Status = "Violation",
+                IsViolation = true,
+                ViolationMessage = violationReason,
+                WarningMessage = violationReason
+            };
+        }
+
+        // 2. Content Moderation Check (Kiểm tra độc hại/vi phạm an toàn nội dung)
+        var (isSafe, moderationReason) = await _moderationService.CheckContentSafetyAsync(sanitizedQuestion, cancellationToken);
+        if (!isSafe)
+        {
+            var violationRecord = new UserViolationRecord(
+                accountId,
+                "ContentModerationViolation",
+                "ContentModeration",
+                moderationReason ?? "Vi phạm quy chuẩn an toàn nội dung",
+                sanitizedQuestion);
+
+            await _unitOfWork.Repository<UserViolationRecord>().AddAsync(violationRecord);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            return new AskRagQuestionResponseDto
+            {
+                MessageId = Guid.NewGuid(),
+                Question = sanitizedQuestion,
+                Answer = string.Empty,
+                Status = "Violation",
+                IsViolation = true,
+                ViolationMessage = moderationReason ?? "Câu hỏi vi phạm quy chuẩn an toàn nội dung.",
+                WarningMessage = moderationReason
+            };
+        }
+
+        // 3. Check Quota Limit
         var quotaCheck = await _quotaService.CheckQuotaAsync(accountId, 1000, 0.80f, cancellationToken);
         if (!quotaCheck.IsAllowed)
         {
             return new AskRagQuestionResponseDto
             {
                 MessageId = Guid.Empty,
-                Question = question,
+                Question = sanitizedQuestion,
                 Answer = string.Empty,
                 Status = "QuotaExceeded",
+                IsViolation = false,
                 WarningMessage = quotaCheck.WarningMessage
             };
         }
 
-        // 2. Fetch Chat Session
+        // 4. Fetch Chat Session
         var session = await _repository.GetSessionByIdAsync(sessionId, cancellationToken);
         if (session == null)
         {
             throw new InvalidOperationException($"Không tìm thấy phiên trò chuyện RAG ID: {sessionId}");
         }
 
-        // 3. Generate Vector Embedding for user question & Retrieve top 3 chunks
-        var queryEmbedding = await _knowledgeBaseService.GenerateEmbeddingAsync(question, cancellationToken);
-        var similarChunks = await _repository.SearchSimilarChunksAsync(session.CourseId, queryEmbedding, topK: 3, cancellationToken);
+        // 5. Generate Vector Embedding for user question & Retrieve top chunks with similarity >= 0.60
+        var queryEmbedding = await _knowledgeBaseService.GenerateEmbeddingAsync(sanitizedQuestion, cancellationToken);
+        var similarChunks = await _repository.SearchSimilarChunksAsync(session.CourseId, queryEmbedding, topK: 3, minSimilarity: 0.60, cancellationToken);
 
-        // 4. Build Citations List
+        // 6. Build Citations List & Context (ONLY if chunks genuinely match the question)
         var citations = new List<RagCitationDto>();
         var contextTextBuilder = new System.Text.StringBuilder();
 
-        for (int i = 0; i < similarChunks.Count; i++)
+        bool hasRelevantCourseContent = similarChunks.Any();
+
+        if (hasRelevantCourseContent)
         {
-            var (chunk, realScore) = similarChunks[i];
-            string title = $"Bài học #{chunk.ChunkIndex}";
-            if (!string.IsNullOrWhiteSpace(chunk.MetadataJson))
+            for (int i = 0; i < similarChunks.Count; i++)
             {
-                try
+                var (chunk, realScore) = similarChunks[i];
+                string title = $"Bài học #{chunk.ChunkIndex}";
+                if (!string.IsNullOrWhiteSpace(chunk.MetadataJson))
                 {
-                    using var metaDoc = JsonDocument.Parse(chunk.MetadataJson);
-                    if (metaDoc.RootElement.TryGetProperty("MaterialTitle", out var tProp))
+                    try
                     {
-                        title = tProp.GetString() ?? title;
+                        using var metaDoc = JsonDocument.Parse(chunk.MetadataJson);
+                        if (metaDoc.RootElement.TryGetProperty("MaterialTitle", out var tProp))
+                        {
+                            title = tProp.GetString() ?? title;
+                        }
                     }
+                    catch { }
                 }
-                catch { }
+
+                citations.Add(new RagCitationDto
+                {
+                    MaterialId = chunk.MaterialId,
+                    MaterialTitle = title,
+                    Snippet = chunk.Content.Length > 150 ? chunk.Content.Substring(0, 150) + "..." : chunk.Content,
+                    SimilarityScore = realScore
+                });
+
+                contextTextBuilder.AppendLine($"--- [Trích dẫn từ bài học: {title}] ---");
+                contextTextBuilder.AppendLine(chunk.Content);
+                contextTextBuilder.AppendLine();
             }
-
-            citations.Add(new RagCitationDto
-            {
-                MaterialId = chunk.MaterialId,
-                MaterialTitle = title,
-                Snippet = chunk.Content.Length > 150 ? chunk.Content.Substring(0, 150) + "..." : chunk.Content,
-                SimilarityScore = realScore > 0 ? realScore : 0.85
-            });
-
-            contextTextBuilder.AppendLine($"--- [Trích dẫn từ bài học: {title}] ---");
-            contextTextBuilder.AppendLine(chunk.Content);
-            contextTextBuilder.AppendLine();
         }
 
-        // 5. Build RAG Prompt (Hybrid RAG: Course Material Priority + LLM General Knowledge Fallback)
-        var systemInstruction = @"Bạn là trợ lý AI thông minh phụ trách giải đáp thắc mắc cho Học viên trong khóa học.
-Dưới đây là NỘI DUNG TÀI LIỆU BÀI HỌC được trích xuất từ hệ thống:
+        // 7. Build RAG Prompt dynamically based on relevance
+        string systemInstruction;
+        if (hasRelevantCourseContent)
+        {
+            systemInstruction = @"Bạn là trợ lý AI thông minh phụ trách giải đáp thắc mắc cho Học viên trong khóa học.
+Dưới đây là NỘI DUNG TÀI LIỆU BÀI HỌC liên quan trực tiếp đến câu hỏi được trích xuất từ hệ thống:
 " + contextTextBuilder.ToString() + @"
 YÊU CẦU TRẢ LỜI:
-1. ƯU TIÊN HÀNG ĐẦU: Nếu câu hỏi nằm trong NỘI DUNG TÀI LIỆU BÀI HỌC ở trên, hãy dùng kiến thức đó để giải đáp chính xác cho Học viên.
-2. NẾU CÂU HỎI NẰM NGOÀI TÀI LIỆU BÀI HỌC: Hãy vận dụng kiến thức chuyên môn rộng lớn của bạn để giải đáp chi tiết, chu đáo và hữu ích cho Học viên (TUYỆT ĐỐI KHÔNG từ chối trả lời hoặc bảo 'tôi không biết').
-3. Trả lời bằng tiếng Việt, mạch lạc, dễ hiểu, thái độ hỗ trợ nhiệt tình.";
+1. Hãy sử dụng NỘI DUNG TÀI LIỆU BÀI HỌC ở trên để giải đáp chính xác, rõ ràng và mạch lạc cho Học viên.
+2. Trả lời bằng tiếng Việt, thái độ hỗ trợ nhiệt tình, dễ hiểu.";
+        }
+        else
+        {
+            systemInstruction = @"Bạn là trợ lý AI thông minh phụ trách hỗ trợ và giải đáp thắc mắc cho Học viên trong khóa học.
+HƯỚNG DẪN TRẢ LỜI:
+1. NẾU NGƯỜI DÙNG CHÀO HỎI HOẶC GIAO TIẾP XÃ GIAO (ví dụ: 'hello', 'hi', 'chào bạn', 'cảm ơn'): Hãy chào lại một cách thân thiện, tự nhiên và sẵn sàng giải đáp các câu hỏi về khóa học. TUYỆT ĐỐI KHÔNG tự ý đưa ra các bài học cụ thể hay giới thiệu tài liệu khi người dùng chưa hỏi.
+2. NẾU NGƯỜI DÙNG HỎI KIẾN THỨC CHUNG HOẶC NGOÀI KHÓA HỌC: Hãy vận dụng kiến thức chuyên môn rộng lớn của bạn để giải đáp chi tiết, chu đáo và hữu ích cho Học viên (TUYỆT ĐỐI KHÔNG từ chối trả lời hoặc bảo 'tôi không biết').
+3. Trả lời bằng tiếng Việt, lịch sự, thân thiện và mạch lạc.";
+        }
 
-        // 6. Fetch Recent Conversation History for Multi-turn Context via Semantic Kernel
+        // 8. Fetch Recent Conversation History for Multi-turn Context via Semantic Kernel
         var previousMessages = await _repository.GetMessagesBySessionIdAsync(sessionId, cancellationToken);
         var chatHistory = new ChatHistory();
         chatHistory.AddSystemMessage(systemInstruction);
@@ -138,7 +228,7 @@ YÊU CẦU TRẢ LỜI:
             }
         }
 
-        chatHistory.AddUserMessage(question);
+        chatHistory.AddUserMessage(sanitizedQuestion);
 
         var executionSettings = new OpenAIPromptExecutionSettings
         {
@@ -165,40 +255,23 @@ YÊU CẦU TRẢ LỜI:
         }
 
         string answer = response?.Content ?? "Xin lỗi, đã xảy ra lỗi khi xử lý câu hỏi của bạn.";
-        int promptTokens = 0;
-        int completionTokens = 0;
-
-        if (response != null && response.Metadata != null && response.Metadata.TryGetValue("Usage", out var usageObj))
-        {
-            try
-            {
-                var usageJson = JsonSerializer.Serialize(usageObj);
-                using var usageDoc = JsonDocument.Parse(usageJson);
-                if (usageDoc.RootElement.TryGetProperty("InputTokens", out var pElem)) promptTokens = pElem.GetInt32();
-                else if (usageDoc.RootElement.TryGetProperty("PromptTokens", out pElem)) promptTokens = pElem.GetInt32();
-                else if (usageDoc.RootElement.TryGetProperty("prompt_tokens", out pElem)) promptTokens = pElem.GetInt32();
-
-                if (usageDoc.RootElement.TryGetProperty("OutputTokens", out var cElem)) completionTokens = cElem.GetInt32();
-                else if (usageDoc.RootElement.TryGetProperty("CompletionTokens", out cElem)) completionTokens = cElem.GetInt32();
-                else if (usageDoc.RootElement.TryGetProperty("completion_tokens", out cElem)) completionTokens = cElem.GetInt32();
-            }
-            catch { }
-        }
+        string promptText = string.Join("\n", chatHistory.Select(m => m.Content));
+        var (promptTokens, completionTokens) = TokenUsageExtractor.Extract(response, promptText, answer);
 
         var modelId = _configuration["OpenAI:ModelId"] ?? "llama-3.1-8b-instant";
 
-        // 7. Record Token Usage into AITokenLogs
+        // 9. Record Token Usage into AITokenLogs
         await _quotaService.RecordTokenUsageAsync(
             accountId,
             sessionId,
-            "RagCourseQnA",
+            "RagChat",
             modelId,
             promptTokens,
             completionTokens,
             cancellationToken);
 
-        // 8. Save User Question & AI Answer Messages
-        var userMsg = new CourseChatMessage(sessionId, "user", question, null, 0, 0);
+        // 10. Save User Question & AI Answer Messages
+        var userMsg = new CourseChatMessage(sessionId, "user", sanitizedQuestion, null, 0, 0);
         var citationsJson = JsonSerializer.Serialize(citations);
         var aiMsg = new CourseChatMessage(sessionId, "assistant", answer, citationsJson, promptTokens, completionTokens);
 
@@ -209,10 +282,11 @@ YÊU CẦU TRẢ LỜI:
         return new AskRagQuestionResponseDto
         {
             MessageId = aiMsg.Id,
-            Question = question,
+            Question = sanitizedQuestion,
             Answer = answer,
             Citations = citations,
             Status = "Success",
+            IsViolation = false,
             WarningMessage = quotaCheck.WarningMessage
         };
     }

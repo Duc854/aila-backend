@@ -12,7 +12,7 @@ public interface IKnowledgeChunkRepository
     Task AddChunksAsync(IEnumerable<KnowledgeChunk> chunks, CancellationToken cancellationToken = default);
     Task<KnowledgeDocument?> GetDocumentByMaterialIdAsync(Guid materialId, CancellationToken cancellationToken = default);
     Task DeleteChunksByMaterialIdAsync(Guid materialId, CancellationToken cancellationToken = default);
-    Task<List<(KnowledgeChunk Chunk, double SimilarityScore)>> SearchSimilarChunksAsync(Guid courseId, float[] queryEmbedding, int topK = 5, CancellationToken cancellationToken = default);
+    Task<List<(KnowledgeChunk Chunk, double SimilarityScore)>> SearchSimilarChunksAsync(Guid courseId, float[] queryEmbedding, int topK = 5, double minSimilarity = 0.60, CancellationToken cancellationToken = default);
     Task<CourseChatSession?> GetSessionByIdAsync(Guid sessionId, CancellationToken cancellationToken = default);
     Task<List<CourseChatSession>> GetSessionsByAccountAndCourseAsync(Guid accountId, Guid courseId, CancellationToken cancellationToken = default);
     Task AddSessionAsync(CourseChatSession session, CancellationToken cancellationToken = default);

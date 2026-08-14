@@ -14,6 +14,9 @@ public class KnowledgeDocument : BaseEntity
     public string? ErrorMessage { get; private set; }
     public DateTime? LastIndexedAt { get; private set; }
 
+    public virtual Material Material { get; private set; } = null!;
+    public virtual Course Course { get; private set; } = null!;
+
     private readonly List<KnowledgeChunk> _chunks = new();
     public virtual IReadOnlyCollection<KnowledgeChunk> Chunks => _chunks.AsReadOnly();
 

@@ -44,6 +44,14 @@ public sealed class CreateLearningMaterialCommandHandler
                     "Bạn không có quyền thêm học liệu.");
         }
 
+        if (module.Course.IsPublished)
+        {
+            return ResponseDto<LearningMaterialDto>
+                .FailResult(
+                    "COURSE_NOT_MODIFIABLE",
+                    "Không thể thêm học liệu mới khi khóa học đang ở trạng thái công khai. Vui lòng chuyển khóa học sang trạng thái ẩn trước khi thay đổi.");
+        }
+
         // 3. Tự tính OrderIndex
         var nextOrderIndex =
             module.Materials.Any()

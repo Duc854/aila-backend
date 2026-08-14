@@ -9,5 +9,5 @@ using System.Threading.Tasks;
 
 namespace AILA.Application.Features.Materials.Queries.GetMaterialDetail
 {
-    public record GetMaterialDetailQuery(Guid CourseId, Guid MaterialId) : IRequest<ResponseDto<MaterialDetailDto>>;
+    public record GetMaterialDetailQuery(Guid LeanrerId, Guid CourseId, Guid MaterialId) : IRequest<ResponseDto<MaterialDetailDto>>;
 }

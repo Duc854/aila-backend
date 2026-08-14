@@ -82,6 +82,10 @@ public class GoogleCallbackCommandHandler : IRequestHandler<GoogleCallbackComman
         {
             return ResponseDto<LoginResponseDto>.FailResult("INVALID_ROLE", "Tài khoản không có quyền truy cập với vai trò Learner.");
         }
+        else if (!user.IsActive)
+        {
+            return ResponseDto<LoginResponseDto>.FailResult("ACCOUNT_BANNED", "Tài khoản của bạn đã bị khóa.");
+        }
         else
         {
             if (!string.IsNullOrWhiteSpace(payload.GoogleId) && string.IsNullOrWhiteSpace(user.GoogleId))
@@ -99,6 +103,15 @@ public class GoogleCallbackCommandHandler : IRequestHandler<GoogleCallbackComman
 
         var accessToken = _tokenProvider.GenerateAccessToken(user);
         var refreshToken = _tokenProvider.GenerateRefreshToken();
+        var refreshTokenHash = _tokenProvider.HashToken(refreshToken);
+
+        var userToken = new UserToken(
+            user.Id,
+            refreshTokenHash,
+            DateTime.UtcNow.AddDays(7));
+
+        _unitOfWork.UserTokens.Add(userToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return ResponseDto<LoginResponseDto>.SuccessResult(new LoginResponseDto
         {

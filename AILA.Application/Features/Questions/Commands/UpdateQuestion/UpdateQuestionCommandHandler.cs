@@ -49,8 +49,8 @@ public sealed class UpdateQuestionCommandHandler
         {
             return ResponseDto<QuestionDto>
                 .FailResult(
-                    "COURSE_PUBLISHED",
-                    "Không thể chỉnh sửa vì khóa học đã được công khai.");
+                    "COURSE_NOT_MODIFIABLE",
+                    "Không thể chỉnh sửa câu hỏi khi khóa học đang ở trạng thái công khai. Vui lòng chuyển khóa học sang trạng thái ẩn trước khi thay đổi.");
         }
 
         question.Update(

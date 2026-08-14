@@ -33,7 +33,7 @@ namespace AILA.Api.Middlewares
                     var entry = dbEx.Entries.FirstOrDefault();
                     if (entry != null)
                     {
-                        details = $"Concurrency error on entity {entry.Entity.GetType().Name}. State: {entry.State}.";
+                        details = $"Lỗi xung đột dữ liệu trên đối tượng {entry.Entity.GetType().Name}. Trạng thái: {entry.State}.";
                     }
                 }
                 

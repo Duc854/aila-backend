@@ -9,6 +9,7 @@ namespace AILA.Application.Common.Dtos
         public string Level { get; set; } = string.Empty;
         public decimal DurationHours { get; set; }
         public bool IsPublished { get; set; }
+        public bool IsPublicationLocked { get; set; }
         public CategoryDto Category { get; set; } = new();
         public AuthorDto Author { get; set; } = new();
         public List<TagDto> Tags { get; set; } = [];

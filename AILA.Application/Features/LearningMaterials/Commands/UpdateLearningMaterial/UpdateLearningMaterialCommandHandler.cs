@@ -47,8 +47,8 @@ public sealed class UpdateLearningMaterialCommandHandler
         {
             return ResponseDto<LearningMaterialDto>
                 .FailResult(
-                    "COURSE_PUBLISHED",
-                    "Không thể chỉnh sửa vì khóa học đã được công khai.");
+                    "COURSE_NOT_MODIFIABLE",
+                    "Không thể chỉnh sửa học liệu khi khóa học đang ở trạng thái công khai. Vui lòng chuyển khóa học sang trạng thái ẩn trước khi thay đổi.");
         }
 
         material.UpdateTitle(request.Title);

@@ -22,10 +22,7 @@ namespace AILA.Infrastructure.Persistence.Configurations
             builder.Property(x => x.OverallSuggestion)
                    .HasDefaultValue(string.Empty);
 
-            builder.HasMany(x => x.Submissions)
-                   .WithOne()
-                   .HasForeignKey(s => s.AttemptId)
-                   .OnDelete(DeleteBehavior.Cascade);
+            builder.Ignore(x => x.Submissions);
 
             builder.HasOne(x => x.Enrollment)
                    .WithMany()

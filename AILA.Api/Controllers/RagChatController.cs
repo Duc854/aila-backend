@@ -2,7 +2,7 @@ using AILA.Api.Extensions;
 using AILA.Application.Common.Dtos.Rag;
 using AILA.Application.Features.Rag.Commands.AskCourseRagQuestion;
 using AILA.Application.Features.Rag.Commands.CreateCourseChatSession;
-using AILA.Application.Features.Rag.Commands.IndexDocumentMaterial;
+using AILA.Application.Features.Rag.Commands.SyncCourseMaterialsToRag;
 using AILA.Application.Features.Rag.Queries.GetCourseChatMessages;
 using AILA.Application.Features.Rag.Queries.GetCourseChatSessions;
 using MediatR;
@@ -28,21 +28,15 @@ public class RagChatController : ControllerBase
     }
 
     /// <summary>
-    /// Admin/Expert index nội dung văn bản bài học (DocumentMaterial) vào kho tri thức RAG.
+    /// Đồng bộ TOÀN BỘ học liệu trong Khóa học vào Trợ lý AI RAG (Chỉ cần 1 click nút 'Add to RAG Chatbot' trên tab Course).
     /// </summary>
-    [HttpPost("documents/{materialId:guid}/index")]
+    [HttpPost("courses/{courseId:guid}/sync-materials")]
     [Authorize(Roles = "Admin,Expert")]
-    public async Task<ActionResult<IndexDocumentResponseDto>> IndexDocumentMaterial(
-        Guid materialId,
-        [FromBody] IndexDocumentRequest request,
+    public async Task<ActionResult<SyncCourseRagResponseDto>> SyncCourseMaterialsToRag(
+        Guid courseId,
         CancellationToken ct)
     {
-        var result = await _mediator.Send(new IndexDocumentMaterialCommand(
-            materialId,
-            request.CourseId,
-            request.MaterialTitle,
-            request.ContentText), ct);
-
+        var result = await _mediator.Send(new SyncCourseMaterialsToRagCommand(courseId), ct);
         return Ok(result);
     }
 
@@ -107,22 +101,4 @@ public class RagChatController : ControllerBase
 
         return Ok(result);
     }
-}
-
-public class IndexDocumentRequest
-{
-    public Guid CourseId { get; set; }
-    public string MaterialTitle { get; set; } = string.Empty;
-    public string ContentText { get; set; } = string.Empty;
-}
-
-public class CreateSessionRequest
-{
-    public Guid CourseId { get; set; }
-    public string Title { get; set; } = string.Empty;
-}
-
-public class AskQuestionRequest
-{
-    public string Question { get; set; } = string.Empty;
 }

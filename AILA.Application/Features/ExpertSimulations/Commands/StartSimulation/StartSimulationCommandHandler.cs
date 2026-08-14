@@ -32,12 +32,12 @@ public class StartSimulationCommandHandler : IRequestHandler<StartSimulationComm
         var user = await _unitOfWork.Repository<User>().GetByIdAsync(request.ExpertId);
         if (user == null)
         {
-            throw new NotFoundException("User (Expert)", request.ExpertId);
+            throw new NotFoundException("Chuyên gia", request.ExpertId);
         }
 
         // Step 2 (AF-01): Load Material draft configuration
         var material = await _materialRepo.GetByIdAsync(request.MaterialId)
-            ?? throw new NotFoundException("AIPracticeMaterial", request.MaterialId);
+            ?? throw new NotFoundException("Học liệu thực hành AI", request.MaterialId);
 
         // Step 3 (AF-02 / BR-01): Check Expert AI Tokens
         var quotaCheck = await _quotaService.CheckQuotaAsync(request.ExpertId, 1000, 0.80f, cancellationToken);

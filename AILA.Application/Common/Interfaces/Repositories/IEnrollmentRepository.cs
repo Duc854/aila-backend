@@ -43,5 +43,10 @@ namespace AILA.Application.Common.Interfaces.Repositories
         Task<Enrollment?> GetWithCourseTagsByIdAsync(
             Guid enrollmentId,
             CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Lấy tất cả enrollment cho một khóa học để cập nhật TotalMaterials khi publish
+        /// </summary>
+        Task<List<Enrollment>> GetByCourseIdAsync(Guid courseId, CancellationToken cancellationToken = default);
     }
 }

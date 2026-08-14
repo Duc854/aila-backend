@@ -446,13 +446,15 @@ namespace AILA.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("MaterialId");
 
-                    b.HasIndex("LearnerId", "CourseId", "MaterialId")
-                        .IsUnique();
+                    b.HasIndex("LearnerId", "CourseId")
+                        .IsUnique()
+                        .HasFilter("\"MaterialId\" IS NULL AND \"Status\" = 'Pending'");
 
-                    b.ToTable("ContentReport", null, t =>
-                        {
-                            t.HasCheckConstraint("CK_ContentReport_CourseRequired", "\"CourseId\" IS NOT NULL");
-                        });
+                    b.HasIndex("LearnerId", "CourseId", "MaterialId")
+                        .IsUnique()
+                        .HasFilter("\"MaterialId\" IS NOT NULL AND \"Status\" = 'Pending'");
+
+                    b.ToTable("ContentReport", (string)null);
                 });
 
             modelBuilder.Entity("AILA.Domain.Entities.Course", b =>
@@ -879,9 +881,13 @@ namespace AILA.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CourseId");
+
                     b.HasIndex("KnowledgeDocumentId");
 
-                    b.ToTable("KnowledgeChunks");
+                    b.HasIndex("KnowledgeDocumentId", "ChunkIndex");
+
+                    b.ToTable("KnowledgeChunks", (string)null);
                 });
 
             modelBuilder.Entity("AILA.Domain.Entities.KnowledgeDocument", b =>
@@ -916,7 +922,12 @@ namespace AILA.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("KnowledgeDocuments");
+                    b.HasIndex("CourseId");
+
+                    b.HasIndex("MaterialId")
+                        .IsUnique();
+
+                    b.ToTable("KnowledgeDocuments", (string)null);
                 });
 
             modelBuilder.Entity("AILA.Domain.Entities.Learner", b =>
@@ -1941,14 +1952,7 @@ namespace AILA.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("AILA.Domain.Entities.PracticeAttempt", "Attempt")
-                        .WithMany()
-                        .HasForeignKey("AttemptId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.Navigation("Account");
-
-                    b.Navigation("Attempt");
                 });
 
             modelBuilder.Entity("AILA.Domain.Entities.AccountResourceLimit", b =>
@@ -2189,6 +2193,25 @@ namespace AILA.Infrastructure.Persistence.Migrations
                     b.Navigation("KnowledgeDocument");
                 });
 
+            modelBuilder.Entity("AILA.Domain.Entities.KnowledgeDocument", b =>
+                {
+                    b.HasOne("AILA.Domain.Entities.Course", "Course")
+                        .WithMany()
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AILA.Domain.Entities.Material", "Material")
+                        .WithMany()
+                        .HasForeignKey("MaterialId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+
+                    b.Navigation("Material");
+                });
+
             modelBuilder.Entity("AILA.Domain.Entities.Learner", b =>
                 {
                     b.HasOne("AILA.Domain.Entities.User", "User")
@@ -2307,23 +2330,6 @@ namespace AILA.Infrastructure.Persistence.Migrations
                     b.Navigation("Enrollment");
 
                     b.Navigation("Material");
-                });
-
-            modelBuilder.Entity("AILA.Domain.Entities.PromptSubmission", b =>
-                {
-                    b.HasOne("AILA.Domain.Entities.ExpertSimulationAttempt", null)
-                        .WithMany("Submissions")
-                        .HasForeignKey("AttemptId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("AILA.Domain.Entities.PracticeAttempt", "Attempt")
-                        .WithMany("Submissions")
-                        .HasForeignKey("AttemptId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Attempt");
                 });
 
             modelBuilder.Entity("AILA.Domain.Entities.PromptTemplate", b =>
@@ -2563,11 +2569,6 @@ namespace AILA.Infrastructure.Persistence.Migrations
                     b.Navigation("ExpertEvaluation");
                 });
 
-            modelBuilder.Entity("AILA.Domain.Entities.ExpertSimulationAttempt", b =>
-                {
-                    b.Navigation("Submissions");
-                });
-
             modelBuilder.Entity("AILA.Domain.Entities.KnowledgeDocument", b =>
                 {
                     b.Navigation("Chunks");
@@ -2594,11 +2595,6 @@ namespace AILA.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("AILA.Domain.Entities.Module", b =>
                 {
                     b.Navigation("Materials");
-                });
-
-            modelBuilder.Entity("AILA.Domain.Entities.PracticeAttempt", b =>
-                {
-                    b.Navigation("Submissions");
                 });
 
             modelBuilder.Entity("AILA.Domain.Entities.Question", b =>

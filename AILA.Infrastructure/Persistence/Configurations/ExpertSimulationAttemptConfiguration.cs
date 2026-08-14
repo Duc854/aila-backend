@@ -29,6 +29,8 @@ public class ExpertSimulationAttemptConfiguration : IEntityTypeConfiguration<Exp
         builder.Property(x => x.OverallSuggestion)
             .HasMaxLength(4000);
 
+        builder.Ignore(x => x.Submissions);
+
         builder.HasOne(x => x.Expert)
             .WithMany()
             .HasForeignKey(x => x.ExpertId)
