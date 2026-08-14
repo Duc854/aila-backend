@@ -20,6 +20,7 @@ namespace AILA.Application.Features.SubscriptionPlans
         public static (string Code, string Message)? ValidateCommonFields(
             string? description,
             decimal price,
+            int durationInDays,
             int aiTokenLimit,
             int aiPracticeScenarioLimit,
             int expertEvaluationLimit,
@@ -32,6 +33,10 @@ namespace AILA.Application.Features.SubscriptionPlans
             if (price <= 0)
                 return (SubscriptionPlanErrors.InvalidPrice,
                     "Giá gói phải lớn hơn 0.");
+
+            if (durationInDays <= 0)
+                return (SubscriptionPlanErrors.InvalidDuration,
+                    "Thời hạn gói phải lớn hơn 0 ngày.");
 
             if (aiTokenLimit < 0)
                 return (SubscriptionPlanErrors.InvalidAiTokenLimit,
@@ -53,13 +58,12 @@ namespace AILA.Application.Features.SubscriptionPlans
         }
 
         /// <summary>
-        /// Rule chỉ áp khi tạo: Name, TierLevel, DurationInDays đều bất biến hoặc
-        /// không sửa được qua UC-91 nên chỉ kiểm ở đây.
+        /// Rule chỉ áp khi tạo: Name và TierLevel bất biến sau khi tạo (INV-01, BR-01) nên
+        /// chỉ kiểm ở đây.
         /// </summary>
         public static (string Code, string Message)? ValidateCreateOnlyFields(
             string? name,
-            int tierLevel,
-            int durationInDays)
+            int tierLevel)
         {
             if (string.IsNullOrWhiteSpace(name))
                 return (SubscriptionPlanErrors.NameRequired,
@@ -72,10 +76,6 @@ namespace AILA.Application.Features.SubscriptionPlans
             if (tierLevel <= 0)
                 return (SubscriptionPlanErrors.InvalidTierLevel,
                     "Cấp độ gói phải lớn hơn 0.");
-
-            if (durationInDays <= 0)
-                return (SubscriptionPlanErrors.InvalidDuration,
-                    "Thời hạn gói phải lớn hơn 0 ngày.");
 
             return null;
         }

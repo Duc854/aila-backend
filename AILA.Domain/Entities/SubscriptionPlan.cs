@@ -87,15 +87,23 @@ namespace AILA.Domain.Entities
             Status = SubscriptionPlanStatus.Active;
         }
 
+        /// <summary>
+        /// Name và TierLevel cố ý không nhận ở đây: hai trường này bất biến sau khi tạo (INV-01).
+        /// DurationInDays đổi được, nhưng chỉ ảnh hưởng các lượt mua sau — subscription đã bán
+        /// giữ nguyên snapshot của mình (INV-03, BR-04).
+        /// </summary>
         public void Update(
             string? description,
             decimal price,
+            int durationInDays,
             int aiTokenLimit,
             int aiPracticeScenarioLimit,
             int expertEvaluationLimit,
             int displayOrder)
         {
             ValidatePrice(price);
+
+            ValidateDuration(durationInDays);
 
             ValidateQuota(
                 aiTokenLimit,
@@ -110,6 +118,8 @@ namespace AILA.Domain.Entities
             Description = description?.Trim();
 
             Price = price;
+
+            DurationInDays = durationInDays;
 
             AiTokenLimit = aiTokenLimit;
 
@@ -173,10 +183,7 @@ namespace AILA.Domain.Entities
                     "Cấp độ gói phải lớn hơn 0.",
                     nameof(tierLevel));
 
-            if (durationInDays <= 0)
-                throw new ArgumentException(
-                    "Thời hạn gói phải lớn hơn 0 ngày.",
-                    nameof(durationInDays));
+            ValidateDuration(durationInDays);
 
             ValidateQuota(
                 aiTokenLimit,
@@ -195,6 +202,14 @@ namespace AILA.Domain.Entities
                 throw new ArgumentException(
                     "Giá gói phải lớn hơn 0.",
                     nameof(price));
+        }
+
+        private static void ValidateDuration(int durationInDays)
+        {
+            if (durationInDays <= 0)
+                throw new ArgumentException(
+                    "Thời hạn gói phải lớn hơn 0 ngày.",
+                    nameof(durationInDays));
         }
 
         private static void ValidateQuota(
