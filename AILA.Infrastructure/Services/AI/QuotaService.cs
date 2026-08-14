@@ -141,7 +141,7 @@ public class QuotaService : IQuotaService
         var activeSub = await _unitOfWork.Repository<Subscription>().FindAsync(s => 
             s.LearnerId == accountId && 
             s.Status == SubscriptionStatus.Active && 
-            s.ExpiredAt >= DateTime.UtcNow);
+            s.ExpiredAt > DateTime.UtcNow);
         
         var currentActive = activeSub.FirstOrDefault();
         if (currentActive != null && currentActive.PlanSnapshot != null && currentActive.PlanSnapshot.AiTokenLimit > 0)

@@ -5,15 +5,16 @@ namespace AILA.Infrastructure.Services.Email
 {
     /// <summary>
     /// Cài đặt <see cref="IEmailSender"/> cho tầng Application: dựng nội dung email rồi
-    /// đẩy vào hàng đợi và trả về ngay. Việc gửi thật do <see cref="EmailBackgroundService"/> lo.
+    /// gửi thẳng qua <see cref="IEmailTransport"/> ngay trong vòng đời request.
+    /// Không hàng đợi, không retry — lời gọi chỉ trả về khi SMTP đã nhận (hoặc đã lỗi).
     /// </summary>
-    public sealed class QueuedEmailSender : IEmailSender
+    public sealed class SmtpEmailSender : IEmailSender
     {
-        private readonly IEmailQueue _queue;
+        private readonly IEmailTransport _transport;
 
-        public QueuedEmailSender(IEmailQueue queue)
+        public SmtpEmailSender(IEmailTransport transport)
         {
-            _queue = queue;
+            _transport = transport;
         }
 
         public async Task SendPasswordResetOtpAsync(
@@ -30,7 +31,7 @@ namespace AILA.Infrastructure.Services.Email
                 HtmlBody: BuildHtmlBody(fullName, otp, expiresInMinutes),
                 TextBody: BuildTextBody(fullName, otp, expiresInMinutes));
 
-            await _queue.EnqueueAsync(message, cancellationToken);
+            await _transport.SendAsync(message, cancellationToken);
         }
 
         private static string BuildHtmlBody(string fullName, string otp, int expiresInMinutes)

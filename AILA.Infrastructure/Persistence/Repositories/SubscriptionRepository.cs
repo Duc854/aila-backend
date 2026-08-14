@@ -27,18 +27,20 @@ namespace AILA.Infrastructure.Persistence.Repositories
                 .Include(s => s.SubscriptionPlan)
                 .Where(s => s.LearnerId == learnerId
                             && s.Status == SubscriptionStatus.Active
-                            && s.ExpiredAt >= now)
+                            && s.ExpiredAt > now)
                 .OrderByDescending(s => s.ActivatedAt)
                 .FirstOrDefaultAsync(cancellationToken);
         }
 
+        /// <summary>
+        /// Lấy gói mới nhất còn mang trạng thái Active (kể cả đã quá hạn) để tính định ngạch.
+        /// Không dùng AsNoTracking vì bên gọi có thể chuyển gói sang Expired và cần lưu lại.
+        /// </summary>
         public async Task<Subscription?> GetActiveSubscriptionByLearnerIdToCalculateResourceAsync(
             Guid learnerId,
             CancellationToken cancellationToken = default)
         {
             return await _context.Subscriptions
-                .AsNoTracking()
-                .Include(s => s.SubscriptionPlan)
                 .Where(s => s.LearnerId == learnerId
                             && s.Status == SubscriptionStatus.Active)
                 .OrderByDescending(s => s.ActivatedAt)
