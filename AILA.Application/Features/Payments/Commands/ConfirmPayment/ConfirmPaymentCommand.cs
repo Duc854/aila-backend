@@ -11,6 +11,7 @@ namespace AILA.Application.Features.Payments.Commands.ConfirmPayment
     public record ConfirmPaymentCommand(
         string RawBody,
         string Signature,
-        SePayWebhookDto Payload
+        SePayWebhookDto Payload,
+        string? Timestamp = null
     ) : IRequest<ResponseDto<object>>;
 }

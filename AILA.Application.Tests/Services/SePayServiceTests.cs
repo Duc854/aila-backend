@@ -35,18 +35,20 @@ public class SePayServiceTests
         // Arrange
         const string testBody = """{"gateway":"MBBank","transactionDate":"2026-08-15 00:58:00","accountNumber":"0369522588","code":"AILA1786730303","transferAmount":50000}""";
         const string secretKey = "test-secret-key";
+        const string timestamp = "1786730332";
         
-        // Create expected signature
+        // Create expected signature using SePay format: timestamp + "." + body
+        var payload = timestamp + "." + testBody;
         using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secretKey));
-        var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(testBody));
+        var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(payload));
         var expectedSignature = Convert.ToHexString(hash).ToLowerInvariant();
         
         // Test both with and without sha256= prefix
         var signatureWithPrefix = $"sha256={expectedSignature}";
 
         // Act & Assert
-        Assert.True(_sePayService.VerifyWebhookSignature(testBody, expectedSignature));
-        Assert.True(_sePayService.VerifyWebhookSignature(testBody, signatureWithPrefix));
+        Assert.True(_sePayService.VerifyWebhookSignature(testBody, expectedSignature, timestamp));
+        Assert.True(_sePayService.VerifyWebhookSignature(testBody, signatureWithPrefix, timestamp));
     }
 
     [Fact]
@@ -54,10 +56,11 @@ public class SePayServiceTests
     {
         // Arrange
         const string testBody = """{"test":"data"}""";
+        const string timestamp = "1786730332";
         const string invalidSignature = "sha256=invalid-signature-hash";
 
         // Act & Assert
-        Assert.False(_sePayService.VerifyWebhookSignature(testBody, invalidSignature));
+        Assert.False(_sePayService.VerifyWebhookSignature(testBody, invalidSignature, timestamp));
     }
 
     [Fact]
@@ -65,9 +68,10 @@ public class SePayServiceTests
     {
         // Arrange
         const string testBody = """{"test":"data"}""";
+        const string timestamp = "1786730332";
 
         // Act & Assert
-        Assert.False(_sePayService.VerifyWebhookSignature(testBody, ""));
-        Assert.False(_sePayService.VerifyWebhookSignature(testBody, "   "));
+        Assert.False(_sePayService.VerifyWebhookSignature(testBody, "", timestamp));
+        Assert.False(_sePayService.VerifyWebhookSignature(testBody, "   ", timestamp));
     }
 }

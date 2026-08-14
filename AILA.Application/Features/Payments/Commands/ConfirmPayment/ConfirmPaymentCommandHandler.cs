@@ -21,7 +21,7 @@ namespace AILA.Application.Features.Payments.Commands.ConfirmPayment
             CancellationToken cancellationToken)
         {
             // 1. Xác thực chữ ký webhook (bảo mật: chỉ chấp nhận từ SePay)
-            if (!sePayService.VerifyWebhookSignature(request.RawBody, request.Signature))
+            if (!sePayService.VerifyWebhookSignature(request.RawBody, request.Signature, request.Timestamp))
                 return ResponseDto<object>.FailResult(
                     PaymentErrors.InvalidSignature,
                     "Chữ ký webhook không hợp lệ.");
