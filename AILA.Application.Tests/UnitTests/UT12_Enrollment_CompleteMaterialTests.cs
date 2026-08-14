@@ -1,4 +1,4 @@
-﻿using AILA.Domain.Entities;
+using AILA.Domain.Entities;
 using AILA.Domain.Enums;
 
 namespace AILA.Application.Tests.UnitTests;
@@ -114,7 +114,7 @@ public class UT12_Enrollment_CompleteMaterialTests
         var ex = Assert.Throws<InvalidOperationException>(() => enrollment.CompleteMaterial());
 
         Assert.Equal(
-            "Số học liệu hoàn thành không thể vượt quá tổng số học liệu của khóa học.",
+            "Số học liệu hoàn thành không thể vượt quá tổng số học liệu.",
             ex.Message);
         Assert.Equal(0, enrollment.CompletedMaterials);
         Assert.Equal(0.00m, enrollment.ProgressPct);

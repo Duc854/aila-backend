@@ -1,11 +1,12 @@
 using AILA.Application.Features.Authentication.Dtos;
 using FluentValidation;
 using MediatR;
+using Shared.Wrappers;
 
 namespace AILA.Application.Features.Authentication.Commands.ExpertLogin
 {
     public record ExpertLoginCommand(string Email, string Password)
-        : IRequest<LoginResponseDto?>;
+        : IRequest<ResponseDto<LoginResponseDto?>>;
 
     public class ExpertLoginCommandValidator : AbstractValidator<ExpertLoginCommand>
     {

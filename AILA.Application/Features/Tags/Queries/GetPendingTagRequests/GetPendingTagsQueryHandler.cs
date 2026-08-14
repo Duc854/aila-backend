@@ -42,11 +42,14 @@ namespace AILA.Application.Features.Tags.Queries.GetPendingTags
             foreach (var tag in tags)
             {
                 string submittedBy = "System";
+                var submitterId = (tag.PublishRequest?.RequestedById != null && tag.PublishRequest.RequestedById != Guid.Empty)
+                    ? tag.PublishRequest.RequestedById
+                    : tag.CreatedById;
 
-                if (tag.CreatedById.HasValue)
+                if (submitterId.HasValue && submitterId.Value != Guid.Empty)
                 {
-                    var user = await _unitOfWork.Users.GetByIdAsync(tag.CreatedById.Value);
-                    submittedBy = user?.FullName ?? "Unknown";
+                    var user = await _unitOfWork.Users.GetByIdAsync(submitterId.Value);
+                    submittedBy = user?.FullName ?? "System";
                 }
 
                 result.Add(new PendingTagVerificationDto
