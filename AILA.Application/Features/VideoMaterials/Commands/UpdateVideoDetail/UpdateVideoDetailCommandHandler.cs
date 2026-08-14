@@ -39,12 +39,13 @@ public sealed class UpdateVideoDetailCommandHandler
                         "Bạn không có quyền chỉnh sửa video này.");
             }
 
-            if (video.Material.Module.Course.IsPublished)
+            var hasEnrollmentsForVideo = await _uow.Enrollments.HasEnrollmentsForCourseAsync(video.Material.Module.CourseId, ct);
+            if (video.Material.Module.Course.IsPublished || hasEnrollmentsForVideo)
             {
                 return ResponseDto<VideoMaterialDto>
                     .FailResult(
-                        "COURSE_PUBLISHED",
-                        "Không thể chỉnh sửa vì khóa học đã được công khai.");
+                        "COURSE_NOT_MODIFIABLE",
+                        "Không thể chỉnh sửa video vì khóa học đã được công khai hoặc đã có học viên đăng ký.");
             }
 
             video.UpdateDetails(
@@ -81,12 +82,13 @@ public sealed class UpdateVideoDetailCommandHandler
                     "Bạn không có quyền chỉnh sửa video này.");
         }
 
-        if (material.Module.Course.IsPublished)
+        var hasEnrollments = await _uow.Enrollments.HasEnrollmentsForCourseAsync(material.Module.CourseId, ct);
+        if (material.Module.Course.IsPublished || hasEnrollments)
         {
             return ResponseDto<VideoMaterialDto>
                 .FailResult(
-                    "COURSE_PUBLISHED",
-                    "Không thể chỉnh sửa vì khóa học đã được công khai.");
+                    "COURSE_NOT_MODIFIABLE",
+                    "Không thể chỉnh sửa video vì khóa học đã được công khai hoặc đã có học viên đăng ký.");
         }
 
         if (material.MaterialType != MaterialType.Video)

@@ -44,6 +44,15 @@ public sealed class CreateLearningMaterialCommandHandler
                     "Bạn không có quyền thêm học liệu.");
         }
 
+        var hasEnrollments = await _uow.Enrollments.HasEnrollmentsForCourseAsync(module.CourseId, ct);
+        if (module.Course.IsPublished || hasEnrollments)
+        {
+            return ResponseDto<LearningMaterialDto>
+                .FailResult(
+                    "COURSE_NOT_MODIFIABLE",
+                    "Không thể thêm học liệu mới vì khóa học đã được công khai hoặc đã có học viên đăng ký.");
+        }
+
         // 3. Tự tính OrderIndex
         var nextOrderIndex =
             module.Materials.Any()

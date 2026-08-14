@@ -42,6 +42,15 @@ public sealed class ReorderQuestionsCommandHandler
                     "Bạn không có quyền sắp xếp câu hỏi.");
         }
 
+        var hasEnrollments = await _uow.Enrollments.HasEnrollmentsForCourseAsync(quiz.Material.Module.CourseId, ct);
+        if (quiz.Material.Module.Course.IsPublished || hasEnrollments)
+        {
+            return ResponseDto<object>
+                .FailResult(
+                    "COURSE_NOT_MODIFIABLE",
+                    "Không thể sắp xếp lại câu hỏi vì khóa học đã được công khai hoặc đã có học viên đăng ký.");
+        }
+
         var questions = await _uow.Questions
             .GetByQuizIdAsync(
                 request.QuizMaterialId,

@@ -43,6 +43,15 @@ public sealed class ReorderAnswerOptionsCommandHandler
                     "Bạn không có quyền thực hiện.");
         }
 
+        var hasEnrollments = await _uow.Enrollments.HasEnrollmentsForCourseAsync(question.QuizMaterial.Material.Module.CourseId, ct);
+        if (question.QuizMaterial.Material.Module.Course.IsPublished || hasEnrollments)
+        {
+            return ResponseDto<object>
+                .FailResult(
+                    "COURSE_NOT_MODIFIABLE",
+                    "Không thể sắp xếp lại đáp án vì khóa học đã được công khai hoặc đã có học viên đăng ký.");
+        }
+
         var answers = await _uow.AnswerOptions
             .GetByQuestionIdAsync(
                 request.QuestionId,
