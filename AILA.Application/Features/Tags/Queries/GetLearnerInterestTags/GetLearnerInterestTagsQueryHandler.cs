@@ -34,7 +34,9 @@ namespace AILA.Application.Features.Tags.Queries.GetLearnerInterestTags
             {
                 Id = t.Id,
                 Name = t.Name,
-                Code = t.Code
+                Code = t.Code,
+                CreatedById = t.CreatedById,
+                IsPublished = t.IsPublished
             })
             .ToList();
         }
