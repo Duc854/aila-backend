@@ -31,7 +31,17 @@ namespace AILA.Application.Features.SubscriptionPlans.Queries.GetSubscriptionPla
                     SubscriptionPlanErrors.NotAvailable,
                     "Gói đăng ký hiện không còn được bán.");
 
-            return ResponseDto<SubscriptionPlanDto>.SuccessResult(plan.ToPublicDto());
+            int? activeTier = null;
+
+            if (request.LearnerId is Guid learnerId)
+            {
+                var current = await uow.Subscriptions
+                    .GetActiveSubscriptionByLearnerIdAsync(learnerId, ct);
+
+                activeTier = current?.PlanSnapshot.TierLevel;
+            }
+
+            return ResponseDto<SubscriptionPlanDto>.SuccessResult(plan.ToPublicDto(activeTier));
         }
     }
 }
