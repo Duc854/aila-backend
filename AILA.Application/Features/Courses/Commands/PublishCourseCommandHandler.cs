@@ -37,13 +37,39 @@ namespace AILA.Application.Features.Courses.Commands
                 return ResponseDto<object>.FailResult("PUBLISH_FAILED", ex.Message);
             }
 
+            // 4. Lấy tất cả enrollment của khóa học này để cập nhật TotalMaterials
+            var enrollments = await _uow.Enrollments.GetByCourseIdAsync(request.CourseId, cancellationToken);
+            
+            if (enrollments.Any())
+            {
+                // 5. Đếm lại tổng số materials sau khi publish
+                var currentTotalMaterials = await _uow.Courses.CountMaterialsAsync(request.CourseId);
+                
+                // 6. Cập nhật TotalMaterials cho tất cả enrollment
+                foreach (var enrollment in enrollments)
+                {
+                    try
+                    {
+                        enrollment.UpdateTotalMaterials(currentTotalMaterials);
+                        _uow.Enrollments.Update(enrollment);
+                    }
+                    catch (ArgumentException)
+                    {
+                        // Bỏ qua enrollment có lỗi validation (ví dụ: newTotal < completed materials)
+                        // Điều này có thể xảy ra nếu expert xóa bài đã hoàn thành
+                        continue;
+                    }
+                }
+            }
+
             _uow.Courses.Update(course);
             await _uow.SaveChangesAsync(cancellationToken);
 
             return ResponseDto<object>.SuccessResult(new
             {
                 CourseId = course.Id,
-                IsPublished = course.IsPublished
+                IsPublished = course.IsPublished,
+                EnrollmentsUpdated = enrollments.Count
             });
         }
     }
