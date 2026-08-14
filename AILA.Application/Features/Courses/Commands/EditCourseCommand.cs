@@ -11,6 +11,7 @@ namespace AILA.Application.Features.Courses.Commands
         string Level,
         string? Description,
         string? ThumbnailUrl,
+        decimal DurationHours,
         List<Guid> TagIds
     ) : IRequest<CourseManageResultDto>;
 }

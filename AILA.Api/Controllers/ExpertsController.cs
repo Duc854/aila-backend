@@ -131,6 +131,7 @@ namespace AILA.Api.Controllers
                     request.Level,
                     request.Description,
                     request.ThumbnailUrl,
+                    request.DurationHours,
                     request.TagIds ?? []);
 
                 var result = await _sender.Send(command, ct);
@@ -165,6 +166,7 @@ namespace AILA.Api.Controllers
                     request.Level,
                     request.Description,
                     request.ThumbnailUrl,
+                    request.DurationHours,
                     request.TagIds ?? []);
 
                 var result = await _sender.Send(command, ct);
@@ -370,6 +372,7 @@ namespace AILA.Api.Controllers
         string Level,
         string? Description,
         string? ThumbnailUrl,
+        decimal DurationHours,
         List<Guid>? TagIds
     );
 
@@ -379,6 +382,7 @@ namespace AILA.Api.Controllers
         string Level,
         string? Description,
         string? ThumbnailUrl,
+        decimal DurationHours,
         List<Guid>? TagIds
     );
 }

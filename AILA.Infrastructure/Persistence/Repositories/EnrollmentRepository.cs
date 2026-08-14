@@ -103,5 +103,12 @@ namespace AILA.Infrastructure.Persistence.Repositories
                     e => e.Id == enrollmentId,
                     cancellationToken);
         }
+
+        public async Task<List<Enrollment>> GetByCourseIdAsync(Guid courseId, CancellationToken cancellationToken = default)
+        {
+            return await _context.Enrollments
+                .Where(e => e.CourseId == courseId)
+                .ToListAsync(cancellationToken);
+        }
     }
 }
