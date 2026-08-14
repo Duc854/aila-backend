@@ -75,12 +75,12 @@ namespace AILA.Application.Features.Courses.Queries.GetCourseLearningView
             {
                 Progress = new CourseProgressDto
                 {
-                    EnrollmentId = enrollment?.Id,
+                    EnrollmentId = enrollment.Id,
                     CompletedMaterials = completedIds.Count,
                     TotalMaterials = totalMaterials,
                     Percent = totalMaterials == 0
                         ? 0
-                        : completedIds.Count * 100.0 / totalMaterials,
+                        : Math.Round(completedIds.Count * 100.0 / totalMaterials, 2),
                     CurrentMaterialId = currentMaterialId
                 },
                 Modules = modules
