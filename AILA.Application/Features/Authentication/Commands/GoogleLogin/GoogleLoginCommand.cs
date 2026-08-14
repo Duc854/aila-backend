@@ -54,6 +54,15 @@ namespace AILA.Application.Features.Authentication.Commands.GoogleLogin
 
             var accessToken = _tokenProvider.GenerateAccessToken(user);
             var refreshToken = _tokenProvider.GenerateRefreshToken();
+            var refreshTokenHash = _tokenProvider.HashToken(refreshToken);
+
+            var userToken = new UserToken(
+                user.Id,
+                refreshTokenHash,
+                DateTime.UtcNow.AddDays(7));
+
+            _unitOfWork.UserTokens.Add(userToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             var response = new LoginResponseDto
             {
