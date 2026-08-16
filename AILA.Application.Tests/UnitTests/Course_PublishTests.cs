@@ -81,7 +81,7 @@ public class UT16_Course_PublishTests
 
         var ex = Assert.Throws<InvalidOperationException>(() => course.Publish());
 
-        Assert.Equal("Module phải có ít nhất một learning material.", ex.Message);
+        Assert.Equal("Mỗi học phần phải có ít nhất một học liệu.", ex.Message);
         Assert.False(course.IsPublished);
     }
 
