@@ -131,17 +131,6 @@ namespace AILA.Domain.Entities
             UpdateTimestamp();
         }
 
-        public void Cancel()
-        {
-            if (Status != PaymentStatus.Pending)
-                throw new InvalidOperationException(
-                    "Chỉ giao dịch đang chờ mới có thể hủy.");
-
-            Status = PaymentStatus.Cancelled;
-
-            UpdateTimestamp();
-        }
-
         public bool IsPending()
         {
             return Status == PaymentStatus.Pending;
@@ -152,10 +141,6 @@ namespace AILA.Domain.Entities
             return Status == PaymentStatus.Success;
         }
 
-        public bool IsCancelled()
-        {
-            return Status == PaymentStatus.Cancelled;
-        }
 
         public bool IsExpired()
         {
