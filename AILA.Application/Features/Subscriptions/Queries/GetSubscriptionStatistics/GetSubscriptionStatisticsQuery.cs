@@ -17,6 +17,13 @@ namespace AILA.Application.Features.Subscriptions.Queries.GetSubscriptionStatist
             GetSubscriptionStatisticsQuery request,
             CancellationToken cancellationToken)
         {
+            if (request.FromDate.HasValue && request.ToDate.HasValue && request.FromDate.Value > request.ToDate.Value)
+            {
+                return ResponseDto<SubscriptionStatisticsDto>.FailResult(
+                    "ValidationError",
+                    "Ngày kết thúc không được sớm hơn ngày bắt đầu.");
+            }
+
             var stats = await uow.Payments.GetSubscriptionStatisticsAsync(
                 request.FromDate,
                 request.ToDate,
