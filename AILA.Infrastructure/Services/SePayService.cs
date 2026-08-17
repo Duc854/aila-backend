@@ -1,6 +1,7 @@
 using AILA.Application.Common.Interfaces;
 using AILA.Application.Features.Payments.Dtos;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -26,11 +27,12 @@ namespace AILA.Infrastructure.Services
         private readonly string _bankAccountNumber;
         private readonly string _bankAccountName;
         private readonly string _bankCode;
+        private readonly ILogger<SePayService> _logger;
 
         // Template QR SePay: https://qr.sepay.vn/img?acc=<account>&bank=<bankCode>&amount=<amount>&des=<description>
         private const string QrBaseUrl = "https://qr.sepay.vn/img";
 
-        public SePayService(IConfiguration configuration)
+        public SePayService(IConfiguration configuration, ILogger<SePayService> logger)
         {
             var section = configuration.GetSection("SePay");
 
@@ -39,6 +41,7 @@ namespace AILA.Infrastructure.Services
             _bankAccountNumber = section["BankAccountNumber"] ?? string.Empty;
             _bankAccountName   = section["BankAccountName"]   ?? string.Empty;
             _bankCode          = section["BankCode"]          ?? "MB";
+            _logger            = logger;
         }
 
         /// <inheritdoc/>
@@ -66,22 +69,56 @@ namespace AILA.Infrastructure.Services
 
         /// <inheritdoc/>
         /// <remarks>
-        /// SePay gửi header "X-Signature" = HMAC-SHA256(rawBody, webhookSecret).
+        /// SePay signature format: HMAC-SHA256(timestamp + "." + rawBody, webhookSecret)
+        /// Header: X-SePay-Signature: sha256=<hex>
+        /// Header: X-SePay-Timestamp: <unix_seconds>
         /// </remarks>
-        public bool VerifyWebhookSignature(string rawBody, string receivedSignature)
+        public bool VerifyWebhookSignature(string rawBody, string receivedSignature, string? timestamp = null)
         {
             if (string.IsNullOrWhiteSpace(_webhookSecret))
-                return false; // Chưa cấu hình secret → từ chối an toàn
+            {
+                _logger.LogWarning("SePay webhook secret not configured");
+                return false;
+            }
 
             if (string.IsNullOrWhiteSpace(receivedSignature))
+            {
+                _logger.LogWarning("SePay webhook signature is empty");
                 return false;
+            }
 
-            using var hmac       = new HMACSHA256(Encoding.UTF8.GetBytes(_webhookSecret));
-            var computedBytes    = hmac.ComputeHash(Encoding.UTF8.GetBytes(rawBody));
-            var computedHex      = Convert.ToHexString(computedBytes).ToLowerInvariant();
+            if (string.IsNullOrWhiteSpace(timestamp))
+            {
+                _logger.LogWarning("SePay webhook timestamp is empty");
+                return false;
+            }
+
+            // SePay gửi signature với prefix "sha256="
             var normalizedReceived = receivedSignature.ToLowerInvariant().Trim();
+            if (normalizedReceived.StartsWith("sha256="))
+                normalizedReceived = normalizedReceived.Substring(7);
 
-            return CryptographicEquals(computedHex, normalizedReceived);
+            // SePay signature format: timestamp + "." + rawBody
+            var payload = timestamp + "." + rawBody;
+
+            using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(_webhookSecret));
+            var computedBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(payload));
+            var computedHex = Convert.ToHexString(computedBytes).ToLowerInvariant();
+
+            var isValid = CryptographicEquals(computedHex, normalizedReceived);
+
+            if (!isValid)
+            {
+                _logger.LogWarning(
+                    "SePay webhook signature mismatch. Computed={Computed}, Received={Received}, Timestamp={Timestamp}",
+                    computedHex, normalizedReceived, timestamp);
+            }
+            else
+            {
+                _logger.LogInformation("SePay webhook signature verified successfully");
+            }
+
+            return isValid;
         }
 
         /// <summary>

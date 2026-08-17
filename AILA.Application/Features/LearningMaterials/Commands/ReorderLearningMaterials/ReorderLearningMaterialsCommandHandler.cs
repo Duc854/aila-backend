@@ -54,15 +54,39 @@ public sealed class ReorderLearningMaterialsCommandHandler
 
         var materialMap = materials.ToDictionary(x => x.Id);
 
-        foreach (var item in request.Items)
+        await _uow.BeginTransactionAsync(ct);
+        try
         {
-            if (materialMap.TryGetValue(item.MaterialId, out var material))
-            {
-                material.ChangeOrder(item.NewOrderIndex);
-            }
-        }
+            const int tempOffset = 1_000_000;
 
-        await _uow.SaveChangesAsync(ct);
+            // Pha 1: Đẩy OrderIndex sang dải tạm để giải phóng vị trí (tránh vi phạm unique index)
+            foreach (var item in request.Items)
+            {
+                if (materialMap.TryGetValue(item.MaterialId, out var material))
+                {
+                    material.ChangeOrder(material.OrderIndex + tempOffset);
+                }
+            }
+
+            await _uow.SaveChangesAsync(ct);
+
+            // Pha 2: Gán OrderIndex thực tế
+            foreach (var item in request.Items)
+            {
+                if (materialMap.TryGetValue(item.MaterialId, out var material))
+                {
+                    material.ChangeOrder(item.NewOrderIndex);
+                }
+            }
+
+            await _uow.SaveChangesAsync(ct);
+            await _uow.CommitTransactionAsync(ct);
+        }
+        catch
+        {
+            await _uow.RollbackTransactionAsync(ct);
+            throw;
+        }
 
         return ResponseDto<object>.SuccessResult(null!);
     }

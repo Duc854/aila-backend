@@ -21,8 +21,7 @@ namespace AILA.Application.Features.SubscriptionPlans.Commands.CreateSubscriptio
             // AC-90.2 → AC-90.9: kiểm tra từng field để trả mã lỗi bám đúng field vi phạm.
             var createOnlyError = SubscriptionPlanRules.ValidateCreateOnlyFields(
                 request.Name,
-                request.TierLevel,
-                request.DurationInDays);
+                request.TierLevel);
 
             if (createOnlyError is not null)
                 return ResponseDto<AdminSubscriptionPlanDto>.FailResult(
@@ -32,6 +31,7 @@ namespace AILA.Application.Features.SubscriptionPlans.Commands.CreateSubscriptio
             var commonError = SubscriptionPlanRules.ValidateCommonFields(
                 request.Description,
                 request.Price,
+                request.DurationInDays,
                 request.AiTokenLimit,
                 request.AiPracticeScenarioLimit,
                 request.ExpertEvaluationLimit,

@@ -1,3 +1,4 @@
+using AILA.Api.Extensions;
 using AILA.Application.Features.SubscriptionPlans;
 using AILA.Application.Features.SubscriptionPlans.Queries.GetActiveSubscriptionPlans;
 using AILA.Application.Features.SubscriptionPlans.Queries.GetSubscriptionPlanForPurchase;
@@ -32,7 +33,11 @@ namespace AILA.Api.Controllers
         [HttpGet]
         public async Task<IActionResult> GetActivePlans(CancellationToken ct)
         {
-            var result = await _sender.Send(new GetActiveSubscriptionPlansQuery(), ct);
+            // Endpoint vẫn cho guest, nhưng nếu kèm token hợp lệ thì dùng để tính
+            // PurchaseAction của từng gói theo BR-05.
+            var learnerId = HttpContext.GetUserIdentity()?.UserId;
+
+            var result = await _sender.Send(new GetActiveSubscriptionPlansQuery(learnerId), ct);
 
             return Ok(result);
         }
@@ -46,7 +51,10 @@ namespace AILA.Api.Controllers
             [FromRoute] Guid planId,
             CancellationToken ct)
         {
-            var result = await _sender.Send(new GetSubscriptionPlanForPurchaseQuery(planId), ct);
+            var learnerId = HttpContext.GetUserIdentity()?.UserId;
+
+            var result = await _sender.Send(
+                new GetSubscriptionPlanForPurchaseQuery(planId, learnerId), ct);
 
             return result.Success ? Ok(result) : MapError(result.ErrorCode, result);
         }

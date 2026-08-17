@@ -17,7 +17,8 @@ namespace AILA.Application.Common.Interfaces
 
         /// <summary>
         /// Xác thực chữ ký webhook từ SePay.
+        /// SePay sử dụng format: HMAC-SHA256(timestamp + "." + rawBody, webhookSecret)
         /// </summary>
-        bool VerifyWebhookSignature(string rawBody, string receivedSignature);
+        bool VerifyWebhookSignature(string rawBody, string receivedSignature, string? timestamp = null);
     }
 }

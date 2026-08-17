@@ -5,14 +5,16 @@ namespace AILA.Application.Tests.UnitTests;
 
 /// <summary>
 /// Sheet: UT12_CompleteMaterial — <see cref="Enrollment.CompleteMaterial"/>
-/// Module: Learning · CC = 6 (4 đường khả thi) · 6 test case
+/// Module: Learning · CC = 4 · 6 test case
 ///
-/// Nhánh: B1 = Status == Completed (RETURN IM LẶNG) · B2 = CompletedMaterials &gt;= TotalMaterials (THROW)
-///        CalculateProgress: B3 = TotalMaterials == 0 · B4/B5 = hoàn thành hết &amp;&amp; chưa Completed
+/// Nhánh: B1 = CompletedMaterials &gt;= TotalMaterials (THROW)
+///        CalculateProgress: B2 = TotalMaterials == 0 · B3/B4 = hoàn thành hết &amp;&amp; chưa Completed
 ///
 /// Nhánh INFEASIBLE (đã ghi nhận ở Test Analysis §7):
-///  - B3: TotalMaterials == 0 luôn bị B2 ném exception chặn trước (xem UTCID06).
-///  - B5 = F: B1 đã loại trạng thái Completed nên trong CompleteMaterial() B5 luôn = T khi B4 = T.
+///  - B2: TotalMaterials == 0 luôn bị B1 ném exception chặn trước (xem UTCID06)
+///        — chỉ chạm được từ UpdateTotalMaterials() (xem UT23/UTCID05).
+///  - B4 = F: enrollment đã Completed luôn có CompletedMaterials == TotalMaterials nên bị B1
+///        chặn trước (xem UTCID05) ⇒ trong CompleteMaterial() B4 luôn = T khi B3 = T.
 /// </summary>
 public class UT12_Enrollment_CompleteMaterialTests
 {
@@ -82,18 +84,21 @@ public class UT12_Enrollment_CompleteMaterialTests
     }
 
     /// <summary>
-    /// UTCID05 · B1=T · Type A — gọi lại trên enrollment ĐÃ hoàn thành: return im lặng.
-    /// Phải assert TRẠNG THÁI GIỮ NGUYÊN, không chỉ assert "không ném exception" —
+    /// UTCID05 · B1=T · Type A — gọi lại trên enrollment ĐÃ hoàn thành (3/3): ném exception.
+    /// Phải assert TRẠNG THÁI GIỮ NGUYÊN, không chỉ assert "có ném exception" —
     /// nếu chỉ kiểm exception thì lỗi tăng quá tổng số học liệu vẫn lọt.
     /// </summary>
     [Fact]
-    public void UTCID05_AlreadyCompletedEnrollment_ReturnsSilentlyWithoutChangingState()
+    public void UTCID05_AlreadyCompletedEnrollment_ThrowsAndKeepsState()
     {
         var enrollment = BuildEnrollment(totalMaterials: 3, completedMaterials: 3);
         var completedAt = enrollment.CompletedAt;
 
-        enrollment.CompleteMaterial();
+        var ex = Assert.Throws<InvalidOperationException>(() => enrollment.CompleteMaterial());
 
+        Assert.Equal(
+            "Số học liệu hoàn thành không thể vượt quá tổng số học liệu.",
+            ex.Message);
         Assert.Equal(3, enrollment.CompletedMaterials);
         Assert.Equal(100.00m, enrollment.ProgressPct);
         Assert.Equal(EnrollmentStatus.Completed, enrollment.Status);
@@ -101,9 +106,8 @@ public class UT12_Enrollment_CompleteMaterialTests
     }
 
     /// <summary>
-    /// UTCID06 · B1=F, B2=T · Type A — khoá học không có học liệu nào (TotalMaterials = 0).
-    /// Là test case DUY NHẤT chạm được câu lệnh throw.
-    /// Đồng thời chứng minh nhánh CalculateProgress B3 (TotalMaterials == 0) là INFEASIBLE
+    /// UTCID06 · B1=T · Type A — khoá học không có học liệu nào (TotalMaterials = 0).
+    /// Chứng minh nhánh CalculateProgress B2 (TotalMaterials == 0) là INFEASIBLE
     /// từ entry point này: exception được ném trước khi tới CalculateProgress.
     /// </summary>
     [Fact]
