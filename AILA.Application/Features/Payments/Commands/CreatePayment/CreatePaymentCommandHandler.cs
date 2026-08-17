@@ -64,7 +64,7 @@ namespace AILA.Application.Features.Payments.Commands.CreatePayment
 
             if (pendingPayment is not null)
             {
-                pendingPayment.Cancel();
+                pendingPayment.MarkAsExpired();
                 uow.Payments.Update(pendingPayment);
             }
 
