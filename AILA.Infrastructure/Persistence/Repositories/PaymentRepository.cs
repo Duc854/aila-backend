@@ -81,5 +81,93 @@ namespace AILA.Infrastructure.Persistence.Repositories
                     p => p.Id == paymentId && p.LearnerId == learnerId,
                     cancellationToken);
         }
+
+        /// <inheritdoc/>
+        public async Task<AILA.Application.Features.Subscriptions.Dtos.SubscriptionStatisticsDto> GetSubscriptionStatisticsAsync(
+            DateTime? fromDate,
+            DateTime? toDate,
+            CancellationToken cancellationToken = default)
+        {
+            var paymentsQuery = _context.Payments
+                .AsNoTracking()
+                .Where(p => p.Status == PaymentStatus.Success);
+
+            if (fromDate.HasValue)
+            {
+                var startUtc = fromDate.Value.ToUniversalTime();
+                paymentsQuery = paymentsQuery.Where(p => (p.PaidAt ?? p.CreatedAt) >= startUtc);
+            }
+
+            if (toDate.HasValue)
+            {
+                var endUtc = toDate.Value.ToUniversalTime().Date.AddDays(1).AddTicks(-1);
+                paymentsQuery = paymentsQuery.Where(p => (p.PaidAt ?? p.CreatedAt) <= endUtc);
+            }
+
+            var successfulPayments = await paymentsQuery.ToListAsync(cancellationToken);
+
+            var totalRevenue = successfulPayments.Sum(p => p.Amount);
+            var totalTransactions = successfulPayments.Count;
+            var totalUniqueBuyers = successfulPayments.Select(p => p.LearnerId).Distinct().Count();
+
+            var now = DateTime.UtcNow;
+            var activeSubscriptionsCount = await _context.Subscriptions
+                .AsNoTracking()
+                .CountAsync(s => s.Status == SubscriptionStatus.Active && s.ExpiredAt > now, cancellationToken);
+
+            var expiredSubscriptionsCount = await _context.Subscriptions
+                .AsNoTracking()
+                .CountAsync(s => s.Status == SubscriptionStatus.Expired || s.ExpiredAt <= now, cancellationToken);
+
+            var plans = await _context.SubscriptionPlans
+                .AsNoTracking()
+                .OrderBy(p => p.DisplayOrder)
+                .ThenBy(p => p.TierLevel)
+                .ToListAsync(cancellationToken);
+
+            var activeSubByPlan = await _context.Subscriptions
+                .AsNoTracking()
+                .Where(s => s.Status == SubscriptionStatus.Active && s.ExpiredAt > now)
+                .GroupBy(s => s.SubscriptionPlanId)
+                .Select(g => new { PlanId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.PlanId, x => x.Count, cancellationToken);
+
+            var planBreakdowns = plans.Select(plan =>
+            {
+                var paymentsForPlan = successfulPayments.Where(p => p.SubscriptionPlanId == plan.Id).ToList();
+                return new AILA.Application.Features.Subscriptions.Dtos.SubscriptionPlanStatDto
+                {
+                    PlanId = plan.Id,
+                    PlanName = plan.Name,
+                    TierLevel = plan.TierLevel,
+                    CurrentPrice = plan.Price,
+                    TotalPurchases = paymentsForPlan.Count,
+                    TotalRevenue = paymentsForPlan.Sum(p => p.Amount),
+                    ActiveCount = activeSubByPlan.TryGetValue(plan.Id, out var count) ? count : 0
+                };
+            }).ToList();
+
+            var revenueTrends = successfulPayments
+                .GroupBy(p => (p.PaidAt ?? p.CreatedAt).ToString("yyyy-MM-dd"))
+                .OrderBy(g => g.Key)
+                .Select(g => new AILA.Application.Features.Subscriptions.Dtos.SubscriptionRevenueTrendDto
+                {
+                    Date = g.Key,
+                    Revenue = g.Sum(p => p.Amount),
+                    TransactionCount = g.Count()
+                })
+                .ToList();
+
+            return new AILA.Application.Features.Subscriptions.Dtos.SubscriptionStatisticsDto
+            {
+                TotalRevenue = totalRevenue,
+                TotalTransactions = totalTransactions,
+                TotalUniqueBuyers = totalUniqueBuyers,
+                ActiveSubscriptionsCount = activeSubscriptionsCount,
+                ExpiredSubscriptionsCount = expiredSubscriptionsCount,
+                PlanBreakdowns = planBreakdowns,
+                RevenueTrends = revenueTrends
+            };
+        }
     }
 }
