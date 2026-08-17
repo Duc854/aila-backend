@@ -245,13 +245,15 @@ namespace AILA.Application.Common.InternalServices
                 CourseRecommendationCandidateDto course,
                 Dictionary<Guid, decimal> learnerTags)
         {
+            if (course.Tags.Count == 0)
+            {
+                return (0, new List<string>());
+            }
 
-            decimal score = 0;
-
+            decimal totalScore = 0;
 
             var matchedTags =
                 new List<string>();
-
 
             foreach (var tag in course.Tags)
             {
@@ -259,16 +261,18 @@ namespace AILA.Application.Common.InternalServices
                     tag.Id,
                     out var tagScore))
                 {
-                    score += tagScore;
+                    totalScore += tagScore;
 
                     matchedTags.Add(tag.Name);
                 }
             }
 
+            var compatibility =
+                totalScore / course.Tags.Count;
 
             return
             (
-                Math.Round(score, 4),
+                Math.Round(compatibility, 4),
                 matchedTags
             );
         }
