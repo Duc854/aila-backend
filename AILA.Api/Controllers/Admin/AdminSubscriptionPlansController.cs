@@ -41,6 +41,22 @@ namespace AILA.Api.Controllers.Admin
         }
 
         /// <summary>
+        /// Thống kê lượt mua gói và doanh thu cho Admin.
+        /// </summary>
+        [HttpGet("statistics")]
+        public async Task<IActionResult> GetStatistics(
+            [FromQuery] DateTime? fromDate,
+            [FromQuery] DateTime? toDate,
+            CancellationToken ct)
+        {
+            var result = await _sender.Send(
+                new AILA.Application.Features.Subscriptions.Queries.GetSubscriptionStatistics.GetSubscriptionStatisticsQuery(fromDate, toDate),
+                ct);
+
+            return Ok(result);
+        }
+
+        /// <summary>
         /// UC-90 - Create Subscription Plan.
         /// </summary>
         [HttpPost]
