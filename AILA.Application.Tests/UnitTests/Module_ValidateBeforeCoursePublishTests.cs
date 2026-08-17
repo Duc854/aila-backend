@@ -27,7 +27,7 @@ public class UT21_Module_ValidateBeforeCoursePublishTests
 
         var ex = Assert.Throws<InvalidOperationException>(() => module.ValidateBeforeCoursePublish());
 
-        Assert.Equal("Module phải có ít nhất một learning material.", ex.Message);
+        Assert.Equal("Mỗi học phần phải có ít nhất một học liệu.", ex.Message);
         Assert.Null(module.UpdatedAt);
     }
 
