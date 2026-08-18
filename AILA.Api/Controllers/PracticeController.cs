@@ -119,10 +119,10 @@ public class PracticeController : ControllerBase
     }
 
     /// <summary>
-    /// Xem nhật ký vi phạm của một attempt (cho Expert/Admin)
+    /// Xem nhật ký vi phạm của một attempt (cho Admin)
     /// </summary>
     [HttpGet("violations/by-attempt/{attemptId:guid}")]
-    [Authorize(Roles = "Admin,Expert")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<List<PromptViolationLogDto>>> GetViolations(Guid attemptId)
     {
         var result = await _mediator.Send(new GetViolationsQuery(attemptId));
