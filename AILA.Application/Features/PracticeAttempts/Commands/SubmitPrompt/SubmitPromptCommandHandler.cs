@@ -3,7 +3,6 @@ using AILA.Application.Common.Dtos.AI;
 using AILA.Application.Common.Exceptions;
 using AILA.Application.Common.Interfaces.AI;
 using AILA.Application.Common.Interfaces.Repositories;
-using AILA.Domain.Constants;
 using AILA.Domain.Entities;
 using AILA.Domain.Enums;
 using MediatR;
@@ -23,7 +22,6 @@ public class SubmitPromptCommandHandler : IRequestHandler<SubmitPromptCommand, P
     private readonly IPrivacyService _privacyService;
     private readonly IQuotaService _quotaService;
     private readonly IUnitOfWork _unitOfWork;
-    private readonly ILearnerBehaviorService _learnerBehaviorService;
 
     public SubmitPromptCommandHandler(
         IPracticeAttemptRepository attemptRepo,
@@ -34,8 +32,7 @@ public class SubmitPromptCommandHandler : IRequestHandler<SubmitPromptCommand, P
         IModerationService moderationService,
         IPrivacyService privacyService,
         IQuotaService quotaService,
-        IUnitOfWork unitOfWork,
-        ILearnerBehaviorService learnerBehaviorService)
+        IUnitOfWork unitOfWork)
     {
         _attemptRepo = attemptRepo;
         _materialRepo = materialRepo;
@@ -46,7 +43,6 @@ public class SubmitPromptCommandHandler : IRequestHandler<SubmitPromptCommand, P
         _privacyService = privacyService;
         _quotaService = quotaService;
         _unitOfWork = unitOfWork;
-        _learnerBehaviorService = learnerBehaviorService;
     }
 
     public async Task<PromptSubmissionDto> Handle(SubmitPromptCommand request, CancellationToken cancellationToken)
@@ -276,34 +272,8 @@ public class SubmitPromptCommandHandler : IRequestHandler<SubmitPromptCommand, P
         if (!progress.IsCompleted)
         {
             progress.Complete();
-            var enrollmentWithTags = await _unitOfWork.Enrollments
-                .GetWithCourseTagsByIdAsync(attempt.EnrollmentId, cancellationToken);
-
-            if (enrollmentWithTags != null)
-            {
-                enrollmentWithTags.CompleteMaterial();
-
-                var behaviorTags = enrollmentWithTags.Course?.CourseTags?
-                    .Where(t =>
-                        !ReservedTagCodes.LevelTags.Contains(t.Code)
-                        &&
-                        !ReservedTagCodes.LearnerTypeTags.Contains(t.Code))
-                    .ToList() ?? new List<Tag>();
-
-                if (behaviorTags.Any())
-                {
-                    await _learnerBehaviorService.IncreaseScoreAsync(
-                        enrollmentWithTags.LearnerId,
-                        behaviorTags,
-                        BehaviorScoreConstants.CompleteAIPractice,
-                        cancellationToken);
-                }
-            }
-            else
-            {
-                var enrollment = await _unitOfWork.Enrollments.GetByIdAsync(attempt.EnrollmentId);
-                enrollment?.CompleteMaterial();
-            }
+            var enrollment = await _unitOfWork.Enrollments.GetByIdAsync(attempt.EnrollmentId);
+            enrollment?.CompleteMaterial();
         }
     }
 }
