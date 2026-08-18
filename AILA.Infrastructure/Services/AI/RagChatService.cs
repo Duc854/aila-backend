@@ -140,11 +140,47 @@ public class RagChatService : IRagChatService
             };
         }
 
-        // 4. Fetch Chat Session
+        // 4. Fetch Chat Session & Validate Ownership & Enrollment
         var session = await _repository.GetSessionByIdAsync(sessionId, cancellationToken);
         if (session == null)
         {
             throw new InvalidOperationException($"Không tìm thấy phiên trò chuyện RAG ID: {sessionId}");
+        }
+
+        // Chống IDOR: Chỉ chủ sở hữu session mới được hỏi đáp trong session này
+        if (session.AccountId != accountId)
+        {
+            return new AskRagQuestionResponseDto
+            {
+                MessageId = Guid.Empty,
+                Question = sanitizedQuestion,
+                Answer = "Bạn không có quyền truy cập vào phiên trò chuyện này.",
+                Status = "Forbidden",
+                IsViolation = false,
+                WarningMessage = "Quyền truy cập không hợp lệ."
+            };
+        }
+
+        // Kiểm tra quyền Enrollment của học viên trong khóa học
+        var isEnrolled = await _repository.IsLearnerEnrolledInCourseAsync(accountId, session.CourseId, cancellationToken);
+        if (!isEnrolled)
+        {
+            return new AskRagQuestionResponseDto
+            {
+                MessageId = Guid.Empty,
+                Question = sanitizedQuestion,
+                Answer = "Bạn cần đăng ký khóa học này trước khi sử dụng Trợ lý AI.",
+                Status = "Forbidden",
+                IsViolation = false,
+                WarningMessage = "Tài khoản chưa đăng ký khóa học này."
+            };
+        }
+
+        // Tự động cập nhật tiêu đề session từ câu hỏi đầu tiên
+        if (session.Title == "Cuộc trò chuyện mới" || string.IsNullOrWhiteSpace(session.Title))
+        {
+            var newTitle = sanitizedQuestion.Length > 50 ? sanitizedQuestion.Substring(0, 47) + "..." : sanitizedQuestion;
+            session.UpdateTitle(newTitle);
         }
 
         // 5. Generate Vector Embedding for user question & Retrieve top chunks with similarity >= 0.60
@@ -210,12 +246,11 @@ HƯỚNG DẪN TRẢ LỜI:
 3. Trả lời bằng tiếng Việt, lịch sự, thân thiện và mạch lạc.";
         }
 
-        // 8. Fetch Recent Conversation History for Multi-turn Context via Semantic Kernel
-        var previousMessages = await _repository.GetMessagesBySessionIdAsync(sessionId, cancellationToken);
+        // 8. Fetch Recent Conversation History for Multi-turn Context via SQL pagination
+        var recentHistory = await _repository.GetRecentMessagesAsync(sessionId, 6, cancellationToken);
         var chatHistory = new ChatHistory();
         chatHistory.AddSystemMessage(systemInstruction);
 
-        var recentHistory = previousMessages.TakeLast(6).ToList();
         foreach (var msg in recentHistory)
         {
             if (msg.Role.Equals("assistant", StringComparison.OrdinalIgnoreCase))
@@ -256,9 +291,8 @@ HƯỚNG DẪN TRẢ LỜI:
 
         string answer = response?.Content ?? "Xin lỗi, đã xảy ra lỗi khi xử lý câu hỏi của bạn.";
         string promptText = string.Join("\n", chatHistory.Select(m => m.Content));
-        var (promptTokens, completionTokens) = TokenUsageExtractor.Extract(response, promptText, answer);
-
         var modelId = _configuration["OpenAI:ModelId"] ?? "llama-3.1-8b-instant";
+        var (promptTokens, completionTokens) = TokenUsageExtractor.Extract(response, promptText, answer, modelId);
 
         // 9. Record Token Usage into AITokenLogs
         await _quotaService.RecordTokenUsageAsync(

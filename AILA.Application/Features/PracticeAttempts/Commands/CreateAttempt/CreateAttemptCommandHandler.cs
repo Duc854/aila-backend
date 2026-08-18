@@ -27,6 +27,11 @@ public class CreateAttemptCommandHandler : IRequestHandler<CreateAttemptCommand,
             throw new NotFoundException(nameof(Enrollment), request.EnrollmentId);
         }
 
+        if (request.RequestAccountId != Guid.Empty && enrollment.LearnerId != request.RequestAccountId)
+        {
+            throw new ForbiddenAccessException("Bạn không có quyền tạo phiên luyện tập cho ghi danh này.");
+        }
+
         var aiPractice = await _unitOfWork.AIPracticeMaterials.GetByIdAsync(request.MaterialId);
         if (aiPractice == null)
         {
