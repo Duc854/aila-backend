@@ -47,65 +47,66 @@ public class RoleParserService : IRoleParserService
 
         var userRole = "Chưa xác định";
         var aiRole   = "Chưa xác định";
-        var found    = false;
 
-        // Pattern 1: "Bạn LÀ X (Y)" → aiRole = Y
-        var m1 = Regex.Match(aiTask, @"Bạn LÀ\s+([^(]+)\(([^)]+)\)");
-        if (m1.Success) { aiRole = m1.Groups[2].Value.Trim(); found = true; }
-
-        // Pattern 2: "Người đang chat với bạn LÀ X" → userRole = X
-        var m2 = Regex.Match(aiTask, @"Người đang chat với bạn LÀ\s+([^.]+)");
-        if (m2.Success) { userRole = m2.Groups[1].Value.Trim(); found = true; }
-
-        // Pattern 3: "Bạn là X, Y" → aiRole = X
-        if (!found)
+        // 1. AI Role patterns
+        if (aiRole == "Chưa xác định")
         {
-            var m3 = Regex.Match(aiTask, @"Bạn là\s+([^,]+)");
-            if (m3.Success) { aiRole = m3.Groups[1].Value.Trim(); found = true; }
+            // Pattern: "Bạn LÀ X (Y)"
+            var m = Regex.Match(aiTask, @"\bBạn LÀ\s+([^(]+)\(([^)]+)\)", RegexOptions.IgnoreCase);
+            if (m.Success) aiRole = CleanRole(m.Groups[2].Value);
         }
 
-        // Pattern 4: "Bạn đóng vai X" → aiRole = X
-        if (!found)
+        if (aiRole == "Chưa xác định")
         {
-            var m4 = Regex.Match(aiTask, @"đóng vai\s+([^.]+)");
-            if (m4.Success) { aiRole = m4.Groups[1].Value.Trim(); found = true; }
+            // Pattern: "AI role: X" or "Vai trò AI: X" or "Vai trò của AI: X"
+            var m = Regex.Match(aiTask, @"\b(?:AI\s*role|Vai\s*trò\s*(?:của\s*)?AI|Vai\s*trò\s*của\s*bạn):\s*([^,.\n]+)", RegexOptions.IgnoreCase);
+            if (m.Success) aiRole = CleanRole(m.Groups[1].Value);
         }
 
-        // Pattern 5: "Vai trò của bạn: X" → aiRole = X
-        if (!found)
+        if (aiRole == "Chưa xác định")
         {
-            var m5 = Regex.Match(aiTask, @"Vai trò của bạn:\s*([^.]+)");
-            if (m5.Success) { aiRole = m5.Groups[1].Value.Trim(); found = true; }
+            // Pattern: "AI đóng vai X" or "Bạn đóng vai X" or "Đóng vai là X" (khi đứng đầu câu) or "Bạn trong vai trò X" or "Giả sử bạn là X"
+            var m = Regex.Match(aiTask, @"(?:(?:^|[.\n])\s*đóng\s*vai\s*(?:là)?|\b(?:AI|Bạn)\s+đóng\s*vai\s*(?:là)?|\bBạn\s+trong\s*vai\s*trò\s*(?:là)?|\bGiả\s*sử\s*bạn\s*là)\s+([^,.\n]+)", RegexOptions.IgnoreCase);
+            if (m.Success) aiRole = CleanRole(m.Groups[1].Value);
         }
 
-        // Pattern 6: "Vai trò của người dùng: X" → userRole = X
-        var m6 = Regex.Match(aiTask, @"Vai trò của người dùng:\s*([^.]+)");
-        if (m6.Success) { userRole = m6.Groups[1].Value.Trim(); found = true; }
-
-        // Pattern 7: "Người dùng đóng vai X" → userRole = X
-        var m7 = Regex.Match(aiTask, @"Người dùng đóng vai\s+([^.]+)");
-        if (m7.Success) { userRole = m7.Groups[1].Value.Trim(); found = true; }
-
-        // Pattern 8: "User role: X" → userRole = X
-        var m8 = Regex.Match(aiTask, @"User role:\s*([^.]+)", RegexOptions.IgnoreCase);
-        if (m8.Success) { userRole = m8.Groups[1].Value.Trim(); found = true; }
-
-        // Pattern 9: "AI role: X" → aiRole = X
-        var m9 = Regex.Match(aiTask, @"AI role:\s*([^.]+)", RegexOptions.IgnoreCase);
-        if (m9.Success) { aiRole = m9.Groups[1].Value.Trim(); found = true; }
-
-        // Pattern 10: "Vai trò AI: X" → aiRole = X
-        if (!found)
+        if (aiRole == "Chưa xác định")
         {
-            var m10 = Regex.Match(aiTask, @"Vai trò AI:\s*([^.]+)", RegexOptions.IgnoreCase);
-            if (m10.Success) { aiRole = m10.Groups[1].Value.Trim(); found = true; }
+            // Pattern: "Bạn là X"
+            var m = Regex.Match(aiTask, @"\bBạn\s+là\s+([^,.\n]+)", RegexOptions.IgnoreCase);
+            if (m.Success) aiRole = CleanRole(m.Groups[1].Value);
         }
 
-        // Pattern 11: "Vai trò User: X" → userRole = X
-        var m11 = Regex.Match(aiTask, @"Vai trò User:\s*([^.]+)", RegexOptions.IgnoreCase);
-        if (m11.Success) { userRole = m11.Groups[1].Value.Trim(); found = true; }
+        if (aiRole == "Chưa xác định")
+        {
+            // Pattern English: "You are (an?|the) X" or "Act as (an?|the) X"
+            var m = Regex.Match(aiTask, @"\b(?:You\s+are|Act\s+as)\s+(?:an?|the)?\s*([^,.\n]+)", RegexOptions.IgnoreCase);
+            if (m.Success) aiRole = CleanRole(m.Groups[1].Value);
+        }
 
-        if (!found)
+        // 2. User Role patterns
+        if (userRole == "Chưa xác định")
+        {
+            // Pattern: "User role: X" or "Vai trò User: X" or "Vai trò người dùng/học viên: X"
+            var m = Regex.Match(aiTask, @"\b(?:User\s*role|Learner\s*role|Student\s*role|Vai\s*trò\s*(?:của\s*)?(?:User|người\s*dùng|học\s*viên|người\s*học)):\s*([^,.\n]+)", RegexOptions.IgnoreCase);
+            if (m.Success) userRole = CleanRole(m.Groups[1].Value);
+        }
+
+        if (userRole == "Chưa xác định")
+        {
+            // Pattern: "Người đang chat với bạn LÀ X" or "Người dùng/Học viên đóng vai X"
+            var m = Regex.Match(aiTask, @"\b(?:Người\s*đang\s*chat\s*với\s*bạn\s*LÀ|Học\s*viên\s*(?:đóng\s*vai|là)|Người\s*dùng\s*(?:đóng\s*vai|là)|Người\s*học\s*(?:đóng\s*vai|là))\s+([^,.\n]+)", RegexOptions.IgnoreCase);
+            if (m.Success) userRole = CleanRole(m.Groups[1].Value);
+        }
+
+        if (userRole == "Chưa xác định")
+        {
+            // Pattern English: "User acts as X" or "The student is X"
+            var m = Regex.Match(aiTask, @"\b(?:The\s+user\s+is|User\s+acts\s+as|Student\s+is)\s+(?:an?|the)?\s*([^,.\n]+)", RegexOptions.IgnoreCase);
+            if (m.Success) userRole = CleanRole(m.Groups[1].Value);
+        }
+
+        if (userRole == "Chưa xác định" && aiRole == "Chưa xác định")
         {
             return new RoleParseResultDto
             {
@@ -125,5 +126,12 @@ public class RoleParserService : IRoleParserService
                 ? "Chỉ phân tích được một phần: có vai trò chưa xác định."
                 : null
         };
+    }
+
+    private static string CleanRole(string role)
+    {
+        if (string.IsNullOrWhiteSpace(role)) return "Chưa xác định";
+        var cleaned = role.Trim().Trim('\'', '"', '.', ',', ';', ':', '(', ')', '[', ']');
+        return string.IsNullOrWhiteSpace(cleaned) ? "Chưa xác định" : cleaned;
     }
 }
