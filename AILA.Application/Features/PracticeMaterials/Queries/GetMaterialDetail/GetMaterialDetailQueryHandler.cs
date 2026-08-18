@@ -28,7 +28,9 @@ public class GetMaterialDetailQueryHandler : IRequestHandler<GetMaterialDetailQu
         var dto = new AIPracticeMaterialDetailDto
         {
             Id = material.MaterialId,
-            Title = material.Scenario.Length > 60 ? material.Scenario.Substring(0, 60) + "..." : material.Scenario,
+            Title = !string.IsNullOrWhiteSpace(material.Material?.Title)
+                ? material.Material.Title
+                : material.Scenario,
             Scenario = material.Scenario,
             TaskDescription = material.LearnerTask,
             Difficulty = material.Difficulty,
