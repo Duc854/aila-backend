@@ -108,6 +108,17 @@ public class KnowledgeChunkRepository : IKnowledgeChunkRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<List<CourseChatMessage>> GetRecentMessagesAsync(Guid sessionId, int count = 6, CancellationToken cancellationToken = default)
+    {
+        var recent = await _context.CourseChatMessages
+            .Where(m => m.SessionId == sessionId)
+            .OrderByDescending(m => m.CreatedAt)
+            .Take(count)
+            .ToListAsync(cancellationToken);
+
+        return recent.OrderBy(m => m.CreatedAt).ToList();
+    }
+
     public async Task<bool> IsLearnerEnrolledInCourseAsync(Guid accountId, Guid courseId, CancellationToken cancellationToken = default)
     {
         var enrollment = await _context.Enrollments

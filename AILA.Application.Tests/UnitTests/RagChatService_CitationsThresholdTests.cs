@@ -51,6 +51,10 @@ public class UT37_RagChatService_CitationsThresholdTests
             .ReturnsAsync(session);
         _repository.Setup(x => x.GetMessagesBySessionIdAsync(_sessionId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<CourseChatMessage>());
+        _repository.Setup(x => x.GetRecentMessagesAsync(_sessionId, It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<CourseChatMessage>());
+        _repository.Setup(x => x.IsLearnerEnrolledInCourseAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
 
         _knowledgeBaseService.Setup(x => x.GenerateEmbeddingAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new float[] { 0.1f, 0.2f, 0.3f });

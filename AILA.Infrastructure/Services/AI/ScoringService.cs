@@ -404,7 +404,7 @@ QUY TẮC CHẤM ĐIỂM:
                     cancellationToken: cancellationToken);
 
                 string promptText = string.Join("\n", chatHistory.Select(m => m.Content));
-                var (promptTokens, completionTokens) = TokenUsageExtractor.Extract(response, promptText, response?.Content);
+                var (promptTokens, completionTokens) = TokenUsageExtractor.Extract(response, promptText, response?.Content, _modelId);
 
                 Console.WriteLine($"🔥 [TOKEN USED - SCORING VIA SEMANTIC KERNEL]: PromptTokens={promptTokens}, CompletionTokens={completionTokens}, TotalTokens={promptTokens + completionTokens}");
 

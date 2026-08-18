@@ -70,7 +70,7 @@ public class RagChatController : ControllerBase
     }
 
     /// <summary>
-    /// Lấy lịch sử tất cả tin nhắn hỏi đáp trong 1 phiên chat RAG.
+    /// Lấy lịch sử tất cả tin nhắn hỏi đáp trong 1 phiên chat RAG (bảo vệ chống IDOR).
     /// </summary>
     [HttpGet("sessions/{sessionId:guid}/messages")]
     [Authorize(Roles = "Learner")]
@@ -78,7 +78,11 @@ public class RagChatController : ControllerBase
         Guid sessionId,
         CancellationToken ct)
     {
-        var result = await _mediator.Send(new GetCourseChatMessagesQuery(sessionId), ct);
+        var identity = HttpContext.GetUserIdentity();
+        if (identity is null)
+            return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực thất bại."));
+
+        var result = await _mediator.Send(new GetCourseChatMessagesQuery(sessionId, identity.UserId), ct);
         return Ok(result);
     }
 
