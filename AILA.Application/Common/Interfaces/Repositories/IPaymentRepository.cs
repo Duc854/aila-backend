@@ -37,5 +37,13 @@ namespace AILA.Application.Common.Interfaces.Repositories
             Guid paymentId,
             Guid learnerId,
             CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Thống kê người mua và doanh thu gói đăng ký cho Admin.
+        /// </summary>
+        Task<AILA.Application.Features.Subscriptions.Dtos.SubscriptionStatisticsDto> GetSubscriptionStatisticsAsync(
+            DateTime? fromDate,
+            DateTime? toDate,
+            CancellationToken cancellationToken = default);
     }
 }
