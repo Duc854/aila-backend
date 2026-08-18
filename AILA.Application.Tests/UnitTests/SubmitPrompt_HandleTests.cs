@@ -53,6 +53,7 @@ public class UT28_SubmitPrompt_HandleTests
     private readonly Mock<IGenericRepository<PromptSubmission>> _submissionRepo = new();
     private readonly Mock<IGenericRepository<UserViolationRecord>> _violationRepo = new();
     private readonly Mock<IGenericRepository<AIFeedback>> _feedbackRepo = new();
+    private readonly Mock<ILearnerBehaviorService> _learnerBehavior = new();
 
     private readonly Guid _attemptId = Guid.NewGuid();
     private readonly Guid _materialId = Guid.NewGuid();
@@ -92,7 +93,8 @@ public class UT28_SubmitPrompt_HandleTests
 
     private SubmitPromptCommandHandler CreateSut() => new(
         _attemptRepo.Object, _materialRepo.Object, _promptValidation.Object, _chatService.Object,
-        _scoringService.Object, _moderation.Object, _privacy.Object, _quota.Object, _uow.Object);
+        _scoringService.Object, _moderation.Object, _privacy.Object, _quota.Object, _uow.Object,
+        _learnerBehavior.Object);
 
     private PracticeAttempt BuildAttempt(int previousSubmissions = 0)
     {
