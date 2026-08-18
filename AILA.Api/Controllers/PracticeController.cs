@@ -6,7 +6,6 @@ using AILA.Application.Features.PracticeAttempts.Commands.CreateAttempt;
 using AILA.Application.Features.PracticeAttempts.Commands.SubmitPrompt;
 using AILA.Application.Features.PracticeAttempts.Queries.GetAttemptDetail;
 using AILA.Application.Features.PracticeAttempts.Queries.GetViolations;
-using AILA.Application.Features.PracticeAttempts.Queries.ListAttempts;
 using AILA.Application.Features.PracticeMaterials.Queries.GetMaterialDetail;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -27,16 +26,7 @@ public class PracticeController : ControllerBase
     }
 
     /// <summary>
-    /// Health check
-    /// </summary>
-    [HttpGet("ping")]
-    public IActionResult Ping()
-    {
-        return Ok(new { Message = "Practice AI Demo API is running!" });
-    }
-
-    /// <summary>
-    /// Tạo một phiên luyện tập mới
+    /// Tạo một phiên luyện tập mới (UC-27)
     /// </summary>
     [HttpPost("attempts")]
     [Authorize(Roles = "Learner")]
@@ -52,7 +42,7 @@ public class PracticeController : ControllerBase
     }
 
     /// <summary>
-    /// Xem chi tiết một phiên luyện tập
+    /// Xem chi tiết một phiên luyện tập & kết quả đánh giá (UC-28)
     /// </summary>
     [HttpGet("attempts/{id:guid}")]
     [Authorize]
@@ -62,30 +52,11 @@ public class PracticeController : ControllerBase
         if (identity == null)
             return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực thất bại."));
 
-        var requestAccountId = (identity.Role == "Instructor" || identity.Role == "Admin" || identity.Role == "Expert")
+        var requestAccountId = (identity.Role == "Admin" || identity.Role == "Expert")
             ? Guid.Empty
             : identity.UserId;
 
         var result = await _mediator.Send(new GetAttemptDetailQuery(id, requestAccountId));
-        return Ok(result);
-    }
-
-    /// <summary>
-    /// Liệt kê các phiên luyện tập theo Enrollment
-    /// </summary>
-    [HttpGet("attempts/by-enrollment/{enrollmentId:guid}")]
-    [Authorize]
-    public async Task<ActionResult<List<PracticeAttemptDto>>> ListAttempts(Guid enrollmentId)
-    {
-        var identity = HttpContext.GetUserIdentity();
-        if (identity == null)
-            return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực thất bại."));
-
-        var requestAccountId = (identity.Role == "Instructor" || identity.Role == "Admin" || identity.Role == "Expert")
-            ? Guid.Empty
-            : identity.UserId;
-
-        var result = await _mediator.Send(new ListAttemptsQuery(enrollmentId, requestAccountId));
         return Ok(result);
     }
 
@@ -134,7 +105,7 @@ public class PracticeController : ControllerBase
         return NoContent();
     }
 
-    // ==================== 3 ENDPOINT MỚI ====================
+    // ==================== ENDPOINT PHỤ TRỢ ====================
 
     /// <summary>
     /// Lấy thông tin chi tiết Material (kịch bản thực hành)
@@ -148,10 +119,10 @@ public class PracticeController : ControllerBase
     }
 
     /// <summary>
-    /// Xem nhật ký vi phạm của một attempt (cho Giáo viên/Admin)
+    /// Xem nhật ký vi phạm của một attempt (cho Expert/Admin)
     /// </summary>
     [HttpGet("violations/by-attempt/{attemptId:guid}")]
-    [Authorize(Roles = "Instructor,Admin,Expert")]
+    [Authorize(Roles = "Admin,Expert")]
     public async Task<ActionResult<List<PromptViolationLogDto>>> GetViolations(Guid attemptId)
     {
         var result = await _mediator.Send(new GetViolationsQuery(attemptId));
