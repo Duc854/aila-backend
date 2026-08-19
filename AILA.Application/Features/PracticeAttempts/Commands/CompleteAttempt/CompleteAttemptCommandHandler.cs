@@ -45,6 +45,12 @@ public class CompleteAttemptCommandHandler : IRequestHandler<CompleteAttemptComm
             ?? throw new NotFoundException(
                 nameof(Enrollment),
                 attempt.EnrollmentId);
+
+        if (request.RequestAccountId != Guid.Empty && enrollment.LearnerId != request.RequestAccountId)
+        {
+            throw new ForbiddenAccessException("Bạn không có quyền hoàn thành phiên luyện tập này.");
+        }
+
         var accountId = enrollment.LearnerId;
 
         var material = await _materialRepo.GetByIdWithDetailsAsync(attempt.MaterialId, cancellationToken);

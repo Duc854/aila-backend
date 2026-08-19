@@ -37,6 +37,11 @@ public class GetAttemptDetailQueryHandler : IRequestHandler<GetAttemptDetailQuer
         var enrollment = await _unitOfWork.Enrollments.GetByIdAsync(attempt.EnrollmentId)
             ?? throw new NotFoundException(nameof(Enrollment), attempt.EnrollmentId);
 
+        if (request.RequestAccountId != Guid.Empty && enrollment.LearnerId != request.RequestAccountId)
+        {
+            throw new ForbiddenAccessException("Bạn không có quyền xem chi tiết phiên luyện tập này.");
+        }
+
         var material = await _materialRepo.GetByIdWithDetailsAsync(attempt.MaterialId, cancellationToken);
         var criteriaList = material?.ScoringCriterias.ToList() ?? new List<ScoringCriteria>();
 

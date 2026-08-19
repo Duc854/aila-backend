@@ -18,5 +18,6 @@ public interface IKnowledgeChunkRepository
     Task AddSessionAsync(CourseChatSession session, CancellationToken cancellationToken = default);
     Task AddMessageAsync(CourseChatMessage message, CancellationToken cancellationToken = default);
     Task<List<CourseChatMessage>> GetMessagesBySessionIdAsync(Guid sessionId, CancellationToken cancellationToken = default);
+    Task<List<CourseChatMessage>> GetRecentMessagesAsync(Guid sessionId, int count = 6, CancellationToken cancellationToken = default);
     Task<bool> IsLearnerEnrolledInCourseAsync(Guid accountId, Guid courseId, CancellationToken cancellationToken = default);
 }

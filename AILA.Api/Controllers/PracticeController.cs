@@ -1,3 +1,4 @@
+using AILA.Api.Extensions;
 using AILA.Application.Common.Dtos.AI;
 using AILA.Application.Features.PracticeAttempts.Commands.AbandonAttempt;
 using AILA.Application.Features.PracticeAttempts.Commands.CompleteAttempt;
@@ -5,10 +6,11 @@ using AILA.Application.Features.PracticeAttempts.Commands.CreateAttempt;
 using AILA.Application.Features.PracticeAttempts.Commands.SubmitPrompt;
 using AILA.Application.Features.PracticeAttempts.Queries.GetAttemptDetail;
 using AILA.Application.Features.PracticeAttempts.Queries.GetViolations;
-using AILA.Application.Features.PracticeAttempts.Queries.ListAttempts;
 using AILA.Application.Features.PracticeMaterials.Queries.GetMaterialDetail;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Shared.Wrappers;
 
 namespace AILA.Api.Controllers;
 
@@ -24,41 +26,37 @@ public class PracticeController : ControllerBase
     }
 
     /// <summary>
-    /// Health check
-    /// </summary>
-    [HttpGet("ping")]
-    public IActionResult Ping()
-    {
-        return Ok(new { Message = "Practice AI Demo API is running!" });
-    }
-
-    /// <summary>
-    /// Tạo một phiên luyện tập mới
+    /// Tạo một phiên luyện tập mới (UC-27)
     /// </summary>
     [HttpPost("attempts")]
+    [Authorize(Roles = "Learner")]
     public async Task<IActionResult> CreateAttempt([FromBody] CreateAttemptCommand command)
     {
-        var attemptId = await _mediator.Send(command);
+        var identity = HttpContext.GetUserIdentity();
+        if (identity == null)
+            return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực thất bại."));
+
+        var secureCommand = command with { RequestAccountId = identity.UserId };
+        var attemptId = await _mediator.Send(secureCommand);
         return CreatedAtAction(nameof(GetAttemptDetail), new { id = attemptId }, new { Id = attemptId });
     }
 
     /// <summary>
-    /// Xem chi tiết một phiên luyện tập
+    /// Xem chi tiết một phiên luyện tập & kết quả đánh giá (UC-28)
     /// </summary>
     [HttpGet("attempts/{id:guid}")]
+    [Authorize]
     public async Task<ActionResult<PracticeAttemptDto>> GetAttemptDetail(Guid id)
     {
-        var result = await _mediator.Send(new GetAttemptDetailQuery(id));
-        return Ok(result);
-    }
+        var identity = HttpContext.GetUserIdentity();
+        if (identity == null)
+            return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực thất bại."));
 
-    /// <summary>
-    /// Liệt kê các phiên luyện tập theo Enrollment
-    /// </summary>
-    [HttpGet("attempts/by-enrollment/{enrollmentId:guid}")]
-    public async Task<ActionResult<List<PracticeAttemptDto>>> ListAttempts(Guid enrollmentId)
-    {
-        var result = await _mediator.Send(new ListAttemptsQuery(enrollmentId));
+        var requestAccountId = (identity.Role == "Admin" || identity.Role == "Expert")
+            ? Guid.Empty
+            : identity.UserId;
+
+        var result = await _mediator.Send(new GetAttemptDetailQuery(id, requestAccountId));
         return Ok(result);
     }
 
@@ -66,9 +64,14 @@ public class PracticeController : ControllerBase
     /// Gửi prompt trong phiên luyện tập (gọi AI)
     /// </summary>
     [HttpPost("attempts/{attemptId:guid}/submit")]
+    [Authorize(Roles = "Learner")]
     public async Task<ActionResult<PromptSubmissionDto>> SubmitPrompt(Guid attemptId, [FromBody] SubmitPromptRequest request)
     {
-        var result = await _mediator.Send(new SubmitPromptCommand(attemptId, request.UserPrompt));
+        var identity = HttpContext.GetUserIdentity();
+        if (identity == null)
+            return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực thất bại."));
+
+        var result = await _mediator.Send(new SubmitPromptCommand(attemptId, request.UserPrompt, identity.UserId));
         return Ok(result);
     }
 
@@ -76,9 +79,14 @@ public class PracticeController : ControllerBase
     /// Hoàn thành phiên luyện tập và nhận gợi ý tổng thể từ AI
     /// </summary>
     [HttpPost("attempts/{id:guid}/complete")]
+    [Authorize(Roles = "Learner")]
     public async Task<ActionResult<CompleteAttemptResponseDto>> CompleteAttempt(Guid id)
     {
-        var result = await _mediator.Send(new CompleteAttemptCommand(id));
+        var identity = HttpContext.GetUserIdentity();
+        if (identity == null)
+            return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực thất bại."));
+
+        var result = await _mediator.Send(new CompleteAttemptCommand(id, identity.UserId));
         return Ok(result);
     }
 
@@ -86,18 +94,24 @@ public class PracticeController : ControllerBase
     /// Bỏ dở phiên luyện tập
     /// </summary>
     [HttpPost("attempts/{id:guid}/abandon")]
+    [Authorize(Roles = "Learner")]
     public async Task<IActionResult> AbandonAttempt(Guid id)
     {
-        await _mediator.Send(new AbandonAttemptCommand(id));
+        var identity = HttpContext.GetUserIdentity();
+        if (identity == null)
+            return Unauthorized(ResponseDto<object>.FailResult("UNAUTHORIZED", "Xác thực thất bại."));
+
+        await _mediator.Send(new AbandonAttemptCommand(id, identity.UserId));
         return NoContent();
     }
 
-    // ==================== 3 ENDPOINT MỚI ====================
+    // ==================== ENDPOINT PHỤ TRỢ ====================
 
     /// <summary>
     /// Lấy thông tin chi tiết Material (kịch bản thực hành)
     /// </summary>
     [HttpGet("materials/{id:guid}")]
+    [Authorize]
     public async Task<ActionResult<AIPracticeMaterialDetailDto>> GetMaterialDetail(Guid id)
     {
         var result = await _mediator.Send(new GetMaterialDetailQuery(id));
@@ -105,9 +119,10 @@ public class PracticeController : ControllerBase
     }
 
     /// <summary>
-    /// Xem nhật ký vi phạm của một attempt (cho Giáo viên/Admin)
+    /// Xem nhật ký vi phạm của một attempt (cho Admin)
     /// </summary>
     [HttpGet("violations/by-attempt/{attemptId:guid}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<List<PromptViolationLogDto>>> GetViolations(Guid attemptId)
     {
         var result = await _mediator.Send(new GetViolationsQuery(attemptId));
