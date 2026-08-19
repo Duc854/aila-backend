@@ -24,6 +24,12 @@ public class CreateCourseChatSessionCommandHandler : IRequestHandler<CreateCours
 
     public async Task<CourseChatSessionDto> Handle(CreateCourseChatSessionCommand request, CancellationToken cancellationToken)
     {
+        var isEnrolled = await _repository.IsLearnerEnrolledInCourseAsync(request.AccountId, request.CourseId, cancellationToken);
+        if (!isEnrolled)
+        {
+            throw new AILA.Application.Common.Exceptions.BusinessRuleException("Bạn cần đăng ký khóa học này trước khi sử dụng Trợ lý AI.");
+        }
+
         var session = new CourseChatSession(request.AccountId, request.CourseId, request.Title);
         await _repository.AddSessionAsync(session, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);

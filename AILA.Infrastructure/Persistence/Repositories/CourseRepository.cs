@@ -237,15 +237,14 @@ namespace AILA.Infrastructure.Persistence.Repositories
 
 
 
-                    Tags =
-                c.CourseTags
-                    .Select(t =>
-                        new CourseTagCandidateDto
+                    Tags = c.CourseTags
+                        .Where(t => t.IsPublished)
+                        .Select(t => new CourseTagCandidateDto
                         {
                             Id = t.Id,
                             Name = t.Name
                         })
-                    .ToList(),
+                        .ToList(),
 
 
 

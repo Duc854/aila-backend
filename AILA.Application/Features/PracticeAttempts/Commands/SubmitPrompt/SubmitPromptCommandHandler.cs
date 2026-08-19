@@ -6,6 +6,8 @@ using AILA.Application.Common.Interfaces.Repositories;
 using AILA.Domain.Entities;
 using AILA.Domain.Enums;
 using MediatR;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace AILA.Application.Features.PracticeAttempts.Commands.SubmitPrompt;
 
@@ -51,6 +53,16 @@ public class SubmitPromptCommandHandler : IRequestHandler<SubmitPromptCommand, P
 
         var material = await _materialRepo.GetByIdWithDetailsAsync(attempt.MaterialId, cancellationToken)
             ?? throw new NotFoundException(nameof(AIPracticeMaterial), attempt.MaterialId);
+
+        // IDOR Check
+        if (request.RequestAccountId != Guid.Empty)
+        {
+            var enrollmentOwner = await _unitOfWork.Enrollments.GetByIdAsync(attempt.EnrollmentId);
+            if (enrollmentOwner != null && enrollmentOwner.LearnerId != request.RequestAccountId)
+            {
+                throw new ForbiddenAccessException("Bạn không có quyền thao tác trên phiên luyện tập này.");
+            }
+        }
 
         // 2. Guard: Max prompt attempts (chỉ tính số lượt submit THÀNH CÔNG có AI Response)
         int validCount = attempt.Submissions.Count;

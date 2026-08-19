@@ -35,7 +35,12 @@ public class AbandonAttemptCommandHandler : IRequestHandler<AbandonAttemptComman
         var enrollment = await _unitOfWork.Enrollments.GetByIdAsync(attempt.EnrollmentId)
             ?? throw new NotFoundException(nameof(Enrollment), attempt.EnrollmentId);
 
-        var material = await _materialRepo.GetByIdAsync(attempt.MaterialId);
+        if (request.RequestAccountId != Guid.Empty && enrollment.LearnerId != request.RequestAccountId)
+        {
+            throw new ForbiddenAccessException("Bạn không có quyền thao tác trên phiên luyện tập này.");
+        }
+
+        var material = await _materialRepo.GetByIdWithDetailsAsync(attempt.MaterialId, cancellationToken);
         var criteria = material?.ScoringCriterias.ToList() ?? new List<ScoringCriteria>();
 
         var validSubmissions = attempt.Submissions
