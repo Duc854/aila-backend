@@ -92,6 +92,25 @@ namespace AILA.Domain.Constants
         // ----------------------------------------------------------------------------------
 
         /// <summary>
+        /// Báo cho admin khi có báo cáo nội dung mới từ học viên.
+        /// </summary>
+        /// <param name="adminUserId">UserId của admin nhận thông báo.</param>
+        /// <param name="reportId">Id của báo cáo vừa được tạo.</param>
+        /// <param name="courseName">Tên khóa học bị báo cáo.</param>
+        /// <param name="reportReason">Lý do báo cáo.</param>
+        public static Notification NewContentReportReceived(
+            Guid adminUserId,
+            Guid reportId,
+            string courseName,
+            string reportReason)
+            => new(
+                adminUserId,
+                "Có báo cáo nội dung mới",
+                $"Một học viên vừa gửi báo cáo về khóa học \"{courseName}\" với lý do: {reportReason}. "
+                + "Vui lòng xem xét và xử lý báo cáo này.",
+                NotificationType.NewContentReport);
+
+        /// <summary>
         /// Báo cho chuyên gia biết khóa học của họ vừa bị khoá do báo cáo vi phạm.
         /// </summary>
         /// <param name="expertUserId">UserId của chuyên gia sở hữu khóa học.</param>
@@ -118,8 +137,7 @@ namespace AILA.Domain.Constants
                 expertUserId,
                 "Khóa học của bạn đã được phục hồi",
                 $"Khóa học \"{courseName}\" đã được admin phục hồi và hiển thị trở lại với học viên.",
-                NotificationType.CourseModerationResult,
-                $"/expert/my-courses/{courseId}");
+                NotificationType.CourseModerationResult);
 
         /// <summary>
         /// Báo cho chuyên gia biết yêu cầu xem xét lại khóa học đã được duyệt và khóa học được mở.
@@ -141,8 +159,7 @@ namespace AILA.Domain.Constants
                 + (string.IsNullOrWhiteSpace(reviewComment)
                     ? string.Empty
                     : $" Nhận xét của admin: \"{reviewComment}\"."),
-                NotificationType.CourseModerationResult,
-                $"/expert/my-courses/{courseId}");
+                NotificationType.CourseModerationResult);
 
         /// <summary>
         /// Báo cho chuyên gia biết yêu cầu xem xét lại khóa học bị từ chối, khóa học vẫn bị khoá.
@@ -162,8 +179,7 @@ namespace AILA.Domain.Constants
                 $"Yêu cầu xem xét lại khóa học \"{courseName}\" đã bị admin từ chối. "
                 + $"Lý do: \"{reviewComment}\". "
                 + "Khóa học vẫn đang bị khoá và không hiển thị với học viên.",
-                NotificationType.CourseModerationResult,
-                $"/expert/my-courses/{courseId}");
+                NotificationType.CourseModerationResult);
 
         // ----------------------------------------------------------------------------------
         // Kiểm duyệt tag (Tag Verification)
@@ -194,8 +210,7 @@ namespace AILA.Domain.Constants
                       + (string.IsNullOrWhiteSpace(reviewComment)
                           ? string.Empty
                           : $" Lý do: \"{reviewComment}\"."),
-                NotificationType.TagVerificationResult,
-                $"/expert/tags");
+                NotificationType.TagVerificationResult);
 
         /// <summary>Đổi mốc UTC sang giờ Việt Nam để người đọc không phải tự quy đổi.</summary>
         private static string FormatVietnamTime(DateTime utc)

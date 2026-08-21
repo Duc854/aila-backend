@@ -28,10 +28,10 @@ public class PrivacyService : IPrivacyService
         @"(?<!\d)(?:\d{12}|\d{9})(?!\d)",
         RegexOptions.Compiled);
 
-    // Địa chỉ (tránh false positive các từ thông dụng)
+    // Địa chỉ (nhận diện địa chỉ thực tế, tránh false positive với 'số 1', 'đường link', 'đường dẫn'...)
     private static readonly Regex AddressRegex = new(
-        @"\b(?:Địa\s?chỉ|Số\s?\d+|phố\s+[A-Z\d\p{L}]|đường\s+[A-Z\d\p{L}]|huyện\s+[A-Z\d\p{L}]|tỉnh\s+[A-Z\d\p{L}]|thành\s?phố\s+[A-Z\d\p{L}]|quận\s+\d+|hẻm\s+\d+|ngõ\s+\d+)\b",
-        RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        @"\b(?:(?i:Địa\s*chỉ)|(?i:số\s+\d+[a-z]?(?:[/]\d+)?\s+(?:đường|phố|ngõ|ngách|hẻm|phường|quận|ấp|thôn))|(?:đường|phố)\s+[A-ZÀ-Ỹ\p{Lu}][a-zà-ỹ\p{Ll}]+(?:\s+[A-ZÀ-Ỹ\p{Lu}][a-zà-ỹ\p{Ll}]+)+|(?i:quận\s+\d+|hẻm\s+\d+|ngõ\s+\d+|ngách\s+\d+))\b",
+        RegexOptions.Compiled);
 
     public string MaskSensitiveData(string input)
     {

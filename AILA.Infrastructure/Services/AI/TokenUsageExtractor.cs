@@ -9,7 +9,8 @@ public static class TokenUsageExtractor
     public static (int PromptTokens, int CompletionTokens) Extract(
         ChatMessageContent? response,
         string? promptText = null,
-        string? responseText = null)
+        string? responseText = null,
+        string? modelId = null)
     {
         int promptTokens = 0;
         int completionTokens = 0;
@@ -51,17 +52,63 @@ public static class TokenUsageExtractor
 
         var actualResponse = responseText ?? response?.Content ?? string.Empty;
 
-        // Fallback ước tính chính xác (1 token ~ 3.5 ký tự) nếu API không trả về Usage
+        // Fallback ước tính theo kiến trúc Tokenizer của từng dòng Model nếu API không trả về Usage
         if (promptTokens <= 0 && !string.IsNullOrWhiteSpace(promptText))
         {
-            promptTokens = Math.Max(10, (int)Math.Ceiling(promptText.Length / 3.5));
+            var inputRatio = GetCharsPerTokenRatio(modelId, isInput: true);
+            promptTokens = Math.Max(1, (int)Math.Ceiling(promptText.Length / inputRatio));
         }
 
         if (completionTokens <= 0 && !string.IsNullOrWhiteSpace(actualResponse))
         {
-            completionTokens = Math.Max(10, (int)Math.Ceiling(actualResponse.Length / 3.5));
+            var outputRatio = GetCharsPerTokenRatio(modelId, isInput: false);
+            completionTokens = Math.Max(1, (int)Math.Ceiling(actualResponse.Length / outputRatio));
         }
 
         return (promptTokens, completionTokens);
+    }
+
+    /// <summary>
+    /// Tính tỷ lệ ký tự / token dựa trên kiến trúc Tokenizer của từng dòng Model
+    /// và sự khác biệt giữa Input (dày đặc cú pháp, Markdown, JSON, Tiếng Việt) và Output (văn bản tự nhiên).
+    /// </summary>
+    public static double GetCharsPerTokenRatio(string? modelId, bool isInput)
+    {
+        var model = modelId?.ToLowerInvariant().Trim() ?? string.Empty;
+
+        // 1. Dòng OpenAI thế hệ mới nhất: GPT-5, GPT-5-mini, GPT-5.4-mini, GPT-4o, GPT-4o-mini, o1, o3 (Tokenizer o200k_base / vocab >= 200k)
+        if (model.Contains("gpt-5") || model.Contains("gpt-4o") || model.Contains("gpt-4.5") || 
+            model.Contains("o1") || model.Contains("o3") || model.Contains("chatgpt-4o"))
+        {
+            // Tiếng Việt & Markdown cú pháp: Input ~2.8 chars/token, Output ~3.2 chars/token
+            return isInput ? 2.8 : 3.2;
+        }
+
+        // 2. Dòng Llama 3 / 3.1 / 3.2 / 3.3 (Groq / Meta - Vocab 128k)
+        if (model.Contains("llama-3") || model.Contains("llama3"))
+        {
+            return isInput ? 2.6 : 3.0;
+        }
+
+        // 3. Dòng Google Gemini (Gemini 1.5 Flash/Pro, Gemini 2.0 - Vocab 256k)
+        if (model.Contains("gemini"))
+        {
+            return isInput ? 3.0 : 3.4;
+        }
+
+        // 4. Dòng Anthropic Claude (Claude 3, Claude 3.5 Sonnet/Haiku)
+        if (model.Contains("claude"))
+        {
+            return isInput ? 2.5 : 2.9;
+        }
+
+        // 5. Dòng OpenAI thế hệ cũ: GPT-3.5-Turbo, GPT-4 cũ (Tokenizer cl100k_base - Vocab 100k)
+        if (model.Contains("gpt-3.5") || model.Contains("gpt-4"))
+        {
+            return isInput ? 2.3 : 2.7;
+        }
+
+        // Mặc định cho các model khác (tối ưu hóa ngữ liệu tiếng Việt)
+        return isInput ? 2.5 : 3.0;
     }
 }

@@ -1,5 +1,6 @@
 using AILA.Application.Common.Interfaces;
 using AILA.Application.Features.Reports.Dtos;
+using AILA.Domain.Constants;
 using AILA.Domain.Entities;
 using AILA.Domain.Enums;
 using MediatR;
@@ -64,10 +65,44 @@ namespace AILA.Application.Features.Reports.Commands.ReportCourse
             var report = new ContentReport(request.LearnerId, request.CourseId, reportMaterialId, request.Reason, description);
 
             await uow.ContentReports.AddAsync(report);
+
+            // Gửi notification cho tất cả admin
+            var adminIds = await uow.Users.GetAdminUserIdsAsync(ct);
+            var reportReasonText = GetReportReasonText(request.Reason);
+
+            if (adminIds.Count > 0)
+            {
+                foreach (var adminId in adminIds)
+                {
+                    await uow.Notifications.AddAsync(
+                        NotificationTemplates.NewContentReportReceived(
+                            adminId,
+                            report.Id,
+                            course.Name,
+                            reportReasonText));
+                }
+            }
+
             await uow.SaveChangesAsync(ct);
 
             var dto = new ReportCourseResponseDto(report.Id, report.Status.ToString(), report.CreatedAt);
             return ResponseDto<ReportCourseResponseDto>.SuccessResult(dto);
+        }
+
+        private static string GetReportReasonText(ReportType reason)
+        {
+            return reason switch
+            {
+                ReportType.InappropriateContent => "Nội dung không phù hợp",
+                ReportType.HateSpeech => "Ngôn từ thù ghét",
+                ReportType.Violence => "Bạo lực",
+                ReportType.SexualContent => "Nội dung khiêu dâm",
+                ReportType.Spam => "Spam",
+                ReportType.CopyrightViolation => "Vi phạm bản quyền",
+                ReportType.IncorrectInformation => "Thông tin sai lệch",
+                ReportType.Other => "Lý do khác",
+                _ => reason.ToString()
+            };
         }
     }
 }
