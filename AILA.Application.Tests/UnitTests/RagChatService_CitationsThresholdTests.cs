@@ -18,8 +18,18 @@ using Xunit;
 namespace AILA.Application.Tests.UnitTests;
 
 /// <summary>
-/// Unit Tests verifying that RAG Chatbot does NOT return citations for low-similarity queries (e.g. "hello", "hi")
-/// and ONLY includes citations when cosine similarity is above the threshold (>= 0.60).
+/// Sheet: UT37_RagChatService_CitationsThreshold — <see cref="RagChatService.AskCourseQuestionAsync"/>
+/// Module: AI / RAG Chatbot · 2 test case
+///
+/// Phạm vi: chỉ nhánh trích dẫn (bước 5–6 của handler) —
+///        B1 = truy vấn KHÔNG có chunk nào vượt ngưỡng cosine 0.60 ⇒ Citations rỗng
+///        B2 = có chunk vượt ngưỡng ⇒ Citations lấy MaterialTitle từ MetadataJson và giữ nguyên score thật
+/// Các nhánh còn lại (PII, moderation, quota, IDOR, enrollment, retry 429) thuộc các sheet khác.
+///
+/// PHỤ THUỘC BẮT BUỘC PHẢI STUB (nếu thiếu, handler thoát sớm hoặc ném NRE trước khi tới bước trích dẫn):
+///   · IsLearnerEnrolledInCourseAsync — mặc định Moq trả false ⇒ Status = "Forbidden".
+///   · GetRecentMessagesAsync — đây là hàm handler thực sự gọi để dựng lịch sử hội thoại
+///     (KHÔNG phải GetMessagesBySessionIdAsync).
 /// </summary>
 public class UT37_RagChatService_CitationsThresholdTests
 {
@@ -49,7 +59,13 @@ public class UT37_RagChatService_CitationsThresholdTests
         var session = new CourseChatSession(_accountId, _courseId, "Test Session");
         _repository.Setup(x => x.GetSessionByIdAsync(_sessionId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(session);
-        _repository.Setup(x => x.GetMessagesBySessionIdAsync(_sessionId, It.IsAny<CancellationToken>()))
+
+        // Học viên đã đăng ký khóa học — nếu bỏ stub này handler trả về Status = "Forbidden".
+        _repository.Setup(x => x.IsLearnerEnrolledInCourseAsync(_accountId, _courseId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        // Hội thoại mới, chưa có lịch sử. Handler gọi GetRecentMessagesAsync (không phải GetMessagesBySessionIdAsync).
+        _repository.Setup(x => x.GetRecentMessagesAsync(_sessionId, It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<CourseChatMessage>());
 
         _knowledgeBaseService.Setup(x => x.GenerateEmbeddingAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -75,8 +91,12 @@ public class UT37_RagChatService_CitationsThresholdTests
         _privacyService.Object,
         _moderationService.Object);
 
+    /// <summary>
+    /// UTCID01 · B1=T · Type N — câu chào xã giao "hello", không chunk nào vượt ngưỡng 0.60.
+    /// Chatbot vẫn trả lời bình thường nhưng TUYỆT ĐỐI không đính kèm trích dẫn nào.
+    /// </summary>
     [Fact]
-    public async Task AskCourseQuestion_WhenUserSaysHello_NoChunksAboveThreshold_ReturnsZeroCitations()
+    public async Task UTCID01_NoChunkAboveThreshold_ReturnsAnswerWithZeroCitations()
     {
         // Arrange: "hello" query produces 0 similar chunks above 0.60 threshold
         _repository.Setup(x => x.SearchSimilarChunksAsync(
@@ -97,10 +117,18 @@ public class UT37_RagChatService_CitationsThresholdTests
         Assert.Equal("Success", result.Status);
         Assert.Empty(result.Citations); // <-- Must have ZERO citations!
         Assert.Equal("Chào bạn! Tôi có thể giúp gì cho bạn về khóa học này?", result.Answer);
+
+        // Ngưỡng tương tự và topK phải được truyền xuống tầng truy vấn, không để mặc định.
+        _repository.Verify(x => x.SearchSimilarChunksAsync(
+            _courseId, It.IsAny<float[]>(), 3, 0.60, It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    /// <summary>
+    /// UTCID02 · B2=T · Type N — câu hỏi đúng nội dung khóa học, 1 chunk đạt similarity 0.85.
+    /// Citation phải lấy MaterialTitle từ MetadataJson và giữ nguyên điểm tương tự thật.
+    /// </summary>
     [Fact]
-    public async Task AskCourseQuestion_WhenUserAsksRelevantQuestion_ChunksAboveThreshold_ReturnsCitations()
+    public async Task UTCID02_ChunkAboveThreshold_ReturnsCitationWithRealScore()
     {
         // Arrange: Relevant course question produces 1 chunk with 0.85 similarity
         var doc = new KnowledgeDocument(_materialId, _courseId);
