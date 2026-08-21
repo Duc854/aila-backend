@@ -2,6 +2,7 @@ using AILA.Application.Common.Interfaces;
 using AILA.Application.Features.AdminBlog.DTOs;
 using AILA.Application.Features.AdminBlog.Mapping;
 using AILA.Domain.Entities;
+using AILA.Domain.Enums;
 using MediatR;
 using Shared.Wrappers;
 
@@ -34,20 +35,41 @@ public sealed class CreateBlogCommandHandler
                 "Slug đã tồn tại.");
         }
 
-        // 2. Tạo Blog
-        var blog = new BlogPost(
-            request.Title,
-            request.Slug,
-            request.Content,
-            request.ThumbnailUrl);
+        await _uow.BeginTransactionAsync(ct);
 
-        // 3. Lưu
-        await _uow.BlogPosts.AddAsync(blog);
+        try
+        {
+            // 2. Tạo Blog
+            var blog = new BlogPost(
+                request.Title,
+                request.Slug,
+                request.Content,
+                request.ThumbnailUrl);
 
-        await _uow.SaveChangesAsync(ct);
+            // 3. Lưu
+            await _uow.BlogPosts.AddAsync(blog);
 
-        // 4. Trả DTO
-        return ResponseDto<AdminBlogDto>
-            .SuccessResult(blog.MapToDto());
+            // 4. Ghi Audit Log nếu có AdminId
+            if (request.AdminId != Guid.Empty && _uow.AdminActivityLogs != null)
+            {
+                var activityLog = new AdminActivityLog(
+                    request.AdminId,
+                    AdminAction.Create,
+                    $"Tạo bài viết blog mới: {blog.Title}");
+
+                await _uow.AdminActivityLogs.AddAsync(activityLog);
+            }
+
+            await _uow.CommitTransactionAsync(ct);
+
+            // 5. Trả DTO
+            return ResponseDto<AdminBlogDto>
+                .SuccessResult(blog.MapToDto());
+        }
+        catch
+        {
+            await _uow.RollbackTransactionAsync(ct);
+            throw;
+        }
     }
 }

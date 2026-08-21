@@ -1,4 +1,6 @@
 using AILA.Application.Common.Interfaces;
+using AILA.Domain.Entities;
+using AILA.Domain.Enums;
 using MediatR;
 using Shared.Wrappers;
 
@@ -28,13 +30,33 @@ public sealed class PublishBlogCommandHandler
                 "Không tìm thấy bài viết.");
         }
 
-        // 2. Publish
-        blog.Publish();
+        await _uow.BeginTransactionAsync(ct);
 
-        // 3. Lưu
-        await _uow.SaveChangesAsync(ct);
+        try
+        {
+            // 2. Publish
+            blog.Publish();
 
-        // 4. Thành công
-        return ResponseDto<bool>.SuccessResult(true);
+            // 3. Ghi Audit Log nếu có AdminId
+            if (request.AdminId != Guid.Empty && _uow.AdminActivityLogs != null)
+            {
+                var activityLog = new AdminActivityLog(
+                    request.AdminId,
+                    AdminAction.Publish,
+                    $"Xuất bản bài viết blog: {blog.Title}");
+
+                await _uow.AdminActivityLogs.AddAsync(activityLog);
+            }
+
+            await _uow.CommitTransactionAsync(ct);
+
+            // 4. Thành công
+            return ResponseDto<bool>.SuccessResult(true);
+        }
+        catch
+        {
+            await _uow.RollbackTransactionAsync(ct);
+            throw;
+        }
     }
 }

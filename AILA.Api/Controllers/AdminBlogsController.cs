@@ -1,3 +1,4 @@
+using AILA.Api.Extensions;
 using AILA.Application.Features.AdminBlog.Commands.CreateBlog;
 using AILA.Application.Features.AdminBlog.Commands.DeleteBlog;
 using AILA.Application.Features.AdminBlog.Commands.PublishBlog;
@@ -60,7 +61,9 @@ namespace AILA.Api.Controllers
         public async Task<IActionResult> Create(
             [FromBody] CreateBlogCommand command)
         {
-            var result = await _mediator.Send(command);
+            var adminId = HttpContext.GetUserIdentity()?.UserId ?? Guid.Empty;
+            var fullCommand = command with { AdminId = adminId };
+            var result = await _mediator.Send(fullCommand);
 
             return Ok(result);
         }
@@ -78,7 +81,9 @@ namespace AILA.Api.Controllers
                 return BadRequest("Id trên URL không trùng khớp với BlogId trong yêu cầu.");
             }
 
-            var result = await _mediator.Send(command);
+            var adminId = HttpContext.GetUserIdentity()?.UserId ?? Guid.Empty;
+            var fullCommand = command with { AdminId = adminId };
+            var result = await _mediator.Send(fullCommand);
 
             return Ok(result);
         }
@@ -89,8 +94,9 @@ namespace AILA.Api.Controllers
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete(Guid id)
         {
+            var adminId = HttpContext.GetUserIdentity()?.UserId ?? Guid.Empty;
             var result = await _mediator.Send(
-                new DeleteBlogCommand(id));
+                new DeleteBlogCommand(id, adminId));
 
             return Ok(result);
         }
@@ -101,8 +107,9 @@ namespace AILA.Api.Controllers
         [HttpPut("{id:guid}/publish")]
         public async Task<IActionResult> Publish(Guid id)
         {
+            var adminId = HttpContext.GetUserIdentity()?.UserId ?? Guid.Empty;
             var result = await _mediator.Send(
-                new PublishBlogCommand(id));
+                new PublishBlogCommand(id, adminId));
 
             return Ok(result);
         }
@@ -113,8 +120,9 @@ namespace AILA.Api.Controllers
         [HttpPut("{id:guid}/unpublish")]
         public async Task<IActionResult> Unpublish(Guid id)
         {
+            var adminId = HttpContext.GetUserIdentity()?.UserId ?? Guid.Empty;
             var result = await _mediator.Send(
-                new UnpublishBlogCommand(id));
+                new UnpublishBlogCommand(id, adminId));
 
             return Ok(result);
         }
