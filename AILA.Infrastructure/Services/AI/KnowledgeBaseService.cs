@@ -17,10 +17,10 @@ namespace AILA.Infrastructure.Services.AI;
 
 public class KnowledgeBaseService : IKnowledgeBaseService
 {
-    private readonly IKnowledgeChunkRepository _repository;
+    private readonly IKnowledgeRepository _repository;
     private readonly IUnitOfWork _unitOfWork;
 
-    public KnowledgeBaseService(IKnowledgeChunkRepository repository, IUnitOfWork unitOfWork)
+    public KnowledgeBaseService(IKnowledgeRepository repository, IUnitOfWork unitOfWork)
     {
         _repository = repository;
         _unitOfWork = unitOfWork;
