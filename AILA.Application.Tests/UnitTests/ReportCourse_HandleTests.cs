@@ -9,22 +9,29 @@ namespace AILA.Application.Tests.UnitTests;
 
 /// <summary>
 /// Sheet: UT10_ReportCourse — <see cref="ReportCourseCommandHandler.Handle"/>
-/// Module: Moderation · CC = 10 · 13 test case
+/// Module: Moderation · CC = 12 · 14 test case
 ///
 /// Nhánh: B1 = Reason ngoài enum · B2 = toán tử ?. khi Description null
 ///        B3 = mô tả &gt; 1000 ký tự · B4 = course null · B5 = chưa enroll
 ///        B6 = có MaterialId · B7 = học liệu không thuộc khoá · B8 = đã có báo cáo Pending
 ///        B9 = chọn thông điệp theo đối tượng bị báo cáo
+///        B10 = hệ thống có admin để gửi thông báo · B11 = vòng lặp gửi thông báo cho từng admin
 ///
 /// HỢP ĐỒNG DỮ LIỆU (đổi từ commit 2ff5f51 "refactor: update content report relationship"):
 /// ContentReport.CourseId nay là NON-NULLABLE — mọi báo cáo đều thuộc về một khóa học;
 /// MaterialId là tuỳ chọn, chỉ ra học liệu cụ thể bị báo cáo. Bất biến XOR cũ đã bị bỏ.
-/// Handler chưa được cập nhật theo hợp đồng mới ⇒ xem UTCID09 (DFID003).
+/// Handler đã được cập nhật theo hợp đồng mới ⇒ DFID003 CLOSED (xem UTCID09).
+///
+/// PHỤ THUỘC MỚI (commit 2ddad03 "add notification in report manage"): sau khi tạo report,
+/// handler gọi uow.Users.GetAdminUserIdsAsync + uow.Notifications.AddAsync ⇒ hai repository này
+/// bắt buộc phải được stub, nếu không mọi ca Type N đều ném NullReferenceException.
 /// </summary>
 public class UT10_ReportCourse_HandleTests
 {
     private static readonly Guid LearnerId = Guid.NewGuid();
     private static readonly Guid MaterialId = Guid.NewGuid();
+    private static readonly Guid AdminId1 = Guid.NewGuid();
+    private static readonly Guid AdminId2 = Guid.NewGuid();
 
     private static readonly string Description1000 = new('x', 1000);
     private static readonly string Description1001 = new('x', 1001);
@@ -34,6 +41,8 @@ public class UT10_ReportCourse_HandleTests
     private readonly Mock<IEnrollmentRepository> _enrollments = new();
     private readonly Mock<IMaterialRepository> _materials = new();
     private readonly Mock<IContentReportRepository> _reports = new();
+    private readonly Mock<IUserRepository> _users = new();
+    private readonly Mock<INotificationRepository> _notifications = new();
 
     private readonly Course _course = new("Prompt Engineering 101", Guid.NewGuid(), Guid.NewGuid(), KnowledgeLevel.Beginner);
 
@@ -43,12 +52,21 @@ public class UT10_ReportCourse_HandleTests
         _uow.SetupGet(x => x.Enrollments).Returns(_enrollments.Object);
         _uow.SetupGet(x => x.Materials).Returns(_materials.Object);
         _uow.SetupGet(x => x.ContentReports).Returns(_reports.Object);
+        _uow.SetupGet(x => x.Users).Returns(_users.Object);
+        _uow.SetupGet(x => x.Notifications).Returns(_notifications.Object);
         _uow.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         _reports.Setup(x => x.HasPendingReportAsync(
                     It.IsAny<Guid>(), It.IsAny<Guid?>(), It.IsAny<Guid?>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(false);
+
+        // Mặc định B10=T: hệ thống luôn có admin nhận thông báo moderation.
+        SetupAdmins(AdminId1, AdminId2);
     }
+
+    private void SetupAdmins(params Guid[] adminIds) =>
+        _users.Setup(x => x.GetAdminUserIdsAsync(It.IsAny<CancellationToken>()))
+              .ReturnsAsync(adminIds.ToList());
 
     private ReportCourseCommandHandler CreateSut() => new(_uow.Object);
 
@@ -74,6 +92,7 @@ public class UT10_ReportCourse_HandleTests
     private void AssertNothingPersisted()
     {
         _reports.Verify(x => x.AddAsync(It.IsAny<ContentReport>()), Times.Never);
+        _notifications.Verify(x => x.AddAsync(It.IsAny<Notification>()), Times.Never);
         _uow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -151,8 +170,8 @@ public class UT10_ReportCourse_HandleTests
     }
 
     /// <summary>
-    /// UTCID07 · B6=F, B8=F · Type N — báo cáo CẢ KHOÁ HỌC.
-    /// report.CourseId = CourseId, report.MaterialId = null.
+    /// UTCID07 · B6=F, B8=F, B10=T · Type N — báo cáo CẢ KHOÁ HỌC.
+    /// report.CourseId = CourseId, report.MaterialId = null; mỗi admin nhận 1 thông báo.
     /// </summary>
     [Fact]
     public async Task UTCID07_ReportWholeCourse_CreatesPendingReportWithCourseIdOnly()
@@ -166,6 +185,9 @@ public class UT10_ReportCourse_HandleTests
         _reports.Verify(x => x.HasPendingReportAsync(LearnerId, _course.Id, null, It.IsAny<CancellationToken>()), Times.Once);
         _reports.Verify(x => x.AddAsync(It.Is<ContentReport>(r =>
             r.CourseId == _course.Id && r.MaterialId == null && r.Status == ReportStatus.Pending)), Times.Once);
+        _notifications.Verify(x => x.AddAsync(It.Is<Notification>(n =>
+            n.UserId == AdminId1 && n.Type == NotificationType.NewContentReport)), Times.Once);
+        _notifications.Verify(x => x.AddAsync(It.Is<Notification>(n => n.UserId == AdminId2)), Times.Once);
         _uow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -189,13 +211,11 @@ public class UT10_ReportCourse_HandleTests
     /// <summary>
     /// UTCID09 · B7=F, B8=F · Type N — báo cáo MỘT HỌC LIỆU.
     ///
-    /// DEFECT DFID003 (regression từ commit 2ff5f51): ContentReport.CourseId nay là
-    /// non-nullable, nhưng handler vẫn gán reportCourseId = null cho nhánh học liệu rồi gọi
-    /// reportCourseId.Value ở dòng 71 ⇒ ném InvalidOperationException("Nullable object must
-    /// have a value") ⇒ toàn bộ chức năng "báo cáo học liệu" trả HTTP 500.
+    /// DFID003 (regression từ commit 2ff5f51) — CLOSED: trước đây handler gán reportCourseId = null
+    /// cho nhánh học liệu rồi gọi .Value ⇒ InvalidOperationException. Handler hiện luôn truyền
+    /// request.CourseId, MaterialId chỉ là thông tin bổ sung.
     ///
-    /// Expected ghi theo hợp đồng ĐÚNG: report phải mang CẢ CourseId lẫn MaterialId.
-    /// ⇒ Test này DỰ KIẾN FAIL cho tới khi handler được sửa.
+    /// Expected vẫn ghi theo hợp đồng ĐÚNG: report phải mang CẢ CourseId lẫn MaterialId.
     /// </summary>
     [Fact]
     public async Task UTCID09_ReportMaterial_CreatesPendingReportWithCourseIdAndMaterialId()
@@ -231,9 +251,8 @@ public class UT10_ReportCourse_HandleTests
 
     /// <summary>
     /// UTCID11 · B8=T, B9=T · Type A — đã có báo cáo Pending cho HỌC LIỆU.
-    /// Không ràng buộc tham số cụ thể của HasPendingReportAsync: khoá chống trùng cho học liệu
-    /// vẫn xác định duy nhất bằng MaterialId, việc handler truyền courseId = null chỉ là
-    /// Observation (không phải defect) — xem Test Design §B.
+    /// Khoá chống trùng của nhánh học liệu là bộ ba (LearnerId, CourseId, MaterialId) — kể từ
+    /// commit 2ff5f51 handler luôn truyền CourseId thật, không còn truyền null.
     /// </summary>
     [Fact]
     public async Task UTCID11_DuplicateMaterialReport_ReturnsAlreadyReportedWithMaterialMessage()
@@ -242,7 +261,7 @@ public class UT10_ReportCourse_HandleTests
         _materials.Setup(x => x.IsMaterialInCourseAsync(MaterialId, _course.Id, It.IsAny<CancellationToken>()))
                   .ReturnsAsync(true);
         _reports.Setup(x => x.HasPendingReportAsync(
-                    LearnerId, It.IsAny<Guid?>(), MaterialId, It.IsAny<CancellationToken>()))
+                    LearnerId, _course.Id, MaterialId, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(true);
 
         var result = await Act(ReportType.Spam, materialId: MaterialId);
@@ -279,5 +298,23 @@ public class UT10_ReportCourse_HandleTests
 
         Assert.True(result.Success);
         _reports.Verify(x => x.AddAsync(It.Is<ContentReport>(r => r.Description == string.Empty)), Times.Once);
+    }
+
+    /// <summary>
+    /// UTCID14 · B10=F · Type B — hệ thống chưa có tài khoản Admin nào.
+    /// Báo cáo vẫn phải được ghi nhận, chỉ bỏ qua bước phát thông báo.
+    /// </summary>
+    [Fact]
+    public async Task UTCID14_NoAdminAccounts_StillCreatesReportWithoutNotification()
+    {
+        SetupEnrolled();
+        SetupAdmins();
+
+        var result = await Act(ReportType.Spam, "Nội dung spam");
+
+        Assert.True(result.Success);
+        _reports.Verify(x => x.AddAsync(It.IsAny<ContentReport>()), Times.Once);
+        _notifications.Verify(x => x.AddAsync(It.IsAny<Notification>()), Times.Never);
+        _uow.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 }

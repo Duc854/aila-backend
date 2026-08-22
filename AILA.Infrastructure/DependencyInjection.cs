@@ -13,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Shared.Models;
 using StackExchange.Redis;
+using AILA.Application.Common.Dtos.Rag;
 
 namespace AILA.Infrastructure
 {
@@ -59,10 +60,17 @@ namespace AILA.Infrastructure
             services.AddScoped<IQuestionExcelService, QuestionExcelService>();
             services.AddScoped<ISePayService, SePayService>();
             services.AddScoped<IAccountResourceRepository, AccountResourceRepository>();
-            services.AddScoped<IKnowledgeChunkRepository, KnowledgeChunkRepository>();
             services.AddScoped<IPracticeAttemptRepository, PracticeAttemptRepository>();
             services.AddScoped<IAIPracticeMaterialRepository, AIPracticeMaterialRepository>();
-            
+            services.AddScoped<IKnowledgeRepository, KnowledgeRepository>();
+            services.AddScoped<ICourseChatSessionRepository, CourseChatSessionRepository>();
+            services.AddScoped<ICourseChatMessageRepository, CourseChatMessageRepository>();
+            services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
+            services.AddScoped<IAccountResourceRepository, AccountResourceRepository>();
+            services.AddScoped<IPracticeAttemptRepository, PracticeAttemptRepository>();
+            services.AddScoped<IAIPracticeMaterialRepository, AIPracticeMaterialRepository>();
+
+
             services.AddScoped<IKnowledgeBaseService, KnowledgeBaseService>();
             services.AddScoped<IModerationService, ModerationService>();
             services.AddScoped<IPracticeChatService, PracticeChatService>();
@@ -72,6 +80,13 @@ namespace AILA.Infrastructure
             services.AddScoped<IRagChatService, RagChatService>();
             services.AddScoped<IRoleParserService, RoleParserService>();
             services.AddScoped<IScoringService, ScoringService>();
+            services.AddScoped<ISessionValidator, SessionValidator>();
+            services.AddScoped<IVectorSearchService, VectorSearchService>();
+            services.AddScoped<IPromptBuilder, PromptBuilder>();
+            services.AddScoped<IChatResponseHandler, ChatResponseHandler>();
+            services.AddScoped<IMessagePersistence, MessagePersistence>();
+
+            services.Configure<RagChatConfig>(configuration.GetSection("RagChat"));
 
             // 7. Cấu hình Semantic Kernel Chat Completion
             services.AddSingleton<Microsoft.SemanticKernel.ChatCompletion.IChatCompletionService>(sp =>

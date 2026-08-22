@@ -1,5 +1,6 @@
 using AILA.Application.Common.Interfaces.Repositories;
 using AILA.Domain.Entities;
+using AILA.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace AILA.Infrastructure.Persistence.Repositories
@@ -109,6 +110,20 @@ namespace AILA.Infrastructure.Persistence.Repositories
             return await _context.Enrollments
                 .Where(e => e.CourseId == courseId)
                 .ToListAsync(cancellationToken);
+        }
+
+        public async Task<bool> IsLearnerEnrolledInCourseAsync(
+       Guid accountId,
+       Guid courseId,
+       CancellationToken cancellationToken = default)
+        {
+            return await _context.Enrollments
+                .AnyAsync(
+                    e =>
+                        e.LearnerId == accountId &&
+                        e.CourseId == courseId &&
+                        e.Status == EnrollmentStatus.Active,
+                    cancellationToken);
         }
     }
 }

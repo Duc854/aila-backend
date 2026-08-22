@@ -8,5 +8,6 @@ public sealed record CreateBlogCommand(
     string Title,
     string Slug,
     string Content,
-    string? ThumbnailUrl)
+    string? ThumbnailUrl,
+    Guid AdminId = default)
     : IRequest<ResponseDto<AdminBlogDto>>;
