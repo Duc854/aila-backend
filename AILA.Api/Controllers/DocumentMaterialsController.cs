@@ -1,4 +1,5 @@
-﻿using AILA.Api.Extensions;
+using AILA.Api.Extensions;
+using AILA.Application.Features.DocumentMaterials.Commands.CreateDocumentMaterial;
 using AILA.Application.Features.DocumentMaterials.Commands.UpdateDocumentDetail;
 using AILA.Application.Features.DocumentMaterials.Dtos;
 using AILA.Application.Features.DocumentMaterials.Queries.GetDocumentDetail;
@@ -19,6 +20,45 @@ namespace AILA.Api.Controllers
         public DocumentMaterialsController(ISender sender)
         {
             _sender = sender;
+        }
+
+        /// <summary>
+        /// Tạo Document Material mới (Material + DocumentMaterial trong 1 Transaction).
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> CreateDocumentMaterial(
+            [FromBody] CreateDocumentMaterialRequest request,
+            CancellationToken ct)
+        {
+            var identity = HttpContext.GetUserIdentity();
+
+            if (identity == null)
+            {
+                return Unauthorized(
+                    ResponseDto<object>.FailResult(
+                        "AUTH_FAILED",
+                        "Xác thực thất bại."));
+            }
+
+            var command = new CreateDocumentMaterialCommand(
+                ExpertId: identity.UserId,
+                ModuleId: request.ModuleId,
+                Title: request.Title,
+                Content: request.Content);
+
+            var result = await _sender.Send(command, ct);
+
+            if (!result.Success)
+            {
+                return result.ErrorCode switch
+                {
+                    "MODULE_NOT_FOUND" => NotFound(result),
+                    "FORBIDDEN" => StatusCode(StatusCodes.Status403Forbidden, result),
+                    _ => BadRequest(result)
+                };
+            }
+
+            return Ok(result);
         }
 
         /// <summary>

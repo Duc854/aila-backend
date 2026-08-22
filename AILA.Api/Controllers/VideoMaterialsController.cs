@@ -1,4 +1,5 @@
-﻿using AILA.Api.Extensions;
+using AILA.Api.Extensions;
+using AILA.Application.Features.VideoMaterials.Commands.CreateVideoMaterial;
 using AILA.Application.Features.VideoMaterials.Queries.GetVideoDetail;
 using AILA.Application.Features.VideoMaterials.Commands.UpdateVideoDetail;
 using AILA.Application.Features.VideoMaterials.Dtos;
@@ -20,6 +21,47 @@ public class VideoMaterialsController : ControllerBase
         ISender sender)
     {
         _sender = sender;
+    }
+
+    /// <summary>
+    /// Tạo Video Material mới (Material + VideoMaterial trong 1 Transaction).
+    /// </summary>
+    [HttpPost]
+    public async Task<IActionResult> CreateVideoMaterial(
+        [FromBody] CreateVideoMaterialRequest request,
+        CancellationToken ct)
+    {
+        var identity = HttpContext.GetUserIdentity();
+
+        if (identity == null)
+        {
+            return Unauthorized(
+                ResponseDto<object>.FailResult(
+                    "AUTH_FAILED",
+                    "Xác thực thất bại."));
+        }
+
+        var command = new CreateVideoMaterialCommand(
+            ExpertId: identity.UserId,
+            ModuleId: request.ModuleId,
+            Title: request.Title,
+            VideoUrl: request.VideoUrl,
+            DurationSeconds: request.DurationSeconds,
+            Content: request.Content);
+
+        var result = await _sender.Send(command, ct);
+
+        if (!result.Success)
+        {
+            return result.ErrorCode switch
+            {
+                "MODULE_NOT_FOUND" => NotFound(result),
+                "FORBIDDEN" => StatusCode(StatusCodes.Status403Forbidden, result),
+                _ => BadRequest(result)
+            };
+        }
+
+        return Ok(result);
     }
 
     /// <summary>

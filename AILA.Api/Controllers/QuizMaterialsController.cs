@@ -1,4 +1,5 @@
-﻿using AILA.Api.Extensions;
+using AILA.Api.Extensions;
+using AILA.Application.Features.QuizMaterials.Commands.CreateQuizMaterial;
 using AILA.Application.Features.QuizMaterials.Commands.BulkCreateQuiz;
 using AILA.Application.Features.QuizMaterials.Commands.UpdateQuizDetail;
 using AILA.Application.Features.QuizMaterials.Dtos;
@@ -21,6 +22,48 @@ public class QuizMaterialsController : ControllerBase{
         ISender sender)
     {
         _sender = sender;
+    }
+
+    /// <summary>
+    /// Tạo Quiz Material mới (Material + QuizMaterial trong 1 Transaction).
+    /// </summary>
+    [HttpPost]
+    [Authorize(Roles = "Expert")]
+    public async Task<IActionResult> CreateQuizMaterial(
+        [FromBody] CreateQuizMaterialRequest request,
+        CancellationToken ct)
+    {
+        var identity = HttpContext.GetUserIdentity();
+
+        if (identity == null)
+        {
+            return Unauthorized(
+                ResponseDto<object>.FailResult(
+                    "AUTH_FAILED",
+                    "Xác thực thất bại."));
+        }
+
+        var command = new CreateQuizMaterialCommand(
+            ExpertId: identity.UserId,
+            ModuleId: request.ModuleId,
+            Title: request.Title,
+            TimeLimitMinutes: request.TimeLimitMinutes,
+            PassingScore: request.PassingScore,
+            ShowCorrectAnswersAfterSubmission: request.ShowCorrectAnswersAfterSubmission);
+
+        var result = await _sender.Send(command, ct);
+
+        if (!result.Success)
+        {
+            return result.ErrorCode switch
+            {
+                "MODULE_NOT_FOUND" => NotFound(result),
+                "FORBIDDEN" => StatusCode(StatusCodes.Status403Forbidden, result),
+                _ => BadRequest(result)
+            };
+        }
+
+        return Ok(result);
     }
 
     /// <summary>
